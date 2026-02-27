@@ -1,0 +1,176 @@
+<div class="movimiento-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Movimientos de Inventario</h1>
+      <p class="subtitle">Consulta los movimientos de entrada y salida de inventario</p>
+    </div>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input type="text" class="search-input" placeholder="Buscar..." [(ngModel)]="searchTerm">
+    </div>
+    <div class="results-count">
+      <span>Mostrando</span>
+      <span class="count-badge">{{ movimientosFiltrados.length }}</span>
+      <span>de {{ movimientos.length }}</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando movimientos...</p>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Tipo</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let mov of movimientosFiltrados">
+          <td class="codigo-cell">{{ mov.numeroMovimiento }}</td>
+          <td>{{ mov.tipoMovimientoNombre }}</td>
+          <td>{{ mov.fechaMovimiento | date: 'dd/MM/yyyy' }}</td>
+          <td>
+            <span class="badge" [ngClass]="{
+              'badge-secondary': mov.estado === 'BORRADOR',
+              'badge-success': mov.estado === 'CONFIRMADO'
+            }">
+              {{ getEstadoLabel(mov.estado) }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn-icon btn-view" (click)="verDetalles(mov)" title="Ver Detalles">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="movimientosFiltrados.length === 0">
+          <td colspan="6" class="no-data">
+            <p>No se encontraron movimientos</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Ver Detalles -->
+  <div class="modal-overlay" *ngIf="showDetalleModal" (click)="cerrarDetalleModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalles del Movimiento</h2>
+        <button class="btn-close" (click)="cerrarDetalleModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body" *ngIf="movimientoSeleccionado">
+        <!-- Información General -->
+        <div class="info-section">
+          <h3>Información General</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Número de Movimiento:</label>
+              <span class="codigo-cell">{{ movimientoSeleccionado.numeroMovimiento }}</span>
+            </div>
+            <div class="info-item">
+              <label>Tipo de Movimiento:</label>
+              <span>{{ movimientoSeleccionado.tipoMovimientoNombre }}</span>
+            </div>
+            <div class="info-item">
+              <label>Estado:</label>
+              <span class="badge" [ngClass]="{
+                'badge-secondary': movimientoSeleccionado.estado === 'BORRADOR',
+                'badge-info': movimientoSeleccionado.estado === 'CONFIRMADO',
+                'badge-success': movimientoSeleccionado.estado === 'CONTABILIZADO',
+                'badge-danger': movimientoSeleccionado.estado === 'ANULADO'
+              }">
+                {{ getEstadoLabel(movimientoSeleccionado.estado) }}
+              </span>
+            </div>
+            <div class="info-item">
+              <label>Fecha de Movimiento:</label>
+              <span>{{ movimientoSeleccionado.fechaMovimiento | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="info-item" *ngIf="movimientoSeleccionado.fechaContabilizacion">
+              <label>Fecha de Contabilización:</label>
+              <span>{{ movimientoSeleccionado.fechaContabilizacion | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="info-item" *ngIf="movimientoSeleccionado.documentoReferencia">
+              <label>Documento de Referencia:</label>
+              <span>{{ movimientoSeleccionado.documentoReferencia }} ({{ movimientoSeleccionado.tipoDocumentoReferencia }})</span>
+            </div>
+          </div>
+
+          <div class="info-item-full" *ngIf="movimientoSeleccionado.motivo">
+            <label>Motivo:</label>
+            <p class="text-muted">{{ movimientoSeleccionado.motivo }}</p>
+          </div>
+
+          <div class="info-item-full" *ngIf="movimientoSeleccionado.observaciones">
+            <label>Observaciones:</label>
+            <p class="text-muted">{{ movimientoSeleccionado.observaciones }}</p>
+          </div>
+        </div>
+
+        <!-- Detalles de Productos -->
+        <div class="info-section" *ngIf="movimientoSeleccionado.detalles && movimientoSeleccionado.detalles.length > 0">
+          <h3>Detalles de Productos</h3>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Lote</th>
+                  <th>Cantidad</th>
+                  <th>Costo Unit.</th>
+                  <th>Total</th>
+                  <th>Ubicación</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let det of movimientoSeleccionado.detalles">
+                  <td class="nombre-cell">{{ det.productoNombre || obtenerNombreProducto(det.productoId) }}</td>
+                  <td>{{ det.loteNumero || 'N/A' }}</td>
+                  <td>{{ det.cantidad | number:'1.2-2' }}</td>
+                  <td>{{ det.costoUnitario | number:'1.2-2' }}</td>
+                  <td><strong>{{ det.costoTotal | number:'1.2-2' }}</strong></td>
+                  <td>{{ det.ubicacionFisica || 'N/A' }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <td colspan="4" class="text-right"><strong>Total del Movimiento:</strong></td>
+                  <td colspan="2"><strong class="total-amount">{{ calcularTotalMovimientoSeleccionado() | number:'1.2-2' }}</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

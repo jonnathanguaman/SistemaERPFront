@@ -1,0 +1,41 @@
+@import '../tipo-movimiento/tipo-movimiento.component.css';
+
+.detalle-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.info-message {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 48px;
+  text-align: center;
+  margin-top: 32px;
+}
+
+.info-message svg {
+  color: #2563EB;
+  margin-bottom: 24px;
+}
+
+.info-message h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+}
+
+.info-message p {
+  font-size: 15px;
+  color: #6B7280;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.info-message strong {
+  color: #2563EB;
+  font-weight: 600;
+}

@@ -1,0 +1,193 @@
+<div class="precio-producto-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Precios de Productos</h1>
+      <p class="subtitle">Asignación de precios por producto y lista</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModal()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nuevo Precio de Producto
+    </button>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input type="text" class="search-input" placeholder="Buscar por lista o producto..." [(ngModel)]="busqueda" (input)="filtrarPreciosProducto()">
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Lista de Precios</th>
+          <th>Tipo</th>
+          <th>Producto</th>
+          <th>Precio</th>
+          <th>Precio Mínimo</th>
+          <th>Vigencia</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let precio of preciosProductoFiltrados">
+          <td>
+            <div class="lista-info">
+              <strong>{{ precio.listaPreciosCodigo }}</strong>
+              <small>{{ precio.listaPreciosNombre }}</small>
+            </div>
+          </td>
+          <td><span class="badge badge-info">{{ precio.listaPreciosTipo }}</span></td>
+          <td>{{ obtenerNombreProducto(precio.productoId) }}</td>
+          <td class="precio-cell">${{ precio.precio | number:'1.2-2' }}</td>
+          <td class="precio-cell">{{ precio.precioMinimo ? ('$' + (precio.precioMinimo | number:'1.2-2')) : '-' }}</td>
+          <td>
+            <div class="date-range">
+              {{ precio.fechaVigenciaDesde | date:'dd/MM/yyyy' }}
+              <span *ngIf="precio.fechaVigenciaHasta"> - {{ precio.fechaVigenciaHasta | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="badge" [class.badge-success]="precio.estaVigente && precio.activo" [class.badge-warning]="!precio.estaVigente && precio.activo" [class.badge-danger]="!precio.activo">
+              {{ precio.estaVigente && precio.activo ? 'Vigente' : (!precio.activo ? 'Inactivo' : 'No vigente') }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn-icon btn-edit" (click)="abrirModal(precio)" title="Editar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" (click)="eliminarPrecioProducto(precio.id)" title="Eliminar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="preciosProductoFiltrados.length === 0">
+          <td colspan="8" class="no-data">No hay precios de productos registrados</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()" (keydown.escape)="cerrarModal()" tabindex="-1">
+  <div class="modal-content" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h2>{{ modoEdicion ? 'Editar' : 'Nuevo' }} Precio de Producto</h2>
+      <button class="btn-close" (click)="cerrarModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <form [formGroup]="precioProductoForm" (ngSubmit)="guardarPrecioProducto()" class="modal-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="listaPreciosId">
+            Lista de Precios <span class="required">*</span>
+          </label>
+          <select id="listaPreciosId" formControlName="listaPreciosId">
+            <option value="">Seleccione una lista</option>
+            <option *ngFor="let lista of listasPreciosActivas" [value]="lista.id">
+              {{ lista.codigo }} - {{ lista.nombre }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="productoId">
+            Producto <span class="required">*</span>
+          </label>
+          <select id="productoId" formControlName="productoId">
+            <option value="">Seleccione un producto</option>
+            <option *ngFor="let producto of productos" [value]="producto.id">
+              {{ producto.sku }} - {{ producto.productoNombre }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="precio">
+            Precio <span class="required">*</span>
+          </label>
+          <input 
+            type="number"
+            id="precio"
+            formControlName="precio"
+            step="0.01"
+            min="0.01"
+            placeholder="0.00"
+          >
+        </div>
+        <div class="form-group">
+          <label for="precioMinimo">
+            Precio Mínimo
+          </label>
+          <input 
+            type="number"
+            id="precioMinimo"
+            formControlName="precioMinimo"
+            step="0.01"
+            min="0.01"
+            placeholder="0.00"
+          >
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fechaVigenciaDesde">
+            Fecha Vigencia Desde <span class="required">*</span>
+          </label>
+          <input 
+            type="date"
+            id="fechaVigenciaDesde"
+            formControlName="fechaVigenciaDesde"
+          >
+        </div>
+        <div class="form-group">
+          <label for="fechaVigenciaHasta">
+            Fecha Vigencia Hasta
+          </label>
+          <input 
+            type="date"
+            id="fechaVigenciaHasta"
+            formControlName="fechaVigenciaHasta"
+          >
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="activo">
+          <span>Activo</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="precioProductoForm.invalid">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,420 @@
+<div class="producto-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Productos</h1>
+      <p class="subtitle">Gestiona el catálogo de productos del inventario</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nuevo Producto
+    </button>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por nombre, SKU o código de barras..."
+        [(ngModel)]="searchTerm"
+        (input)="filtrarProductos()"
+      >
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando productos...</p>
+  </div>
+
+  <!-- Tabla de productos -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Nombre</th>
+          <th>Presentación</th>
+          <th>Tipo</th>
+          <th>Línea Negocio</th>
+          <th>Temperatura</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let producto of productosFiltrados">
+          <td class="sku-cell">{{ producto.sku }}</td>
+          <td>
+            <div class="producto-info">
+              <span class="producto-name">{{ producto.productoNombre }}</span>
+              <span class="producto-detail" *ngIf="producto.codigoBarras">{{ producto.codigoBarras }}</span>
+            </div>
+          </td>
+          <td>{{ producto.presentacion }}</td>
+          <td>{{ producto.productoTipoNombre }}</td>
+          <td>{{ producto.lineaNegocioNombre }}</td>
+          <td>
+            <span class="badge badge-temp">{{ getTemperaturaLabel(producto.temperatura) }}</span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="producto.estado ? 'badge-success' : 'badge-danger'">
+              {{ producto.estado ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button 
+                class="btn-icon btn-edit" 
+                (click)="abrirModalEditar(producto)"
+                title="Editar producto"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button 
+                class="btn-icon btn-delete" 
+                (click)="eliminarProducto(producto)"
+                title="Eliminar producto"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <!-- Sin datos -->
+        <tr *ngIf="productosFiltrados.length === 0">
+          <td colspan="8" class="no-data">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p class="no-data-title">No hay productos registrados</p>
+            <p class="no-data-subtitle">Comienza registrando el primer producto del inventario</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Crear/Editar Producto -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <!-- Header del modal -->
+      <div class="modal-header">
+        <h2>{{ isEditMode ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Formulario -->
+      <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()" class="modal-form">
+        
+        <!-- Sección: Información Básica -->
+        <div class="form-section">
+          <h3 class="section-title">Información Básica</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="sku">
+                SKU <span class="required">*</span>
+              </label>
+              <input 
+                type="text"
+                id="sku"
+                formControlName="sku"
+                placeholder="Ej: PROD-001"
+                [class.invalid]="isFieldInvalid('sku')"
+              >
+              <span class="error-message" *ngIf="isFieldInvalid('sku')">
+                {{ getFieldError('sku') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="codigoBarras">
+                Código de Barras
+              </label>
+              <input 
+                type="text"
+                id="codigoBarras"
+                formControlName="codigoBarras"
+                placeholder="Ej: 7501234567890"
+                [class.invalid]="isFieldInvalid('codigoBarras')"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="codigoInterno">
+                Código Interno
+              </label>
+              <input 
+                type="text"
+                id="codigoInterno"
+                formControlName="codigoInterno"
+                placeholder="Ej: INT-001"
+                [class.invalid]="isFieldInvalid('codigoInterno')"
+              >
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group form-group-full">
+              <label for="productoNombre">
+                Nombre del Producto <span class="required">*</span>
+              </label>
+              <input 
+                type="text"
+                id="productoNombre"
+                formControlName="productoNombre"
+                placeholder="Ej: Producto de Ejemplo"
+                [class.invalid]="isFieldInvalid('productoNombre')"
+              >
+              <span class="error-message" *ngIf="isFieldInvalid('productoNombre')">
+                {{ getFieldError('productoNombre') }}
+              </span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="presentacion">
+                Presentación
+              </label>
+              <input 
+                type="text"
+                id="presentacion"
+                formControlName="presentacion"
+                placeholder="Ej: Caja x 12 unidades"
+                [class.invalid]="isFieldInvalid('presentacion')"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="unidadMedida">
+                Unidad de Medida
+              </label>
+              <input 
+                type="text"
+                id="unidadMedida"
+                formControlName="unidadMedida"
+                placeholder="Ej: KG, LT, UN"
+                [class.invalid]="isFieldInvalid('unidadMedida')"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección: Clasificación -->
+        <div class="form-section">
+          <h3 class="section-title">Clasificación</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productoTipoId">
+                Tipo de Producto <span class="required">*</span>
+              </label>
+              <select 
+                id="productoTipoId"
+                formControlName="productoTipoId"
+                [class.invalid]="isFieldInvalid('productoTipoId')"
+              >
+                <option value="">Seleccione un tipo</option>
+                <option *ngFor="let tipo of productoTipos" [value]="tipo.id">
+                  {{ tipo.nombre }}
+                </option>
+              </select>
+              <span class="error-message" *ngIf="isFieldInvalid('productoTipoId')">
+                {{ getFieldError('productoTipoId') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="lineaNegocioId">
+                Línea de Negocio <span class="required">*</span>
+              </label>
+              <select 
+                id="lineaNegocioId"
+                formControlName="lineaNegocioId"
+                [class.invalid]="isFieldInvalid('lineaNegocioId')"
+              >
+                <option value="">Seleccione una línea</option>
+                <option *ngFor="let linea of lineasNegocio" [value]="linea.id">
+                  {{ linea.nombreLinea }}
+                </option>
+              </select>
+              <span class="error-message" *ngIf="isFieldInvalid('lineaNegocioId')">
+                {{ getFieldError('lineaNegocioId') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="subgrupoId">
+                Subgrupo <span class="required">*</span>
+              </label>
+              <select 
+                id="subgrupoId"
+                formControlName="subgrupoId"
+                [class.invalid]="isFieldInvalid('subgrupoId')"
+              >
+                <option value="">Seleccione un subgrupo</option>
+                <option *ngFor="let subgrupo of subgrupos" [value]="subgrupo.id">
+                  {{ subgrupo.nombre }}
+                </option>
+              </select>
+              <span class="error-message" *ngIf="isFieldInvalid('subgrupoId')">
+                {{ getFieldError('subgrupoId') }}
+              </span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="temperatura">
+                Temperatura <span class="required">*</span>
+              </label>
+              <select 
+                id="temperatura"
+                formControlName="temperatura"
+                [class.invalid]="isFieldInvalid('temperatura')"
+              >
+                <option *ngFor="let temp of temperaturas" [value]="temp">
+                  {{ getTemperaturaLabel(temp) }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección: Medidas y Cantidades -->
+        <div class="form-section">
+          <h3 class="section-title">Medidas y Cantidades</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="peso">
+                Peso
+              </label>
+              <input 
+                type="number"
+                id="peso"
+                formControlName="peso"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                [class.invalid]="isFieldInvalid('peso')"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="volumen">
+                Volumen
+              </label>
+              <input 
+                type="number"
+                id="volumen"
+                formControlName="volumen"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                [class.invalid]="isFieldInvalid('volumen')"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="cantidadPorCaja">
+                Cantidad por Caja <span class="required">*</span>
+              </label>
+              <input 
+                type="number"
+                id="cantidadPorCaja"
+                formControlName="cantidadPorCaja"
+                placeholder="1"
+                min="1"
+                [class.invalid]="isFieldInvalid('cantidadPorCaja')"
+              >
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cantidadMinimo">
+                Cantidad Mínima
+              </label>
+              <input 
+                type="number"
+                id="cantidadMinimo"
+                formControlName="cantidadMinimo"
+                placeholder="0"
+                step="0.01"
+                min="0"
+                [class.invalid]="isFieldInvalid('cantidadMinimo')"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="cantidadMaxima">
+                Cantidad Máxima
+              </label>
+              <input 
+                type="number"
+                id="cantidadMaxima"
+                formControlName="cantidadMaxima"
+                placeholder="0"
+                step="0.01"
+                min="0"
+                [class.invalid]="isFieldInvalid('cantidadMaxima')"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección: Estado -->
+        <div class="form-section">
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox"
+                formControlName="estado"
+                class="checkbox-input"
+              >
+              <span>Producto Activo</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            {{ isEditMode ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

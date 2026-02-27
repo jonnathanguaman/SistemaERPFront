@@ -1,0 +1,200 @@
+<div class="container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Formas de Pago</h1>
+      <p class="subtitle">Gestiona las formas de pago disponibles en el sistema</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nueva Forma de Pago
+    </button>
+  </div>
+
+  <!-- Search bar -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por código, nombre..."
+        [(ngModel)]="searchTerm"
+      >
+    </div>
+    <div class="results-count">
+      <span>Mostrando</span>
+      <span class="count-badge">{{ formasPagoFiltradas.length }}</span>
+      <span>de {{ formasPago.length }} formas de pago</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando formas de pago...</p>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Requiere Ref.</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let formaPago of formasPagoFiltradas">
+          <td class="codigo-cell">{{ formaPago.codigo }}</td>
+          <td class="nombre-cell">{{ formaPago.nombre }}</td>
+          <td>{{ formaPago.descripcion || '-' }}</td>
+          <td>
+            <span class="badge" [ngClass]="formaPago.requiereReferencia ? 'badge-info' : 'badge-secondary'">
+              {{ formaPago.requiereReferencia ? 'Sí' : 'No' }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="formaPago.activo ? 'badge-success' : 'badge-danger'">
+              {{ formaPago.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button 
+                class="btn-icon btn-edit" 
+                (click)="abrirModalEditar(formaPago)"
+                title="Editar forma de pago"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button 
+                class="btn-icon btn-delete" 
+                (click)="eliminarFormaPago(formaPago)"
+                title="Eliminar forma de pago"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <!-- No data -->
+        <tr *ngIf="formasPagoFiltradas.length === 0">
+          <td colspan="6" class="no-data">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p>No se encontraron formas de pago</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <!-- Modal header -->
+      <div class="modal-header">
+        <h2>{{ isEditing ? 'Editar Forma de Pago' : 'Nueva Forma de Pago' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="formaPagoForm" (ngSubmit)="guardarFormaPago()" class="modal-form">
+        <div class="form-group">
+          <label for="codigo">Código <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="codigo"
+            formControlName="codigo"
+            [class.invalid]="isFieldInvalid('codigo')"
+            placeholder="Ej: EFE, TAR, CHQ"
+          >
+          <span class="error-message" *ngIf="isFieldInvalid('codigo')">
+            {{ getFieldError('codigo') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="nombre">Nombre <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="nombre"
+            formControlName="nombre"
+            [class.invalid]="isFieldInvalid('nombre')"
+            placeholder="Ej: Efectivo, Tarjeta, Cheque"
+          >
+          <span class="error-message" *ngIf="isFieldInvalid('nombre')">
+            {{ getFieldError('nombre') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="descripcion">Descripción</label>
+          <textarea 
+            id="descripcion"
+            formControlName="descripcion"
+            rows="3"
+            placeholder="Descripción de la forma de pago"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              formControlName="requiereReferencia"
+            >
+            <span>Requiere Número de Referencia</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              formControlName="activo"
+            >
+            <span>Activo</span>
+          </label>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            {{ isEditing ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+/* Contenedor principal de la aplicación */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #F5F7FA;
+}
+
+/* Contenido principal */
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 30px;
+  transition: margin-left 0.3s ease-in-out;
+  overflow-y: auto;
+}
+
+/* Ajustar margen cuando el sidebar está colapsado */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 70px;
+  }
+}
+
+/* Estilos globales para el contenido */
+.main-content h1 {
+  color: #111827;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+
+.main-content h2 {
+  color: #111827;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.main-content h3 {
+  color: #111827;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.main-content p {
+  color: #6B7280;
+  font-size: 15px;
+  line-height: 1.6;
+}

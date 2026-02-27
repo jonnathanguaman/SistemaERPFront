@@ -1,0 +1,220 @@
+<div class="tipo-movimiento-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Gestión de Tipos de Movimiento</h1>
+      <p class="subtitle">Configura los tipos de movimientos de inventario</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nuevo Tipo
+    </button>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por nombre, código o tipo..."
+        [(ngModel)]="searchTerm"
+      >
+    </div>
+    <div class="results-count">
+      <span>Mostrando</span>
+      <span class="count-badge">{{ tiposMovimientoFiltrados.length }}</span>
+      <span>de {{ tiposMovimiento.length }} tipos</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando tipos de movimiento...</p>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Afecta Inventario</th>
+          <th>Req. Aprobación</th>
+          <th>Genera Asiento</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tipo of tiposMovimientoFiltrados">
+          <td class="codigo-cell">{{ tipo.codigo }}</td>
+          <td class="nombre-cell">{{ tipo.nombre }}</td>
+          <td>
+            <span class="badge" 
+              [ngClass]="{
+                'badge-success': tipo.afectaInventario === 'ENTRADA',
+                'badge-danger': tipo.afectaInventario === 'SALIDA',
+                'badge-warning': tipo.afectaInventario === 'NEUTRO'
+              }">
+              {{ getAfectaInventarioLabel(tipo.afectaInventario) }}
+            </span>
+          </td>
+          <td class="text-center">
+            <span *ngIf="tipo.requiereAprobacion" class="icon-check">✓</span>
+            <span *ngIf="!tipo.requiereAprobacion" class="icon-x">✗</span>
+          </td>
+          <td class="text-center">
+            <span *ngIf="tipo.generaAsiento" class="icon-check">✓</span>
+            <span *ngIf="!tipo.generaAsiento" class="icon-x">✗</span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="tipo.activo ? 'badge-success' : 'badge-danger'">
+              {{ tipo.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn-icon btn-edit" (click)="abrirModalEditar(tipo)" title="Editar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" (click)="eliminarTipoMovimiento(tipo)" title="Eliminar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="tiposMovimientoFiltrados.length === 0">
+          <td colspan="8" class="no-data">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p>No se encontraron tipos de movimiento</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditing ? 'Editar Tipo de Movimiento' : 'Nuevo Tipo de Movimiento' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="tipoMovimientoForm" (ngSubmit)="guardarTipoMovimiento()" class="modal-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="codigo">Código <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="codigo"
+              formControlName="codigo"
+              [class.invalid]="isFieldInvalid('codigo')"
+              placeholder="Ej: ENT-001"
+            >
+            <span class="error-message" *ngIf="isFieldInvalid('codigo')">
+              {{ getFieldError('codigo') }}
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="nombre">Nombre <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="nombre"
+              formControlName="nombre"
+              [class.invalid]="isFieldInvalid('nombre')"
+              placeholder="Ej: Entrada por compra"
+            >
+            <span class="error-message" *ngIf="isFieldInvalid('nombre')">
+              {{ getFieldError('nombre') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="descripcion">Descripción</label>
+          <textarea 
+            id="descripcion"
+            formControlName="descripcion"
+            rows="3"
+            placeholder="Descripción del tipo de movimiento"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="afectaInventario">Afecta Inventario <span class="required">*</span></label>
+          <select 
+            id="afectaInventario"
+            formControlName="afectaInventario"
+            [class.invalid]="isFieldInvalid('afectaInventario')"
+          >
+            <option *ngFor="let opcion of afectaInventarioOpciones" [value]="opcion.value">
+              {{ opcion.label }}
+            </option>
+          </select>
+          <span class="error-message" *ngIf="isFieldInvalid('afectaInventario')">
+            {{ getFieldError('afectaInventario') }}
+          </span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group-checkbox">
+            <input 
+              type="checkbox" 
+              id="requiereAprobacion"
+              formControlName="requiereAprobacion"
+            >
+            <label for="requiereAprobacion">Requiere Aprobación</label>
+          </div>
+
+          <div class="form-group-checkbox">
+            <input 
+              type="checkbox" 
+              id="generaAsiento"
+              formControlName="generaAsiento"
+            >
+            <label for="generaAsiento">Genera Asiento Contable</label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="tipoMovimientoForm.invalid">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            {{ isEditing ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

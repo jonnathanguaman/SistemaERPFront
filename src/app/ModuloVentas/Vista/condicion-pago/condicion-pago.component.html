@@ -1,0 +1,260 @@
+<div class="container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Condiciones de Pago</h1>
+      <p class="subtitle">Gestiona las condiciones de pago disponibles para las ventas</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nueva Condición de Pago
+    </button>
+  </div>
+
+  <!-- Search bar -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por código, nombre..."
+        [(ngModel)]="searchTerm"
+      >
+    </div>
+    <div class="results-count">
+      <span>Mostrando</span>
+      <span class="count-badge">{{ condicionesPagoFiltradas.length }}</span>
+      <span>de {{ condicionesPago.length }} condiciones</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando condiciones de pago...</p>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Días Crédito</th>
+          <th>Cuotas</th>
+          <th>Predeterminado</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let condicion of condicionesPagoFiltradas">
+          <td class="codigo-cell">{{ condicion.codigo }}</td>
+          <td class="nombre-cell">{{ condicion.nombre }}</td>
+          <td>
+            <span class="badge" [ngClass]="condicion.esContado ? 'badge-info' : 'badge-warning'">
+              {{ getTipoPago(condicion.diasCredito) }}
+            </span>
+          </td>
+          <td>{{ condicion.diasCredito }}</td>
+          <td>{{ condicion.permiteCuotas ? (condicion.numeroCuotasMaximo + ' cuotas') : 'No' }}</td>
+          <td>
+            <span class="badge" [ngClass]="condicion.esPredeterminado ? 'badge-success' : 'badge-secondary'">
+              {{ condicion.esPredeterminado ? 'Sí' : 'No' }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="condicion.activo ? 'badge-success' : 'badge-danger'">
+              {{ condicion.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button 
+                class="btn-icon btn-edit" 
+                (click)="abrirModalEditar(condicion)"
+                title="Editar condición de pago"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button 
+                class="btn-icon btn-delete" 
+                (click)="eliminarCondicionPago(condicion)"
+                title="Eliminar condición de pago"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <!-- No data -->
+        <tr *ngIf="condicionesPagoFiltradas.length === 0">
+          <td colspan="8" class="no-data">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p>No se encontraron condiciones de pago</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
+    <div class="modal-content modal-medium" (click)="$event.stopPropagation()">
+      <!-- Modal header -->
+      <div class="modal-header">
+        <h2>{{ isEditing ? 'Editar Condición de Pago' : 'Nueva Condición de Pago' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="condicionPagoForm" (ngSubmit)="guardarCondicionPago()" class="modal-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="codigo">Código <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="codigo"
+              formControlName="codigo"
+              [class.invalid]="isFieldInvalid('codigo')"
+              placeholder="Ej: CONT, CRED15"
+            >
+            <span class="error-message" *ngIf="isFieldInvalid('codigo')">
+              {{ getFieldError('codigo') }}
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="diasCredito">Días de Crédito <span class="required">*</span></label>
+            <input 
+              type="number" 
+              id="diasCredito"
+              formControlName="diasCredito"
+              [class.invalid]="isFieldInvalid('diasCredito')"
+              placeholder="0"
+              min="0"
+            >
+            <span class="error-message" *ngIf="isFieldInvalid('diasCredito')">
+              {{ getFieldError('diasCredito') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="nombre">Nombre <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="nombre"
+            formControlName="nombre"
+            [class.invalid]="isFieldInvalid('nombre')"
+            placeholder="Ej: Contado, Crédito 15 días"
+          >
+          <span class="error-message" *ngIf="isFieldInvalid('nombre')">
+            {{ getFieldError('nombre') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="descripcion">Descripción</label>
+          <textarea 
+            id="descripcion"
+            formControlName="descripcion"
+            rows="3"
+            placeholder="Descripción de la condición de pago"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                formControlName="permiteCuotas"
+              >
+              <span>Permite Cuotas</span>
+            </label>
+          </div>
+
+          <div class="form-group" *ngIf="condicionPagoForm.get('permiteCuotas')?.value">
+            <label for="numeroCuotasMaximo">Número Máximo de Cuotas</label>
+            <input 
+              type="number" 
+              id="numeroCuotasMaximo"
+              formControlName="numeroCuotasMaximo"
+              min="1"
+              placeholder="1"
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                formControlName="requiereGarantia"
+              >
+              <span>Requiere Garantía</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                formControlName="requiereAprobacionCredito"
+              >
+              <span>Requiere Aprobación de Crédito</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              formControlName="esPredeterminado"
+            >
+            <span>Establecer como Predeterminado</span>
+          </label>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            {{ isEditing ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

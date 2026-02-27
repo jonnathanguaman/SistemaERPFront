@@ -1,0 +1,141 @@
+<nav class="sidebar" [class.collapsed]="isCollapsed">
+  <!-- Header del menú -->
+  <div class="sidebar-header">
+    <div class="logo">
+      <span class="logo-icon">📊</span>
+      <span class="logo-text" *ngIf="!isCollapsed">GT finance AI</span>
+    </div>
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      <span *ngIf="!isCollapsed">◀</span>
+      <span *ngIf="isCollapsed">▶</span>
+    </button>
+  </div>
+
+  <!-- Menú principal -->
+  <div class="menu-container">
+    <ul class="menu-list">
+      <!-- Dashboard -->
+      <li class="menu-item" [class.active]="activeModule === 'dashboard'" (click)="setActiveModule('dashboard')" (keydown.enter)="setActiveModule('dashboard')" [attr.data-tooltip]="'Dashboard'" tabindex="0" role="button">
+        <a routerLink="/dashboard" class="menu-link">
+          <span class="menu-icon">📈</span>
+          <span class="menu-text" *ngIf="!isCollapsed">Dashboard</span>
+        </a>
+      </li>
+
+      <!-- Módulo Ventas -->
+      <li class="menu-item" [class.active]="activeModule === 'ventas'" (click)="setActiveModule('ventas')" (keydown.enter)="setActiveModule('ventas')" [attr.data-tooltip]="'Ventas'" tabindex="0" role="button">
+        <a routerLink="/facturas" class="menu-link">
+          <span class="menu-icon">🛒</span>
+          <span class="menu-text" *ngIf="!isCollapsed">Ventas</span>
+        </a>
+        <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'ventas'">
+          <li><a routerLink="/clientes" (click)="$event.stopPropagation()">Clientes</a></li>
+          <li><a routerLink="/contactos-cliente" (click)="$event.stopPropagation()">Contactos Cliente</a></li>
+          <li><a routerLink="/direcciones-cliente" (click)="$event.stopPropagation()">Direcciones Cliente</a></li>
+          <li><a routerLink="/tipos-cliente" (click)="$event.stopPropagation()">Tipos Cliente</a></li>
+          <li><a routerLink="/zonas-venta" (click)="$event.stopPropagation()">Zonas Venta</a></li>
+          <li><a routerLink="/listas-precios" (click)="$event.stopPropagation()">Listas de Precios</a></li>
+          <li><a routerLink="/precios-producto" (click)="$event.stopPropagation()">Precios Producto</a></li>
+          <li><a routerLink="/facturas" (click)="$event.stopPropagation()">Facturas</a></li>
+          <li><a routerLink="/cobros" (click)="$event.stopPropagation()">Cobros</a></li>
+          <li><a routerLink="/condiciones-pago" (click)="$event.stopPropagation()">Condiciones de Pago</a></li>
+          <li><a routerLink="/formas-pago" (click)="$event.stopPropagation()">Formas de Pago</a></li>
+          <li><a routerLink="/cuentas-por-cobrar" (click)="$event.stopPropagation()">Cuentas por Cobrar</a></li>
+        </ul>
+      </li>
+
+      <!-- Módulo Compras -->
+      <li class="menu-item" [class.active]="activeModule === 'compras'" (click)="setActiveModule('compras')" (keydown.enter)="setActiveModule('compras')" [attr.data-tooltip]="'Compras'" tabindex="0" role="button">
+        <a routerLink="/compras" class="menu-link">
+          <span class="menu-icon">🛍️</span>
+          <span class="menu-text" *ngIf="!isCollapsed">Compras</span>
+        </a>
+        <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'compras'">
+          <li><a routerLink="/compras/nueva" (click)="$event.stopPropagation()">Nueva Compra</a></li>
+          <li><a routerLink="/compras/lista" (click)="$event.stopPropagation()">Lista Compras</a></li>
+          <li><a routerLink="/compras/proveedores" (click)="$event.stopPropagation()">Proveedores</a></li>
+          <li><a routerLink="/compras/ordenes" (click)="$event.stopPropagation()">Órdenes</a></li>
+        </ul>
+      </li>
+
+      <!-- Módulo Inventario -->
+      <li class="menu-item" [class.active]="activeModule === 'inventario'" (click)="setActiveModule('inventario')" (keydown.enter)="setActiveModule('inventario')" [attr.data-tooltip]="'Inventario'" tabindex="0" role="button">
+        <a routerLink="/inventario" class="menu-link">
+          <span class="menu-icon">📦</span>
+          <span class="menu-text" *ngIf="!isCollapsed">Inventario</span>
+        </a>
+        <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'inventario'">
+          <li><a routerLink="/productos" (click)="$event.stopPropagation()">Productos</a></li>
+          <li><a routerLink="/producto-tipos" (click)="$event.stopPropagation()">Tipos de Producto</a></li>
+          <li><a routerLink="/producto-lotes" (click)="$event.stopPropagation()">Lotes de Producto</a></li>
+          <li><a routerLink="/producto-existencias" (click)="$event.stopPropagation()">Existencias</a></li>
+          <li><a routerLink="/producto-configuracion-contable" (click)="$event.stopPropagation()">Config. Contable</a></li>
+          <li><a routerLink="/categorias" (click)="$event.stopPropagation()">Categorías</a></li>
+          <li><a routerLink="/subcategorias" (click)="$event.stopPropagation()">Subcategorías</a></li>
+          <li><a routerLink="/grupos" (click)="$event.stopPropagation()">Grupos</a></li>
+          <li><a routerLink="/subgrupos" (click)="$event.stopPropagation()">Subgrupos</a></li>
+          <li><a routerLink="/centros-costos" (click)="$event.stopPropagation()">Centros de Costos</a></li>
+          <li><a routerLink="/cuentas-contables" (click)="$event.stopPropagation()">Cuentas Contables</a></li>
+          <li><a routerLink="/lineas-negocio" (click)="$event.stopPropagation()">Líneas de Negocio</a></li>
+          <li><a routerLink="/metodos-valuacion" (click)="$event.stopPropagation()">Métodos de Valuación</a></li>
+          <li><a routerLink="/tipos-movimiento" (click)="$event.stopPropagation()">Tipos de Movimiento</a></li>
+          <li><a routerLink="/movimientos-inventario" (click)="$event.stopPropagation()">Movimientos de Inventario</a></li>
+          <li><a routerLink="/detalles-movimiento" (click)="$event.stopPropagation()">Detalles de Movimiento</a></li>
+        </ul>
+      </li>
+
+      <!-- Módulo Empleados -->
+      <li class="menu-item" [class.active]="activeModule === 'empleados'" (click)="setActiveModule('empleados')" (keydown.enter)="setActiveModule('empleados')" [attr.data-tooltip]="'Empleados'" tabindex="0" role="button">
+        <a routerLink="/empleados" class="menu-link">
+          <span class="menu-icon">👥</span>
+          <span class="menu-text" *ngIf="!isCollapsed">Empleados</span>
+        </a>
+        <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'empleados'">
+          <li><a routerLink="/empleados" (click)="$event.stopPropagation()">Lista Empleados</a></li>
+          <li><a routerLink="/roles" (click)="$event.stopPropagation()">Roles</a></li>
+          <li><a routerLink="/asignar-roles" (click)="$event.stopPropagation()">Asignar Roles</a></li>
+        </ul>
+      </li>
+
+      <!-- Módulo Empresa -->
+      <li class="menu-item" [class.active]="activeModule === 'empresa'" (click)="setActiveModule('empresa')" (keydown.enter)="setActiveModule('empresa')" [attr.data-tooltip]="'Empresa'" tabindex="0" role="button">
+        <a routerLink="/empresas" class="menu-link">
+          <span class="menu-icon">🏢</span>
+          <span class="menu-text" *ngIf="!isCollapsed">Empresa</span>
+        </a>
+        <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'empresa'">
+          <li><a routerLink="/empresas" (click)="$event.stopPropagation()">Empresas</a></li>
+          <li><a routerLink="/bodegas" (click)="$event.stopPropagation()">Bodegas</a></li>
+          <li><a routerLink="/bodegas-responsables" (click)="$event.stopPropagation()">Responsables</a></li>
+          <li><a routerLink="/personas-empresa" (click)="$event.stopPropagation()">Personas Empresa</a></li>
+          <li><a routerLink="/procesos" (click)="$event.stopPropagation()">Procesos</a></li>
+          <li><a routerLink="/acciones-proceso" (click)="$event.stopPropagation()">Acciones Proceso</a></li>
+          <li><a routerLink="/roles-empresa" (click)="$event.stopPropagation()">Roles Empresa</a></li>
+          <li><a routerLink="/personas-empresa-roles" (click)="$event.stopPropagation()">Asignar Roles</a></li>
+          <li><a routerLink="/permisos-directos" (click)="$event.stopPropagation()">Permisos Directos</a></li>
+          <li><a routerLink="/roles-procesos-permisos" (click)="$event.stopPropagation()">Permisos de Rol</a></li>
+          <li><a routerLink="/reportes-jerarquicos" (click)="$event.stopPropagation()">Reportes Jerárquicos</a></li>
+          <li><a routerLink="/unidades-organizacionales" (click)="$event.stopPropagation()">Unidades Organizacionales</a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+
+  <!-- Footer del menú -->
+  <div class="sidebar-footer">
+    <div class="user-info" *ngIf="!isCollapsed">
+      <div class="user-avatar">👤</div>
+      <div class="user-details">
+        <span class="user-name">Usuario</span>
+        <span class="user-role">Administrador</span>
+      </div>
+    </div>
+    <button class="logout-btn" *ngIf="!isCollapsed" (click)="logout()">
+      <span>🚪</span> Cerrar Sesión
+    </button>
+    <button class="logout-btn collapsed-logout" *ngIf="isCollapsed" (click)="logout()">
+      <span>🚪</span>
+    </button>
+  </div>
+</nav>

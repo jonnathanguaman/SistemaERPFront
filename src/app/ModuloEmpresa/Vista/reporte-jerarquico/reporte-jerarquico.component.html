@@ -1,0 +1,141 @@
+<div class="reporte-jerarquico-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Reportes Jerárquicos</h1>
+      <p class="subtitle">Gestión de la estructura jerárquica de reportes</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModal()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nuevo Reporte
+    </button>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input type="text" class="search-input" placeholder="Buscar por subordinado o jefe..." [(ngModel)]="busqueda" (input)="filtrarReportes()">
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Subordinado</th>
+          <th>Cédula</th>
+          <th>Jefe</th>
+          <th>Cédula Jefe</th>
+          <th>Fecha Inicio</th>
+          <th>Fecha Fin</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of reportesJerarquicosFiltrados">
+          <td>{{ item.subordinadoNombre || 'N/A' }}</td>
+          <td>{{ item.subordinadoCedula || 'N/A' }}</td>
+          <td>{{ item.jefeNombre || 'N/A' }}</td>
+          <td>{{ item.jefeCedula || 'N/A' }}</td>
+          <td>{{ item.fechaInicio | date:'dd/MM/yyyy' }}</td>
+          <td>{{ item.fechaFin ? (item.fechaFin | date:'dd/MM/yyyy') : '-' }}</td>
+          <td>
+            <span class="badge" [class.badge-success]="item.activo" [class.badge-danger]="!item.activo">
+              {{ item.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn-icon btn-edit" (click)="abrirModal(item)" title="Editar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" (click)="eliminarReporteJerarquico(item.id!)" title="Eliminar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="reportesJerarquicosFiltrados.length === 0">
+          <td colspan="8" class="no-data">No hay datos registrados</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ modoEdicion ? 'Editar' : 'Nuevo' }} Reporte Jerárquico</h2>
+      <button class="btn-close" (click)="cerrarModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <form [formGroup]="reporteJerarquicoForm" (ngSubmit)="guardarReporteJerarquico()" class="modal-form">
+      <div class="form-group">
+        <label for="subordinadoId">
+          Subordinado (Persona-Empresa) <span class="required">*</span>
+        </label>
+        <select id="subordinadoId" formControlName="subordinadoId">
+          <option value="">Seleccione un subordinado</option>
+          <option *ngFor="let pe of personasEmpresa" [value]="pe.id">{{ pe.id }} - PersonaEmpresa</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="jefeId">
+          Jefe (Persona-Empresa) <span class="required">*</span>
+        </label>
+        <select id="jefeId" formControlName="jefeId">
+          <option value="">Seleccione un jefe</option>
+          <option *ngFor="let pe of personasEmpresa" [value]="pe.id">{{ pe.id }} - PersonaEmpresa</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="fechaInicio">
+          Fecha de Inicio <span class="required">*</span>
+        </label>
+        <input 
+          type="date"
+          id="fechaInicio"
+          formControlName="fechaInicio"
+        >
+      </div>
+      <div class="form-group">
+        <label for="fechaFin">
+          Fecha de Fin (opcional)
+        </label>
+        <input 
+          type="date"
+          id="fechaFin"
+          formControlName="fechaFin"
+        >
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="reporteJerarquicoForm.invalid">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

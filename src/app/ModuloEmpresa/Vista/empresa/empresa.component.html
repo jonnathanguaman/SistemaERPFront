@@ -1,0 +1,224 @@
+<div class="empresa-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Empresas</h1>
+      <p class="subtitle">Gestiona la información de las empresas del sistema</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nueva Empresa
+    </button>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por nombre, NIT o email..."
+        [(ngModel)]="searchTerm"
+        (input)="filtrarEmpresas()"
+      >
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando empresas...</p>
+  </div>
+
+  <!-- Tabla de empresas -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="empresas-table">
+      <thead>
+        <tr>
+          <th>NIT</th>
+          <th>Nombre</th>
+          <th>Dirección</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let empresa of empresasFiltradas">
+          <td class="nit-cell">{{ empresa.nit }}</td>
+          <td>
+            <div class="empresa-info">
+              <span class="empresa-name">{{ empresa.nombre }}</span>
+            </div>
+          </td>
+          <td class="direccion-cell">{{ empresa.direccion }}</td>
+          <td>{{ empresa.telefono }}</td>
+          <td class="email-cell">{{ empresa.email }}</td>
+          <td>
+            <span class="badge" [ngClass]="empresa.activo ? 'badge-success' : 'badge-danger'">
+              {{ empresa.activo ? 'Activa' : 'Inactiva' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button 
+                class="btn-icon btn-edit" 
+                (click)="abrirModalEditar(empresa)"
+                title="Editar empresa"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button 
+                class="btn-icon btn-delete" 
+                (click)="eliminarEmpresa(empresa)"
+                title="Eliminar empresa"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <!-- Sin datos -->
+        <tr *ngIf="empresasFiltradas.length === 0">
+          <td colspan="7" class="no-data">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p class="no-data-title">No hay empresas registradas</p>
+            <p class="no-data-subtitle">Comienza registrando la primera empresa del sistema</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Crear/Editar Empresa -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <!-- Header del modal -->
+      <div class="modal-header">
+        <h2>{{ isEditMode ? 'Editar Empresa' : 'Nueva Empresa' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Formulario -->
+      <form [formGroup]="empresaForm" (ngSubmit)="guardarEmpresa()" class="modal-form">
+        <div class="form-group">
+          <label for="nit">
+            NIT <span class="required">*</span>
+          </label>
+          <input 
+            type="text"
+            id="nit"
+            formControlName="nit"
+            placeholder="Ej: 1234567890-1"
+            [class.invalid]="isFieldInvalid('nit')"
+          >
+          <span class="error-message" *ngIf="isFieldInvalid('nit')">
+            {{ getFieldError('nit') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="nombre">
+            Nombre <span class="required">*</span>
+          </label>
+          <input 
+            type="text"
+            id="nombre"
+            formControlName="nombre"
+            placeholder="Ej: Mi Empresa S.A."
+            [class.invalid]="isFieldInvalid('nombre')"
+          >
+          <span class="error-message" *ngIf="isFieldInvalid('nombre')">
+            {{ getFieldError('nombre') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="direccion">
+            Dirección <span class="required">*</span>
+          </label>
+          <input 
+            type="text"
+            id="direccion"
+            formControlName="direccion"
+            placeholder="Ej: Calle 123 #45-67"
+            [class.invalid]="isFieldInvalid('direccion')"
+          >
+          <span class="error-message" *ngIf="isFieldInvalid('direccion')">
+            {{ getFieldError('direccion') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="telefono">
+            Teléfono <span class="required">*</span>
+          </label>
+          <input 
+            type="text"
+            id="telefono"
+            formControlName="telefono"
+            placeholder="Ej: +57 300 1234567"
+            [class.invalid]="isFieldInvalid('telefono')"
+          >
+          <span class="error-message" *ngIf="isFieldInvalid('telefono')">
+            {{ getFieldError('telefono') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="email">
+            Email <span class="required">*</span>
+          </label>
+          <input 
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="Ej: contacto@empresa.com"
+            [class.invalid]="isFieldInvalid('email')"
+          >
+          <span class="error-message" *ngIf="isFieldInvalid('email')">
+            {{ getFieldError('email') }}
+          </span>
+        </div>
+
+        <!-- Footer del modal -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="empresaForm.invalid || loading">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            {{ isEditMode ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

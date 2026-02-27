@@ -1,0 +1,143 @@
+<div class="container">
+  <div class="header">
+    <h2>Configuración Contable de Productos</h2>
+    <button class="btn-primary" (click)="openModal()">
+      + Nueva Configuración
+    </button>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por producto, cuenta contable o centro de costos..."
+        [(ngModel)]="searchTerm"
+      >
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cuenta Contable</th>
+          <th>Centro de Costos</th>
+          <th>Método de Valuación</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let config of configuracionesFiltradas">
+          <td>{{ config.productoNombre }}</td>
+          <td>{{ config.cuentaContableNombre }}</td>
+          <td>{{ config.centroCostosNombre }}</td>
+          <td>{{ config.metodoValuacionNombre }}</td>
+          <td>
+            <span [class]="config.activo ? 'badge-active' : 'badge-inactive'">
+              {{ config.activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn-icon btn-edit" (click)="edit(config)" title="Editar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" (click)="delete(config.id)" title="Eliminar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="configuracionesFiltradas.length === 0">
+          <td colspan="7" class="empty-message">No hay configuraciones registradas</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditing ? 'Editar Configuración' : 'Nueva Configuración' }}</h3>
+      <button class="btn-close" (click)="closeModal()">×</button>
+    </div>
+    
+    <form [formGroup]="configuracionForm" (ngSubmit)="save()">
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Producto <span class="required">*</span></label>
+          <select formControlName="productoId" required>
+            <option value="">Seleccione un producto</option>
+            <option *ngFor="let producto of productos" [value]="producto.id">
+              {{ producto.productoNombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Cuenta Contable <span class="required">*</span></label>
+          <select formControlName="cuentaContableId" required>
+            <option value="">Seleccione una cuenta contable</option>
+            <option *ngFor="let cuenta of cuentasContables" [value]="cuenta.id">
+              {{ cuenta.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Centro de Costos <span class="required">*</span></label>
+          <select formControlName="centroCostosId" required>
+            <option value="">Seleccione un centro de costos</option>
+            <option *ngFor="let centro of centrosCostos" [value]="centro.id">
+              {{ centro.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Método de Valuación <span class="required">*</span></label>
+          <select formControlName="metodoValuacionId" required>
+            <option value="">Seleccione un método de valuación</option>
+            <option *ngFor="let metodo of metodosValuacion" [value]="metodo.id">
+              {{ metodo.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="activo">
+            <span>Activo</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeModal()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="configuracionForm.invalid">
+          {{ isEditing ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

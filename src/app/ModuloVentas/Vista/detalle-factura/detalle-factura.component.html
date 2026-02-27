@@ -1,0 +1,252 @@
+<div class="detalle-factura-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Detalles de Factura</h1>
+      <p class="subtitle">Gestión de detalles de líneas de factura</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nuevo Detalle
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>ID Factura:</label>
+      <input 
+        type="number" 
+        [(ngModel)]="filtroFacturaId" 
+        placeholder="Ingrese ID de factura"
+        class="filter-input"
+      >
+      <button class="btn btn-primary" (click)="buscarPorFactura()">Buscar</button>
+    </div>
+
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por producto o código..."
+        [(ngModel)]="searchTerm"
+        (input)="aplicarFiltros()"
+      >
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando detalles...</p>
+  </div>
+
+  <!-- Tabla de detalles -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Factura</th>
+          <th>Producto</th>
+          <th>Código</th>
+          <th>Cantidad</th>
+          <th>Precio Unit.</th>
+          <th>Descuento</th>
+          <th>Subtotal</th>
+          <th>Impuesto</th>
+          <th>Total</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let detalle of detallesFiltrados">
+          <td class="bold-text">{{ detalle.id }}</td>
+          <td>{{ detalle.facturaNumero }}</td>
+          <td>{{ detalle.productoNombre }}</td>
+          <td>{{ detalle.productoCodigo }}</td>
+          <td class="number-cell">{{ detalle.cantidad }}</td>
+          <td class="number-cell">{{ detalle.precioUnitario | currency }}</td>
+          <td class="number-cell">{{ detalle.descuentoMonto | currency }}</td>
+          <td class="number-cell">{{ detalle.subtotal | currency }}</td>
+          <td class="number-cell">
+            {{ detalle.impuestoMonto | currency }}
+            <span class="tax-badge">({{ detalle.impuestoPorcentaje }}%)</span>
+          </td>
+          <td class="number-cell bold-text">{{ detalle.total | currency }}</td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn-icon btn-edit" (click)="abrirModalEditar(detalle)" title="Editar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" (click)="eliminarDetalle(detalle)" title="Eliminar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="detallesFiltrados.length === 0">
+          <td colspan="11" class="no-data">No hay detalles de factura</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Crear/Editar Detalle -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditMode ? 'Editar Detalle' : 'Nuevo Detalle' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="detalleForm" (ngSubmit)="guardarDetalle()" class="modal-form">
+        <div class="form-section">
+          <h3 class="section-title">Información General</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="facturaId">ID Factura <span class="required">*</span></label>
+              <input type="number" id="facturaId" formControlName="facturaId" 
+                     [class.invalid]="isFieldInvalid('facturaId')">
+              <span class="error-message" *ngIf="isFieldInvalid('facturaId')">
+                {{ getFieldError('facturaId') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="productoId">ID Producto <span class="required">*</span></label>
+              <input type="number" id="productoId" formControlName="productoId" 
+                     [class.invalid]="isFieldInvalid('productoId')">
+              <span class="error-message" *ngIf="isFieldInvalid('productoId')">
+                {{ getFieldError('productoId') }}
+              </span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="productoCodigo">Código Producto</label>
+              <input type="text" id="productoCodigo" formControlName="productoCodigo" 
+                     placeholder="Código del producto">
+            </div>
+
+            <div class="form-group">
+              <label for="productoNombre">Nombre Producto</label>
+              <input type="text" id="productoNombre" formControlName="productoNombre" 
+                     placeholder="Nombre del producto">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">Cantidades y Precios</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cantidad">Cantidad <span class="required">*</span></label>
+              <input type="number" id="cantidad" formControlName="cantidad" 
+                     step="0.01" [class.invalid]="isFieldInvalid('cantidad')">
+              <span class="error-message" *ngIf="isFieldInvalid('cantidad')">
+                {{ getFieldError('cantidad') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="precioUnitario">Precio Unitario <span class="required">*</span></label>
+              <input type="number" id="precioUnitario" formControlName="precioUnitario" 
+                     step="0.01" [class.invalid]="isFieldInvalid('precioUnitario')">
+              <span class="error-message" *ngIf="isFieldInvalid('precioUnitario')">
+                {{ getFieldError('precioUnitario') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="descuentoMonto">Descuento</label>
+              <input type="number" id="descuentoMonto" formControlName="descuentoMonto" 
+                     step="0.01">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="impuestoPorcentaje">% Impuesto <span class="required">*</span></label>
+              <input type="number" id="impuestoPorcentaje" formControlName="impuestoPorcentaje" 
+                     step="0.01" [class.invalid]="isFieldInvalid('impuestoPorcentaje')">
+              <span class="error-message" *ngIf="isFieldInvalid('impuestoPorcentaje')">
+                {{ getFieldError('impuestoPorcentaje') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="impuestoCodigo">Código Impuesto</label>
+              <input type="text" id="impuestoCodigo" formControlName="impuestoCodigo" 
+                     placeholder="Ej: IVA">
+            </div>
+
+            <div class="form-group">
+              <label for="costoUnitario">Costo Unitario</label>
+              <input type="number" id="costoUnitario" formControlName="costoUnitario" 
+                     step="0.01">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">Cálculos</h3>
+          <div class="calculations-grid">
+            <div class="calc-item">
+              <span class="calc-label">Subtotal:</span>
+              <span class="calc-value">{{ calcularSubtotal() | currency }}</span>
+            </div>
+            <div class="calc-item">
+              <span class="calc-label">Impuesto:</span>
+              <span class="calc-value">{{ calcularImpuesto() | currency }}</span>
+            </div>
+            <div class="calc-item">
+              <span class="calc-label">Total:</span>
+              <span class="calc-value calc-total">{{ calcularTotal() | currency }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">Observaciones</h3>
+          <div class="form-group form-group-full">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" formControlName="observaciones" 
+                      rows="3" placeholder="Ingrese observaciones adicionales"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="detalleForm.invalid">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            {{ isEditMode ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
