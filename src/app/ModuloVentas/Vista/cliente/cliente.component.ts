@@ -2,6 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ClienteService } from '../../Service/cliente.service';
 import { ClienteResponse, ClienteRequest } from '../../Entidad/cliente.model';
+import { CondicionPagoService } from '../../Service/condicion-pago.service';
+import { CondicionPagoResponse } from '../../Entidad/condicion-pago.model';
+import { ListaPreciosService } from '../../Service/lista-precios.service';
+import { ListaPreciosResponse } from '../../Entidad/lista-precios.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
 
 @Component({
@@ -13,6 +17,8 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class ClienteComponent implements OnInit {
   clientes: ClienteResponse[] = [];
   clientesFiltrados: ClienteResponse[] = [];
+  condicionesPago: CondicionPagoResponse[] = [];
+  listasPrecios: ListaPreciosResponse[] = [];
   clienteForm: FormGroup;
   showModal: boolean = false;
   isEditing: boolean = false;
@@ -22,6 +28,8 @@ export class ClienteComponent implements OnInit {
 
   constructor(
     private readonly clienteService: ClienteService,
+    private readonly condicionPagoService: CondicionPagoService,
+    private readonly listaPreciosService: ListaPreciosService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
@@ -37,8 +45,8 @@ export class ClienteComponent implements OnInit {
       vendedorId: [null],
       segmento: [''],
       categoria: [''],
-      listaPreciosId: [null],
-      condicionPagoId: [null],
+      listaPreciosId: [null, Validators.required],
+      condicionPagoId: [null, Validators.required],
       limiteCredito: [0],
       descuentoGeneral: [0],
       email: ['', Validators.email],
@@ -55,6 +63,32 @@ export class ClienteComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarClientes();
+    this.cargarCondicionesPago();
+    this.cargarListasPrecios();
+  }
+
+  cargarCondicionesPago(): void {
+    this.condicionPagoService.findActivas().subscribe({
+      next: (data) => {
+        this.condicionesPago = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar condiciones de pago:', error);
+        this.notificationService.error('Error al cargar condiciones de pago');
+      }
+    });
+  }
+
+  cargarListasPrecios(): void {
+    this.listaPreciosService.findActivos().subscribe({
+      next: (data) => {
+        this.listasPrecios = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar listas de precios:', error);
+        this.notificationService.error('Error al cargar listas de precios');
+      }
+    });
   }
 
   filtrarClientes(): void {
@@ -92,6 +126,8 @@ export class ClienteComponent implements OnInit {
     this.clienteForm.reset({
       tipoIdentificacion: 'RUC',
       pais: 'Ecuador',
+      listaPreciosId: null,
+      condicionPagoId: null,
       limiteCredito: 0,
       descuentoGeneral: 0
     });
@@ -144,7 +180,12 @@ export class ClienteComponent implements OnInit {
       return;
     }
 
-    const clienteData: ClienteRequest = this.clienteForm.value;
+    const formValue = this.clienteForm.value;
+    const clienteData: ClienteRequest = {
+      ...formValue,
+      limiteCredito: formValue.limiteCredito || 0,
+      descuentoGeneral: formValue.descuentoGeneral || 0
+    };
 
     if (this.isEditing && this.editingClienteId !== null) {
       this.clienteService.update(this.editingClienteId, clienteData).subscribe({

@@ -63,22 +63,23 @@ export class FacturaService {
   }
 
   registrarPago(id: number, monto: number): Observable<FacturaResponse> {
-    return this.http.post<FacturaResponse>(`${this.apiUrl}/${id}/registrar-pago`, { monto }).pipe(
+    const params = new HttpParams().set('monto', monto.toString());
+    return this.http.patch<FacturaResponse>(`${this.apiUrl}/${id}/registrar-pago`, null, { params }).pipe(
       catchError(this.handleError)
     );
   }
 
   autorizarSri(id: number, numeroAutorizacion: string, claveAcceso: string): Observable<FacturaResponse> {
-    return this.http.post<FacturaResponse>(`${this.apiUrl}/${id}/autorizar-sri`, {
-      numeroAutorizacion,
-      claveAcceso
-    }).pipe(
+    const params = new HttpParams()
+      .set('numeroAutorizacion', numeroAutorizacion)
+      .set('claveAcceso', claveAcceso);
+    return this.http.patch<FacturaResponse>(`${this.apiUrl}/${id}/autorizar-sri`, null, { params }).pipe(
       catchError(this.handleError)
     );
   }
 
   anular(id: number): Observable<FacturaResponse> {
-    return this.http.post<FacturaResponse>(`${this.apiUrl}/${id}/anular`, {}).pipe(
+    return this.http.patch<FacturaResponse>(`${this.apiUrl}/${id}/anular`, null).pipe(
       catchError(this.handleError)
     );
   }

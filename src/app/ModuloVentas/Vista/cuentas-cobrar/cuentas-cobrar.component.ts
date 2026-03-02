@@ -2,8 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CuentaPorCobrarService } from '../../Service/cuenta-por-cobrar.service';
 import { ClienteService } from '../../Service/cliente.service';
+import { FacturaService } from '../../Service/factura.service';
 import { CuentaPorCobrarResponse, CuentaPorCobrarRequest } from '../../Entidad/cuenta-por-cobrar.model';
 import { ClienteResponse } from '../../Entidad/cliente.model';
+import { FacturaResponse } from '../../Entidad/factura.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
 
 @Component({
@@ -15,6 +17,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class CuentasCobrarComponent implements OnInit {
   cuentas: CuentaPorCobrarResponse[] = [];
   clientes: ClienteResponse[] = [];
+  facturas: FacturaResponse[] = [];
   cuentaForm: FormGroup;
   showModal: boolean = false;
   isEditing: boolean = false;
@@ -26,6 +29,7 @@ export class CuentasCobrarComponent implements OnInit {
   constructor(
     private readonly cuentaPorCobrarService: CuentaPorCobrarService,
     private readonly clienteService: ClienteService,
+    private readonly facturaService: FacturaService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
@@ -45,6 +49,7 @@ export class CuentasCobrarComponent implements OnInit {
   ngOnInit(): void {
     this.cargarCuentas();
     this.cargarClientes();
+    this.cargarFacturas();
   }
 
   get cuentasFiltradas(): CuentaPorCobrarResponse[] {
@@ -96,11 +101,25 @@ export class CuentasCobrarComponent implements OnInit {
     });
   }
 
+  cargarFacturas(): void {
+    this.facturaService.obtenerTodos().subscribe({
+      next: (data) => {
+        this.facturas = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar facturas:', error);
+        this.notificationService.error('Error al cargar facturas');
+      }
+    });
+  }
+
   abrirModalCrear(): void {
     this.isEditing = false;
     this.editingCuentaId = null;
     const today = new Date().toISOString().split('T')[0];
     this.cuentaForm.reset({
+      facturaId: null,
+      clienteId: null,
       fechaEmision: today,
       fechaVencimiento: today,
       diasCredito: 0,

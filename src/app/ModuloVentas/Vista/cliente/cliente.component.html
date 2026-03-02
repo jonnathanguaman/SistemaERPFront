@@ -131,23 +131,25 @@
 
         <div class="form-section">
           <h3>Datos Básicos</h3>
-          <div class="form-group">
-            <label for="razonSocial">Razón Social</label>
-            <input 
-              type="text" 
-              id="razonSocial"
-              formControlName="razonSocial"
-              placeholder="Ej: Empresa SAC"
-            >
-          </div>
-          <div class="form-group">
-            <label for="nombreComercial">Nombre Comercial</label>
-            <input 
-              type="text" 
-              id="nombreComercial"
-              formControlName="nombreComercial"
-              placeholder="Ej: Mi Negocio"
-            >
+          <div class="form-row">
+            <div class="form-group">
+              <label for="razonSocial">Razón Social</label>
+              <input 
+                type="text" 
+                id="razonSocial"
+                formControlName="razonSocial"
+                placeholder="Ej: Empresa SAC"
+              >
+            </div>
+            <div class="form-group">
+              <label for="nombreComercial">Nombre Comercial</label>
+              <input 
+                type="text" 
+                id="nombreComercial"
+                formControlName="nombreComercial"
+                placeholder="Ej: Mi Negocio"
+              >
+            </div>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -172,21 +174,59 @@
         </div>
 
         <div class="form-section">
-          <h3>Contacto</h3>
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input 
-              type="email" 
-              id="email"
-              formControlName="email"
-              [class.invalid]="isFieldInvalid('email')"
-              placeholder="correo@ejemplo.com"
-            >
-            <span class="error-message" *ngIf="isFieldInvalid('email')">
-              {{ getFieldError('email') }}
-            </span>
-          </div>
+          <h3>Información Comercial</h3>
           <div class="form-row">
+            <div class="form-group">
+              <label for="listaPreciosId">Lista de Precios <span class="required">*</span></label>
+              <select 
+                id="listaPreciosId" 
+                formControlName="listaPreciosId"
+                [class.invalid]="isFieldInvalid('listaPreciosId')"
+              >
+                <option [ngValue]="null" disabled>Seleccione una lista de precios</option>
+                <option *ngFor="let lista of listasPrecios" [ngValue]="lista.id">
+                  {{ lista.nombre }} ({{ lista.tipoLista }})
+                </option>
+              </select>
+              <span class="error-message" *ngIf="isFieldInvalid('listaPreciosId')">
+                {{ getFieldError('listaPreciosId') }}
+              </span>
+            </div>
+            <div class="form-group">
+              <label for="condicionPagoId">Condición de Pago <span class="required">*</span></label>
+              <select 
+                id="condicionPagoId" 
+                formControlName="condicionPagoId"
+                [class.invalid]="isFieldInvalid('condicionPagoId')"
+              >
+                <option [ngValue]="null" disabled>Seleccione una condición</option>
+                <option *ngFor="let condicion of condicionesPago" [ngValue]="condicion.id">
+                  {{ condicion.nombre }} ({{ condicion.diasCredito }} días)
+                </option>
+              </select>
+              <span class="error-message" *ngIf="isFieldInvalid('condicionPagoId')">
+                {{ getFieldError('condicionPagoId') }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Contacto</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input 
+                type="email" 
+                id="email"
+                formControlName="email"
+                [class.invalid]="isFieldInvalid('email')"
+                placeholder="correo@ejemplo.com"
+              >
+              <span class="error-message" *ngIf="isFieldInvalid('email')">
+                {{ getFieldError('email') }}
+              </span>
+            </div>
             <div class="form-group">
               <label for="telefono">Teléfono</label>
               <input 
@@ -196,6 +236,8 @@
                 placeholder="(04) 123-4567"
               >
             </div>
+          </div>
+          <div class="form-row">
             <div class="form-group">
               <label for="celular">Celular</label>
               <input 
@@ -205,21 +247,30 @@
                 placeholder="0987654321"
               >
             </div>
+            <div class="form-group">
+              <label for="pais">País</label>
+              <input 
+                type="text" 
+                id="pais"
+                formControlName="pais"
+                placeholder="Ecuador"
+              >
+            </div>
           </div>
         </div>
 
         <div class="form-section">
           <h3>Ubicación</h3>
-          <div class="form-group">
-            <label for="direccion">Dirección</label>
-            <input 
-              type="text" 
-              id="direccion"
-              formControlName="direccion"
-              placeholder="Calle, número, sector"
-            >
-          </div>
           <div class="form-row">
+            <div class="form-group">
+              <label for="direccion">Dirección</label>
+              <input 
+                type="text" 
+                id="direccion"
+                formControlName="direccion"
+                placeholder="Calle, número, sector"
+              >
+            </div>
             <div class="form-group">
               <label for="ciudad">Ciudad</label>
               <input 
@@ -229,6 +280,8 @@
                 placeholder="Guayaquil, Quito, etc."
               >
             </div>
+          </div>
+          <div class="form-row">
             <div class="form-group">
               <label for="provincia">Provincia</label>
               <input 
@@ -236,6 +289,15 @@
                 id="provincia"
                 formControlName="provincia"
                 placeholder="Guayas, Pichincha, etc."
+              >
+            </div>
+            <div class="form-group">
+              <label for="codigoPostal">Código Postal</label>
+              <input 
+                type="text" 
+                id="codigoPostal"
+                formControlName="codigoPostal"
+                placeholder="090101"
               >
             </div>
           </div>
