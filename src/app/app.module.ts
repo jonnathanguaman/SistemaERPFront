@@ -50,6 +50,8 @@ import { CobroComponent } from './ModuloVentas/Vista/cobro/cobro.component';
 import { CondicionPagoComponent } from './ModuloVentas/Vista/condicion-pago/condicion-pago.component';
 import { FormaPagoComponent } from './ModuloVentas/Vista/forma-pago/forma-pago.component';
 import { CuentasCobrarComponent } from './ModuloVentas/Vista/cuentas-cobrar/cuentas-cobrar.component';
+import { DetalleCotizacionComponent } from './ModuloVentas/Vista/detalle-cotizacion/detalle-cotizacion.component';
+import { DetalleCobroComponent } from './ModuloVentas/Vista/detalle-cobro/detalle-cobro.component';
 
 @NgModule({
   declarations: [
@@ -99,6 +101,8 @@ import { CuentasCobrarComponent } from './ModuloVentas/Vista/cuentas-cobrar/cuen
     CondicionPagoComponent,
     FormaPagoComponent,
     CuentasCobrarComponent,
+    DetalleCotizacionComponent,
+    DetalleCobroComponent,
   ],
   imports: [
     BrowserModule,

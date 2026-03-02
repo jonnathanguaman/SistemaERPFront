@@ -3,9 +3,11 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CobroService } from '../../Service/cobro.service';
 import { ClienteService } from '../../Service/cliente.service';
 import { FormaPagoService } from '../../Service/forma-pago.service';
+import { DetalleCobroService } from '../../Service/detalle-cobro.service';
 import { CobroResponse, CobroRequest } from '../../Entidad/cobro.model';
 import { ClienteResponse } from '../../Entidad/cliente.model';
 import { FormaPagoResponse } from '../../Entidad/forma-pago.model';
+import { DetalleCobroResponse } from '../../Entidad/detalle-cobro.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
 
 @Component({
@@ -25,11 +27,18 @@ export class CobroComponent implements OnInit {
   loading: boolean = false;
   searchTerm: string = '';
   filterEstado: string = 'TODOS';
+  
+  // Modal de detalles
+  showDetallesModal: boolean = false;
+  detallesCobro: DetalleCobroResponse[] = [];
+  cobroSeleccionado: CobroResponse | null = null;
+  loadingDetalles: boolean = false;
 
   constructor(
     private readonly cobroService: CobroService,
     private readonly clienteService: ClienteService,
     private readonly formaPagoService: FormaPagoService,
+    private readonly detalleCobroService: DetalleCobroService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
@@ -262,5 +271,31 @@ export class CobroComponent implements OnInit {
       return `Debe ser mayor o igual a ${min}`;
     }
     return '';
+  }
+
+  // ==================== MODAL DE DETALLES ====================
+
+  verDetallesCobro(cobro: CobroResponse): void {
+    this.cobroSeleccionado = cobro;
+    this.loadingDetalles = true;
+    this.showDetallesModal = true;
+    
+    this.detalleCobroService.obtenerPorCobro(cobro.id).subscribe({
+      next: (data) => {
+        this.detallesCobro = data;
+        this.loadingDetalles = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar detalles:', error);
+        this.notificationService.error(error.message, 'Error al cargar detalles');
+        this.loadingDetalles = false;
+      }
+    });
+  }
+
+  cerrarModalDetalles(): void {
+    this.showDetallesModal = false;
+    this.cobroSeleccionado = null;
+    this.detallesCobro = [];
   }
 }
