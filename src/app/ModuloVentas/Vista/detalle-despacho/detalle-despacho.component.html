@@ -1,0 +1,67 @@
+<div class="detalle-despacho-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Detalles de Despacho</h1>
+      <p class="subtitle">Gestión de items de despachos</p>
+    </div>
+  </div>
+
+  <!-- Barra de búsqueda -->
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por despacho, producto..."
+        [(ngModel)]="busqueda"
+        (input)="filtrarDetalles()"
+      >
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando detalles...</p>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Despacho</th>
+          <th>Producto</th>
+          <th>Cant. Ordenada</th>
+          <th>Cant. Despachada</th>
+          <th>Cant. Pendiente</th>
+          <th>Estado</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let detalle of detallesFiltrados">
+          <td>{{ detalle.despachoNumero || detalle.despachoId }}</td>
+          <td>{{ detalle.productoId }}</td>
+          <td class="text-center">{{ detalle.cantidadOrdenada }}</td>
+          <td class="text-center">{{ detalle.cantidadDespachada }}</td>
+          <td class="text-center">{{ detalle.cantidadPendiente }}</td>
+          <td>
+            <span class="badge" [ngClass]="detalle.estaCompleto ? 'badge-success' : 'badge-warning'">
+              {{ detalle.estaCompleto ? 'Completo' : 'Pendiente' }}
+            </span>
+          </td>
+          <td>{{ detalle.observaciones || '-' }}</td>
+        </tr>
+        <tr *ngIf="detallesFiltrados.length === 0">
+          <td colspan="7" class="no-data">No se encontraron detalles</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

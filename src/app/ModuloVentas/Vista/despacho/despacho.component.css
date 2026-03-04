@@ -1,5 +1,5 @@
 /* Container principal */
-.detalle-cotizacion-container {
+.despacho-container {
   padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
@@ -70,8 +70,8 @@
   background: #E5E7EB;
 }
 
-/* Barra de búsqueda */
-.search-bar {
+/* Filtros */
+.filters-bar {
   display: flex;
   gap: 16px;
   align-items: center;
@@ -106,6 +106,36 @@
 }
 
 .search-input:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.filter-select {
+  padding: 10px 14px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+}
+
+.filter-select:focus {
   outline: none;
   border-color: #2563EB;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
@@ -183,19 +213,57 @@
 
 .codigo-cell {
   font-weight: 600;
-  color: #2563EB;
+  color: #1E40AF;
 }
 
-.currency-cell {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: #065F46;
+.text-center {
+  text-align: center;
 }
 
 .no-data {
   text-align: center;
   padding: 60px 20px !important;
   color: #9CA3AF;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.badge-success {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-danger {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.badge-warning {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.badge-info {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.badge-secondary {
+  background: #F3F4F6;
+  color: #1F2937;
+}
+
+.badge-primary {
+  background: #BFDBFE;
+  color: #1E3A8A;
 }
 
 /* Acciones */
@@ -220,6 +288,14 @@
   transform: scale(1.1);
 }
 
+.btn-view {
+  color: #6B7280;
+}
+
+.btn-view:hover {
+  background: #F3F4F6;
+}
+
 .btn-edit {
   color: #2563EB;
 }
@@ -234,6 +310,14 @@
 
 .btn-delete:hover {
   background: #FEE2E2;
+}
+
+.btn-success {
+  color: #16A34A;
+}
+
+.btn-success:hover {
+  background: #D1FAE5;
 }
 
 /* Modal */
@@ -256,7 +340,7 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  max-width: 800px;
+  max-width: 900px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -365,7 +449,6 @@
 
 .form-group textarea {
   resize: vertical;
-  min-height: 80px;
 }
 
 .form-group input:focus,
@@ -397,6 +480,82 @@
   margin: 0 -24px -24px -24px;
 }
 
+/* Modal de Detalles */
+.modal-detalle {
+  max-width: 1000px;
+}
+
+.modal-body {
+  padding: 24px;
+  max-height: calc(90vh - 180px);
+  overflow-y: auto;
+}
+
+.info-section {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.info-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.info-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #E5E7EB;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-item strong {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.info-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.info-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151;
+  background: #F9FAFB;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.detalle-items {
+  margin-top: 12px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .page-header {
@@ -418,5 +577,18 @@
 
   .modal-content {
     max-width: 95%;
+  }
+  
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-input-wrapper {
+    width: 100%;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
   }
 }

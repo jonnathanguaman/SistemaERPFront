@@ -80,14 +80,15 @@ export class CobroService {
     );
   }
 
-  confirmar(id: number): Observable<CobroResponse> {
-    return this.http.patch<CobroResponse>(`${this.apiUrl}/${id}/confirmar`, {}).pipe(
+  confirmar(id: number, usuarioId: number): Observable<CobroResponse> {
+    return this.http.post<CobroResponse>(`${this.apiUrl}/${id}/confirmar?usuarioId=${usuarioId}`, {}).pipe(
       catchError(this.handleError)
     );
   }
 
-  anular(id: number, motivo: string): Observable<CobroResponse> {
-    return this.http.patch<CobroResponse>(`${this.apiUrl}/${id}/anular`, { motivo }).pipe(
+  anular(id: number, usuarioId: number, motivo: string): Observable<CobroResponse> {
+    const params = `usuarioId=${usuarioId}&motivo=${encodeURIComponent(motivo)}`;
+    return this.http.post<CobroResponse>(`${this.apiUrl}/${id}/anular?${params}`, {}).pipe(
       catchError(this.handleError)
     );
   }
@@ -102,17 +103,30 @@ export class CobroService {
     let errorMessage = 'Ocurrió un error en la operación';
     
     if (error.error instanceof ErrorEvent) {
+      // Error del lado del cliente
       errorMessage = error.error.message;
-    } else if (error.status === 404) {
-      errorMessage = 'Cobro no encontrado';
-    } else if (error.status === 400) {
-      errorMessage = error.error?.message || 'Datos inválidos';
-    } else if (error.status === 409) {
-      errorMessage = 'El cobro ya existe con ese número';
-    } else if (error.status === 500) {
-      errorMessage = 'Error del servidor';
+    } else if (error.error) {
+      // Error del backend - intentar extraer el mensaje de diferentes formatos
+      if (typeof error.error === 'string') {
+        errorMessage = error.error;
+      } else if (error.error.message) {
+        errorMessage = error.error.message;
+      } else if (error.error.error) {
+        errorMessage = error.error.error;
+      } else if (error.status === 404) {
+        errorMessage = 'Cobro no encontrado';
+      } else if (error.status === 400) {
+        errorMessage = 'Datos inválidos o solicitud incorrecta';
+      } else if (error.status === 409) {
+        errorMessage = 'El cobro ya existe con ese número';
+      } else if (error.status === 500) {
+        errorMessage = 'Error del servidor. Por favor, contacte al administrador';
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
     }
     
+    console.error('Error en CobroService:', error);
     return throwError(() => new Error(errorMessage));
   }
 }

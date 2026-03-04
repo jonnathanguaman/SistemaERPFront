@@ -278,4 +278,91 @@ export class NotificationService {
     ): Promise<boolean> {
         return this.confirm(message, title, confirmButtonText, cancelButtonText);
     }
+
+    // ========== Métodos específicos para operaciones con auditoría ==========
+
+    /**
+     * Muestra un diálogo de confirmación solicitando el ID de usuario
+     * Útil para operaciones que requieren auditoría hasta implementar autenticación
+     * @param itemDescription Descripción del elemento a confirmar
+     * @param title Título del diálogo
+     * @returns Promise que resuelve con el usuarioId o null si se cancela
+     */
+    async confirmWithUserId(
+        itemDescription: string,
+        title: string = 'Confirmar Operación'
+    ): Promise<number | null> {
+        const result = await Swal.fire({
+            title: title,
+            html: `${itemDescription}<br><small class="text-muted">Ingrese su ID de usuario para confirmar:</small>`,
+            input: 'number',
+            inputPlaceholder: 'ID de usuario',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, confirmar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#2563EB',
+            cancelButtonColor: '#6B7280',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Debe ingresar su ID de usuario';
+                }
+                if (Number.isNaN(Number(value)) || Number(value) <= 0) {
+                    return 'Debe ser un número válido mayor a 0';
+                }
+                return null;
+            }
+        });
+
+        return result.isConfirmed ? Number(result.value) : null;
+    }
+
+    /**
+     * Muestra un diálogo para anular una operación solicitando usuarioId y motivo
+     * @param itemDescription Descripción del elemento a anular
+     * @param title Título del diálogo
+     * @returns Promise que resuelve con {usuarioId, motivo} o null si se cancela
+     */
+    async anularWithUserIdAndReason(
+        itemDescription: string,
+        title: string = 'Anular Operación'
+    ): Promise<{ usuarioId: number; motivo: string } | null> {
+        const result = await Swal.fire({
+            title: title,
+            html: `<p>${itemDescription}</p>`,
+            showCancelButton: true,
+            confirmButtonText: 'Anular',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#DC2626',
+            cancelButtonColor: '#6B7280',
+            focusConfirm: false,
+            preConfirm: () => {
+                const usuarioId = (document.getElementById('swal-usuario') as HTMLInputElement).value;
+                const motivo = (document.getElementById('swal-motivo') as HTMLTextAreaElement).value;
+                
+                if (!usuarioId || Number.isNaN(Number(usuarioId)) || Number(usuarioId) <= 0) {
+                    Swal.showValidationMessage('Debe ingresar un ID de usuario válido');
+                    return null;
+                }
+                if (!motivo || motivo.trim().length === 0) {
+                    Swal.showValidationMessage('Debe ingresar un motivo de anulación');
+                    return null;
+                }
+                
+                return { usuarioId: Number(usuarioId), motivo: motivo.trim() };
+            },
+            didOpen: () => {
+                const popup = Swal.getHtmlContainer()!;
+                popup.innerHTML = `
+                    <div style="text-align: left; margin-top: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">ID de Usuario:</label>
+                        <input id="swal-usuario" type="number" class="swal2-input" placeholder="Ingrese su ID" style="margin: 0 0 10px 0; width: 100%;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">Motivo de Anulación:</label>
+                        <textarea id="swal-motivo" class="swal2-textarea" placeholder="Ingrese el motivo..." rows="3" style="margin: 0; width: 100%; resize: vertical;"></textarea>
+                    </div>
+                `;
+            }
+        });
+
+        return result.isConfirmed && result.value ? result.value : null;
+    }
 }

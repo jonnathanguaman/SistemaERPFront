@@ -44,6 +44,14 @@ import { CobroComponent } from './ModuloVentas/Vista/cobro/cobro.component';
 import { CondicionPagoComponent } from './ModuloVentas/Vista/condicion-pago/condicion-pago.component';
 import { FormaPagoComponent } from './ModuloVentas/Vista/forma-pago/forma-pago.component';
 import { CuentasCobrarComponent } from './ModuloVentas/Vista/cuentas-cobrar/cuentas-cobrar.component';
+import { CotizacionComponent } from './ModuloVentas/Vista/cotizacion/cotizacion.component';
+import { DetalleCotizacionComponent } from './ModuloVentas/Vista/detalle-cotizacion/detalle-cotizacion.component';
+import { DespachoComponent } from './ModuloVentas/Vista/despacho/despacho.component';
+import { DetalleDespachoComponent } from './ModuloVentas/Vista/detalle-despacho/detalle-despacho.component';
+import { NotaCreditoComponent } from './ModuloVentas/Vista/nota-credito/nota-credito.component';
+import { DetalleNotaCreditoComponent } from './ModuloVentas/Vista/detalle-nota-credito/detalle-nota-credito.component';
+import { OrdenVentaComponent } from './ModuloVentas/Vista/orden-venta/orden-venta.component';
+import { DetalleOrdenVentaComponent } from './ModuloVentas/Vista/detalle-orden-venta/detalle-orden-venta.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/empleados', pathMatch: 'full' },
@@ -93,8 +101,17 @@ const routes: Routes = [
   { path: 'direcciones-cliente', component: DireccionClienteComponent },
   { path: 'cobros', component: CobroComponent },
   { path: 'condiciones-pago', component: CondicionPagoComponent },
+  { path: 'cotizaciones', component: CotizacionComponent },
+  { path: 'detalles-cotizacion', component: DetalleCotizacionComponent },
+  { path: 'despachos', component: DespachoComponent },
+  { path: 'detalles-despacho', component: DetalleDespachoComponent },
   { path: 'formas-pago', component: FormaPagoComponent },
   { path: 'cuentas-por-cobrar', component: CuentasCobrarComponent },
+  { path: 'notas-credito', component: NotaCreditoComponent },
+  { path: 'detalles-nota-credito', component: DetalleNotaCreditoComponent },
+  { path: 'ordenes-venta', component: OrdenVentaComponent },
+  { path: 'detalles-orden-venta', component: DetalleOrdenVentaComponent },
+  { path: 'detalles-orden-venta/:id', component: DetalleOrdenVentaComponent },
   // Ruta por defecto (404)
   { path: '**', redirectTo: '/empleados' }
 ];

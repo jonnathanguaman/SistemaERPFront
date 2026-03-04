@@ -1,0 +1,429 @@
+<div class="despacho-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Gestión de Despachos</h1>
+      <p class="subtitle">Administra los despachos de mercadería</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nuevo Despacho
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por número, guía, orden de venta..."
+        [(ngModel)]="busqueda"
+        (input)="aplicarFiltros()"
+      >
+    </div>
+    <div class="filter-group">
+      <label for="filtroEstado">Estado:</label>
+      <select id="filtroEstado" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()" class="filter-select">
+        <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando despachos...</p>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Guía Remisión</th>
+          <th>Orden Venta</th>
+          <th>Fecha Despacho</th>
+          <th>Transportista</th>
+          <th>Estado</th>
+          <th>Detalles</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let despacho of despachosFiltrados">
+          <td class="codigo-cell">{{ despacho.numeroDespacho }}</td>
+          <td>{{ despacho.numeroGuiaRemision || '-' }}</td>
+          <td>{{ despacho.ordenVentaNumero || despacho.ordenVentaId }}</td>
+          <td>{{ formatDate(despacho.fechaDespacho) }}</td>
+          <td>{{ despacho.transportista || '-' }}</td>
+          <td>
+            <span class="badge" [ngClass]="getEstadoClass(despacho.estado)">
+              {{ despacho.estado }}
+            </span>
+          </td>
+          <td class="text-center">{{ despacho.cantidadDetalles || 0 }}</td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn-icon btn-view" (click)="verDetalles(despacho)" title="Ver detalles">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <button class="btn-icon btn-edit" (click)="abrirModalEditar(despacho)" title="Editar" *ngIf="despacho.puedeEditarse">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="btn-icon btn-info" (click)="iniciarPreparacion(despacho)" title="Iniciar preparación" *ngIf="despacho.estado === 'BORRADOR'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+              </button>
+              <button class="btn-icon btn-primary" (click)="marcarPreparado(despacho)" title="Marcar preparado" *ngIf="despacho.estado === 'EN_PREPARACION'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+              <button class="btn-icon btn-warning" (click)="despachar(despacho)" title="Despachar" *ngIf="despacho.estado === 'PREPARADO'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="1" y="3" width="15" height="13"></rect>
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                  <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                  <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" (click)="eliminarDespacho(despacho)" title="Eliminar" *ngIf="despacho.puedeEditarse">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="despachosFiltrados.length === 0">
+          <td colspan="8" class="no-data">No se encontraron despachos</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Crear/Editar -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()" role="dialog" aria-modal="true">
+    <div class="modal-content" (click)="$event.stopPropagation()" role="document">
+      <div class="modal-header">
+        <h2>{{ isEditing ? 'Editar Despacho' : 'Nuevo Despacho' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="despachoForm" (ngSubmit)="guardarDespacho()" class="modal-form">
+        <div class="form-section">
+          <h3>Información General</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="numeroDespacho">Número Despacho <span class="required">*</span></label>
+              <input 
+                type="text" 
+                id="numeroDespacho"
+                formControlName="numeroDespacho"
+                [class.invalid]="isFieldInvalid('numeroDespacho')"
+              >
+              <span class="error-message" *ngIf="isFieldInvalid('numeroDespacho')">
+                {{ getFieldError('numeroDespacho') }}
+              </span>
+            </div>
+            <div class="form-group">
+              <label for="numeroGuiaRemision">Número Guía Remisión</label>
+              <input 
+                type="text" 
+                id="numeroGuiaRemision"
+                formControlName="numeroGuiaRemision"
+              >
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ordenVentaId">Orden de Venta <span class="required">*</span></label>
+              <input 
+                type="number" 
+                id="ordenVentaId"
+                formControlName="ordenVentaId"
+                [class.invalid]="isFieldInvalid('ordenVentaId')"
+              >
+              <span class="error-message" *ngIf="isFieldInvalid('ordenVentaId')">
+                {{ getFieldError('ordenVentaId') }}
+              </span>
+            </div>
+            <div class="form-group">
+              <label for="bodegaId">Bodega <span class="required">*</span></label>
+              <input 
+                type="number" 
+                id="bodegaId"
+                formControlName="bodegaId"
+                [class.invalid]="isFieldInvalid('bodegaId')"
+              >
+              <span class="error-message" *ngIf="isFieldInvalid('bodegaId')">
+                {{ getFieldError('bodegaId') }}
+              </span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fechaDespacho">Fecha Despacho <span class="required">*</span></label>
+              <input 
+                type="date" 
+                id="fechaDespacho"
+                formControlName="fechaDespacho"
+                [class.invalid]="isFieldInvalid('fechaDespacho')"
+              >
+            </div>
+            <div class="form-group">
+              <label for="fechaEntregaEstimada">Fecha Entrega Estimada</label>
+              <input 
+                type="date" 
+                id="fechaEntregaEstimada"
+                formControlName="fechaEntregaEstimada"
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Información de Transporte</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="transportista">Transportista</label>
+              <input 
+                type="text" 
+                id="transportista"
+                formControlName="transportista"
+              >
+            </div>
+            <div class="form-group">
+              <label for="placaVehiculo">Placa Vehículo</label>
+              <input 
+                type="text" 
+                id="placaVehiculo"
+                formControlName="placaVehiculo"
+              >
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="conductor">Conductor</label>
+              <input 
+                type="text" 
+                id="conductor"
+                formControlName="conductor"
+              >
+            </div>
+            <div class="form-group">
+              <label for="cedulaConductor">Cédula Conductor</label>
+              <input 
+                type="text" 
+                id="cedulaConductor"
+                formControlName="cedulaConductor"
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Información de Entrega</h3>
+          <div class="form-group">
+            <label for="direccionEntregaTexto">Dirección de Entrega</label>
+            <textarea 
+              id="direccionEntregaTexto"
+              formControlName="direccionEntregaTexto"
+              rows="2"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nombreQuienRecibe">Nombre Quien Recibe</label>
+              <input 
+                type="text" 
+                id="nombreQuienRecibe"
+                formControlName="nombreQuienRecibe"
+              >
+            </div>
+            <div class="form-group">
+              <label for="cedulaQuienRecibe">Cédula Quien Recibe</label>
+              <input 
+                type="text" 
+                id="cedulaQuienRecibe"
+                formControlName="cedulaQuienRecibe"
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Información Adicional</h3>
+          <div class="form-group">
+            <label for="observaciones">Observaciones</label>
+            <textarea 
+              id="observaciones"
+              formControlName="observaciones"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="despachoForm.invalid">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            {{ isEditing ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Ver Detalles -->
+  <div class="modal-overlay" *ngIf="showDetalleModal" (click)="cerrarDetalleModal()" role="dialog" aria-modal="true">
+    <div class="modal-content modal-detalle" (click)="$event.stopPropagation()" role="document">
+      <div class="modal-header">
+        <h2>Detalles del Despacho</h2>
+        <button class="btn-close" (click)="cerrarDetalleModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body" *ngIf="despachoSeleccionado">
+        <div class="info-section">
+          <h3>Información General</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <strong>Número de Despacho:</strong>
+              <span class="info-value">{{ despachoSeleccionado?.numeroDespacho }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Guía de Remisión:</strong>
+              <span class="info-value">{{ despachoSeleccionado?.numeroGuiaRemision || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Orden de Venta:</strong>
+              <span class="info-value">{{ despachoSeleccionado?.ordenVentaNumero || despachoSeleccionado?.ordenVentaId }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Estado:</strong>
+              <span class="badge" [ngClass]="getEstadoClass(despachoSeleccionado?.estado || '')">{{ despachoSeleccionado?.estado }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Fecha Despacho:</strong>
+              <span class="info-value">{{ formatDate(despachoSeleccionado?.fechaDespacho) }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Fecha Entrega Estimada:</strong>
+              <span class="info-value">{{ formatDate(despachoSeleccionado?.fechaEntregaEstimada) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section" *ngIf="despachoSeleccionado.transportista">
+          <h3>Información de Transporte</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <strong>Transportista:</strong>
+              <span class="info-value">{{ despachoSeleccionado?.transportista }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Placa Vehículo:</strong>
+              <span class="info-value">{{ despachoSeleccionado?.placaVehiculo || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Conductor:</strong>
+              <span class="info-value">{{ despachoSeleccionado?.conductor || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Cédula Conductor:</strong>
+              <span class="info-value">{{ despachoSeleccionado?.cedulaConductor || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section" *ngIf="despachoSeleccionado.direccionEntregaTexto">
+          <h3>Información de Entrega</h3>
+          <div class="info-grid">
+            <div class="info-item full-width">
+              <strong>Dirección:</strong>
+              <span class="info-value">{{ despachoSeleccionado?.direccionEntregaTexto }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Recibido Por:</strong>
+              <span class="info-value">{{ despachoSeleccionado?.nombreQuienRecibe || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Cédula:</strong>
+              <span class="info-value">{{ despachoSeleccionado?.cedulaQuienRecibe || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section" *ngIf="detallesDespacho.length > 0">
+          <h3>Items del Despacho ({{ detallesDespacho.length }})</h3>
+          <div class="detalle-items">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cant. Ordenada</th>
+                  <th>Cant. Despachada</th>
+                  <th>Cant. Pendiente</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let detalle of detallesDespacho">
+                  <td>{{ detalle.productoId }}</td>
+                  <td class="text-center">{{ detalle.cantidadOrdenada }}</td>
+                  <td class="text-center">{{ detalle.cantidadDespachada }}</td>
+                  <td class="text-center">{{ detalle.cantidadPendiente }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="detalle.estaCompleto ? 'badge-success' : 'badge-warning'">
+                      {{ detalle.estaCompleto ? 'Completo' : 'Pendiente' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="info-section" *ngIf="despachoSeleccionado?.observaciones">
+          <h3>Observaciones</h3>
+          <p class="info-text">{{ despachoSeleccionado?.observaciones }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

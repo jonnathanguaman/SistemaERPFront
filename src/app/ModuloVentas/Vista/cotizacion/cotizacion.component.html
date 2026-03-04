@@ -1,0 +1,428 @@
+<div class="cotizacion-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Gestión de Cotizaciones</h1>
+      <p class="subtitle">Administra las cotizaciones de ventas</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nueva Cotización
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por número, cliente..."
+        [(ngModel)]="busqueda"
+        (input)="aplicarFiltros()"
+      >
+    </div>
+    <div class="filter-group">
+      <label for="filtroEstado">Estado:</label>
+      <select id="filtroEstado" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()" class="filter-select">
+        <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando cotizaciones...</p>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Cliente</th>
+          <th>Fecha</th>
+          <th>Vencimiento</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cotizacion of cotizacionesFiltradas">
+          <td class="codigo-cell">{{ cotizacion.numeroCotizacion }}</td>
+          <td>{{ cotizacion.clienteNombre }}</td>
+          <td>{{ formatDate(cotizacion.fechaCotizacion) }}</td>
+          <td>{{ formatDate(cotizacion.fechaVencimiento) }}</td>
+          <td class="currency-cell">{{ formatCurrency(cotizacion.total) }}</td>
+          <td>
+            <span class="badge" [ngClass]="getEstadoClass(cotizacion.estado)">
+              {{ cotizacion.estado }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn-icon btn-view" (click)="verDetalles(cotizacion)" title="Ver detalles">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <button class="btn-icon btn-edit" (click)="abrirModalEditar(cotizacion)" title="Editar" *ngIf="cotizacion.estado === 'BORRADOR'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="btn-icon btn-success" (click)="enviarCotizacion(cotizacion)" title="Enviar" *ngIf="cotizacion.estado === 'BORRADOR'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+              <button class="btn-icon btn-primary" (click)="aprobarCotizacion(cotizacion)" title="Aprobar" *ngIf="cotizacion.estado === 'ENVIADA'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" (click)="eliminarCotizacion(cotizacion)" title="Eliminar" *ngIf="cotizacion.estado === 'BORRADOR'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="cotizacionesFiltradas.length === 0">
+          <td colspan="7" class="no-data">No se encontraron cotizaciones</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Crear/Editar -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()" role="dialog" aria-modal="true">
+    <div class="modal-content" (click)="$event.stopPropagation()" role="document">
+      <div class="modal-header">
+        <h2>{{ isEditing ? 'Editar Cotización' : 'Nueva Cotización' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="cotizacionForm" (ngSubmit)="guardarCotizacion()" class="modal-form">
+        <div class="form-section">
+          <h3>Información General</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="numeroCotizacion">Número <span class="required">*</span></label>
+              <input 
+                type="text" 
+                id="numeroCotizacion"
+                formControlName="numeroCotizacion"
+                [class.invalid]="isFieldInvalid('numeroCotizacion')"
+              >
+              <span class="error-message" *ngIf="isFieldInvalid('numeroCotizacion')">
+                {{ getFieldError('numeroCotizacion') }}
+              </span>
+            </div>
+            <div class="form-group">
+              <label for="clienteId">Cliente <span class="required">*</span></label>
+              <select 
+                id="clienteId" 
+                formControlName="clienteId"
+                [class.invalid]="isFieldInvalid('clienteId')"
+              >
+                <option [ngValue]="null" disabled>Seleccione un cliente</option>
+                <option *ngFor="let cliente of clientes" [ngValue]="cliente.id">
+                  {{ cliente.razonSocial || cliente.nombreComercial || cliente.nombres }}
+                </option>
+              </select>
+              <span class="error-message" *ngIf="isFieldInvalid('clienteId')">
+                {{ getFieldError('clienteId') }}
+              </span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fechaCotizacion">Fecha Cotización <span class="required">*</span></label>
+              <input 
+                type="date" 
+                id="fechaCotizacion"
+                formControlName="fechaCotizacion"
+                [class.invalid]="isFieldInvalid('fechaCotizacion')"
+              >
+            </div>
+            <div class="form-group">
+              <label for="fechaVencimiento">Fecha Vencimiento <span class="required">*</span></label>
+              <input 
+                type="date" 
+                id="fechaVencimiento"
+                formControlName="fechaVencimiento"
+                [class.invalid]="isFieldInvalid('fechaVencimiento')"
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Información Comercial</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="listaPreciosId">Lista de Precios <span class="required">*</span></label>
+              <select 
+                id="listaPreciosId" 
+                formControlName="listaPreciosId"
+                [class.invalid]="isFieldInvalid('listaPreciosId')"
+              >
+                <option [ngValue]="null" disabled>Seleccione una lista</option>
+                <option *ngFor="let lista of listasPrecios" [ngValue]="lista.id">
+                  {{ lista.nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="condicionPagoId">Condición de Pago <span class="required">*</span></label>
+              <select 
+                id="condicionPagoId" 
+                formControlName="condicionPagoId"
+                [class.invalid]="isFieldInvalid('condicionPagoId')"
+              >
+                <option [ngValue]="null" disabled>Seleccione una condición</option>
+                <option *ngFor="let condicion of condicionesPago" [ngValue]="condicion.id">
+                  {{ condicion.nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Montos</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="subtotal">Subtotal</label>
+              <input 
+                type="number" 
+                id="subtotal"
+                formControlName="subtotal"
+                step="0.01"
+              >
+            </div>
+            <div class="form-group">
+              <label for="descuentoMonto">Descuento</label>
+              <input 
+                type="number" 
+                id="descuentoMonto"
+                formControlName="descuentoMonto"
+                step="0.01"
+              >
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="impuestoMonto">Impuesto</label>
+              <input 
+                type="number" 
+                id="impuestoMonto"
+                formControlName="impuestoMonto"
+                step="0.01"
+              >
+            </div>
+            <div class="form-group">
+              <label for="total">Total</label>
+              <input 
+                type="number" 
+                id="total"
+                formControlName="total"
+                step="0.01"
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Información Adicional</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tiempoEntrega">Tiempo de Entrega</label>
+              <input 
+                type="text" 
+                id="tiempoEntrega"
+                formControlName="tiempoEntrega"
+                placeholder="Ej: 15 días"
+              >
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="observaciones">Observaciones</label>
+            <textarea 
+              id="observaciones"
+              formControlName="observaciones"
+              rows="3"
+              placeholder="Información adicional..."
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="terminosCondiciones">Términos y Condiciones</label>
+            <textarea 
+              id="terminosCondiciones"
+              formControlName="terminosCondiciones"
+              rows="3"
+              placeholder="Términos y condiciones..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="cotizacionForm.invalid">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            {{ isEditing ? 'Actualizar' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Ver Detalles -->
+  <div class="modal-overlay" *ngIf="showDetalleModal" (click)="cerrarDetalleModal()" role="dialog" aria-modal="true">
+    <div class="modal-content modal-detalle" (click)="$event.stopPropagation()" role="document">
+      <div class="modal-header">
+        <h2>Detalles de la Cotización</h2>
+        <button class="btn-close" (click)="cerrarDetalleModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body" *ngIf="editingCotizacionId">
+        <div class="detalle-info" *ngFor="let cot of cotizaciones">
+          <div *ngIf="cot.id === editingCotizacionId">
+            <div class="info-section">
+              <h3>Información General</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <strong>Número de Cotización:</strong>
+                  <span class="info-value">{{ cot.numeroCotizacion }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Estado:</strong>
+                  <span class="badge" [ngClass]="getEstadoClass(cot.estado)">{{ cot.estado }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Cliente:</strong>
+                  <span class="info-value">{{ cot.clienteNombre }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Contacto:</strong>
+                  <span class="info-value">{{ cot.contactoClienteNombre || '-' }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Fecha Cotización:</strong>
+                  <span class="info-value">{{ formatDate(cot.fechaCotizacion) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Fecha Vencimiento:</strong>
+                  <span class="info-value">{{ formatDate(cot.fechaVencimiento) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>Información Comercial</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <strong>Lista de Precios:</strong>
+                  <span class="info-value">{{ cot.listaPreciosNombre }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Condición de Pago:</strong>
+                  <span class="info-value">{{ cot.condicionPagoNombre }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Tiempo Entrega:</strong>
+                  <span class="info-value">{{ cot.tiempoEntrega || '-' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>Montos</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <strong>Subtotal:</strong>
+                  <span class="info-value currency">{{ formatCurrency(cot.subtotal) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Descuento:</strong>
+                  <span class="info-value currency">{{ formatCurrency(cot.descuentoMonto) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Subtotal con Descuento:</strong>
+                  <span class="info-value currency">{{ formatCurrency(cot.subtotalConDescuento) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Impuesto:</strong>
+                  <span class="info-value currency">{{ formatCurrency(cot.impuestoMonto) }}</span>
+                </div>
+                <div class="info-item total-item">
+                  <strong>Total:</strong>
+                  <span class="info-value total-value">{{ formatCurrency(cot.total) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-section" *ngIf="cot.observaciones">
+              <h3>Observaciones</h3>
+              <p class="info-text">{{ cot.observaciones }}</p>
+            </div>
+
+            <div class="info-section" *ngIf="cot.terminosCondiciones">
+              <h3>Términos y Condiciones</h3>
+              <p class="info-text">{{ cot.terminosCondiciones }}</p>
+            </div>
+
+            <div class="info-section">
+              <h3>Fechas de Registro</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <strong>Fecha Creación:</strong>
+                  <span class="info-value">{{ formatDate(cot.fechaCreacion) }}</span>
+                </div>
+                <div class="info-item" *ngIf="cot.fechaModificacion">
+                  <strong>Última Modificación:</strong>
+                  <span class="info-value">{{ formatDate(cot.fechaModificacion) }}</span>
+                </div>
+                <div class="info-item" *ngIf="cot.fechaAprobacion">
+                  <strong>Fecha Aprobación:</strong>
+                  <span class="info-value">{{ formatDate(cot.fechaAprobacion) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

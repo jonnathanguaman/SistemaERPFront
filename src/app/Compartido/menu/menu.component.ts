@@ -59,7 +59,10 @@ export class MenuComponent implements OnInit {
         currentPath.includes('direcciones-cliente') || currentPath.includes('facturas') || 
         currentPath.includes('ventas') || currentPath.includes('cobros') || 
         currentPath.includes('condiciones-pago') || currentPath.includes('formas-pago') || 
-        currentPath.includes('cuentas-por-cobrar')) {
+        currentPath.includes('cuentas-por-cobrar') || currentPath.includes('cotizaciones') ||
+        currentPath.includes('detalles-cotizacion') || currentPath.includes('notas-credito') ||
+        currentPath.includes('detalles-nota-credito') || currentPath.includes('ordenes-venta') ||
+        currentPath.includes('detalles-orden-venta')) {
       this.activeModule = 'ventas';
     } else if (currentPath.includes('compras')) {
       this.activeModule = 'compras';

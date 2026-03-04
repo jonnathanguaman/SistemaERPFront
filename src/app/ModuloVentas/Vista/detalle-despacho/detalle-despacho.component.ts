@@ -1,18 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DetalleCotizacionService } from '../../Service/detalle-cotizacion.service';
-import { DetalleCotizacionResponse, DetalleCotizacionRequest } from '../../Entidad/detalle-cotizacion.model';
+import { DetalleDespachoService } from '../../Service/detalle-despacho.service';
+import { DetalleDespachoResponse, DetalleDespachoRequest } from '../../Entidad/detalle-despacho.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
 
 @Component({
-  selector: 'app-detalle-cotizacion',
+  selector: 'app-detalle-despacho',
   standalone: false,
-  templateUrl: './detalle-cotizacion.component.html',
-  styleUrl: './detalle-cotizacion.component.css'
+  templateUrl: './detalle-despacho.component.html',
+  styleUrl: './detalle-despacho.component.css'
 })
-export class DetalleCotizacionComponent implements OnInit {
-  detalles: DetalleCotizacionResponse[] = [];
-  detallesFiltrados: DetalleCotizacionResponse[] = [];
+export class DetalleDespachoComponent implements OnInit {
+  detalles: DetalleDespachoResponse[] = [];
+  detallesFiltrados: DetalleDespachoResponse[] = [];
   detalleForm: FormGroup;
   showModal: boolean = false;
   isEditing: boolean = false;
@@ -21,29 +21,28 @@ export class DetalleCotizacionComponent implements OnInit {
   busqueda: string = '';
 
   constructor(
-    private readonly detalleService: DetalleCotizacionService,
+    private readonly detalleService: DetalleDespachoService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
     this.detalleForm = this.formBuilder.group({
-      cotizacionId: [null, Validators.required],
+      despachoId: [null, Validators.required],
+      detalleOrdenVentaId: [null, Validators.required],
       productoId: [null, Validators.required],
-      cantidad: [1, [Validators.required, Validators.min(0.01)]],
-      precioUnitario: [0, [Validators.required, Validators.min(0)]],
-      descuentoPorcentaje: [0, [Validators.min(0), Validators.max(100)]],
-      descuentoMonto: [0, Validators.min(0)],
-      impuestoPorcentaje: [0, [Validators.required, Validators.min(0)]],
+      loteId: [null],
+      cantidadOrdenada: [0, [Validators.required, Validators.min(0.01)]],
+      cantidadDespachada: [0, [Validators.required, Validators.min(0)]],
       observaciones: ['']
     });
   }
 
   ngOnInit(): void {
-    this.cargarDetalles();
+    // Este componente se usa principalmente desde el modal de despacho
   }
 
-  cargarDetalles(): void {
+  cargarDetallesPorDespacho(despachoId: number): void {
     this.loading = true;
-    this.detalleService.findAll().subscribe({
+    this.detalleService.findByDespacho(despachoId).subscribe({
       next: (data) => {
         this.detalles = data;
         this.detallesFiltrados = data;
@@ -60,8 +59,9 @@ export class DetalleCotizacionComponent implements OnInit {
   filtrarDetalles(): void {
     const busquedaLower = this.busqueda.toLowerCase();
     this.detallesFiltrados = this.detalles.filter(detalle =>
-      detalle.cotizacionNumero?.toLowerCase().includes(busquedaLower) ||
-      detalle.id.toString().includes(busquedaLower)
+      detalle.despachoNumero?.toLowerCase().includes(busquedaLower) ||
+      detalle.id.toString().includes(busquedaLower) ||
+      detalle.productoId.toString().includes(busquedaLower)
     );
   }
 
@@ -69,26 +69,22 @@ export class DetalleCotizacionComponent implements OnInit {
     this.isEditing = false;
     this.editingDetalleId = null;
     this.detalleForm.reset({
-      cantidad: 1,
-      precioUnitario: 0,
-      descuentoPorcentaje: 0,
-      descuentoMonto: 0,
-      impuestoPorcentaje: 0
+      cantidadOrdenada: 0,
+      cantidadDespachada: 0
     });
     this.showModal = true;
   }
 
-  abrirModalEditar(detalle: DetalleCotizacionResponse): void {
+  abrirModalEditar(detalle: DetalleDespachoResponse): void {
     this.isEditing = true;
     this.editingDetalleId = detalle.id;
     this.detalleForm.patchValue({
-      cotizacionId: detalle.cotizacionId,
+      despachoId: detalle.despachoId,
+      detalleOrdenVentaId: detalle.detalleOrdenVentaId,
       productoId: detalle.productoId,
-      cantidad: detalle.cantidad,
-      precioUnitario: detalle.precioUnitario,
-      descuentoPorcentaje: detalle.descuentoPorcentaje,
-      descuentoMonto: detalle.descuentoMonto,
-      impuestoPorcentaje: detalle.impuestoPorcentaje,
+      loteId: detalle.loteId,
+      cantidadOrdenada: detalle.cantidadOrdenada,
+      cantidadDespachada: detalle.cantidadDespachada,
       observaciones: detalle.observaciones
     });
     this.showModal = true;
@@ -108,13 +104,12 @@ export class DetalleCotizacionComponent implements OnInit {
       return;
     }
 
-    const detalleData: DetalleCotizacionRequest = this.detalleForm.value;
+    const detalleData: DetalleDespachoRequest = this.detalleForm.value;
 
     if (this.isEditing && this.editingDetalleId !== null) {
       this.detalleService.update(this.editingDetalleId, detalleData).subscribe({
         next: () => {
           this.notificationService.success('Detalle actualizado exitosamente');
-          this.cargarDetalles();
           this.cerrarModal();
         },
         error: (error) => {
@@ -126,7 +121,6 @@ export class DetalleCotizacionComponent implements OnInit {
       this.detalleService.save(detalleData).subscribe({
         next: () => {
           this.notificationService.success('Detalle creado exitosamente');
-          this.cargarDetalles();
           this.cerrarModal();
         },
         error: (error) => {
@@ -137,14 +131,13 @@ export class DetalleCotizacionComponent implements OnInit {
     }
   }
 
-  async eliminarDetalle(detalle: DetalleCotizacionResponse): Promise<void> {
+  async eliminarDetalle(detalle: DetalleDespachoResponse): Promise<void> {
     const confirmed = await this.notificationService.confirmDelete(`Detalle #${detalle.id}`);
     if (!confirmed) return;
 
     this.detalleService.delete(detalle.id).subscribe({
       next: () => {
         this.notificationService.toast('Detalle eliminado exitosamente', 'success');
-        this.cargarDetalles();
       },
       error: (error) => {
         console.error('Error al eliminar detalle:', error);
@@ -160,24 +153,19 @@ export class DetalleCotizacionComponent implements OnInit {
 
   getFieldError(fieldName: string): string {
     const field = this.detalleForm.get(fieldName);
-
     if (field?.hasError('required')) {
       return 'Este campo es requerido';
     }
-
     if (field?.hasError('min')) {
-      return `Valor mínimo: ${field.errors?.['min'].min}`;
+      return 'El valor debe ser mayor';
     }
-
-    if (field?.hasError('max')) {
-      return `Valor máximo: ${field.errors?.['max'].max}`;
-    }
-
     return '';
   }
 
-  formatCurrency(value: number | undefined): string {
-    return value ? `$${value.toFixed(2)}` : '$0.00';
+  formatDate(date: string | undefined): string {
+    if (!date) return '-';
+    const d = new Date(date);
+    return d.toLocaleDateString('es-EC');
   }
 }
 

@@ -1,0 +1,374 @@
+<div class="nota-credito-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Notas de Crédito</h1>
+      <p class="subtitle">Gestión de notas de crédito de ventas</p>
+    </div>
+    <button class="btn btn-primary" (click)="abrirModalCrear()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Nueva Nota de Crédito
+    </button>
+  </div>
+
+  <!-- Barra de búsqueda y filtros -->
+  <div class="filters-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Buscar por número, cliente o factura..."
+        [(ngModel)]="searchTerm"
+        (input)="aplicarFiltros()"
+      >
+    </div>
+    
+    <div class="filter-group">
+      <label>Estado:</label>
+      <select [(ngModel)]="filtroEstado" (change)="aplicarFiltros()" class="filter-select">
+        <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando notas de crédito...</p>
+  </div>
+
+  <!-- Tabla de notas de crédito -->
+  <div class="table-container" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Factura</th>
+          <th>Cliente</th>
+          <th>Fecha Emisión</th>
+          <th>Tipo</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>SRI</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let notaCredito of notasCreditoFiltradas">
+          <td class="bold-text">{{ notaCredito.numeroNotaCredito }}</td>
+          <td>{{ notaCredito.facturaNumero }}</td>
+          <td>{{ notaCredito.clienteNombre }}</td>
+          <td>{{ notaCredito.fechaEmision | date: 'dd/MM/yyyy' }}</td>
+          <td>
+            <span class="badge" [ngClass]="getTipoNotaBadgeClass(notaCredito.tipoNota)">
+              {{ notaCredito.tipoNota }}
+            </span>
+          </td>
+          <td class="number-cell">{{ notaCredito.total | currency }}</td>
+          <td>
+            <span class="badge" [ngClass]="getEstadoBadgeClass(notaCredito.estado)">
+              {{ notaCredito.estado }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="notaCredito.numeroAutorizacion ? 'badge-success' : 'badge-warning'">
+              {{ notaCredito.numeroAutorizacion ? 'Autorizada' : 'Pendiente' }}
+            </span>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button 
+                class="btn-icon btn-view" 
+                (click)="verDetalles(notaCredito)"
+                title="Ver detalles"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <button 
+                class="btn-icon btn-payment" 
+                (click)="aplicarNotaCredito(notaCredito)"
+                title="Aplicar nota de crédito"
+                *ngIf="notaCredito.estado === 'EMITIDA'"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+              <button 
+                class="btn-icon btn-edit" 
+                (click)="abrirModalAutorizacion(notaCredito)"
+                title="Autorizar SRI"
+                *ngIf="!notaCredito.numeroAutorizacion && notaCredito.estado !== 'ANULADA'"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+              </button>
+              <button 
+                class="btn-icon btn-edit" 
+                (click)="abrirModalEditar(notaCredito)"
+                title="Editar"
+                *ngIf="notaCredito.estado === 'EMITIDA'"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button 
+                class="btn-icon btn-delete" 
+                (click)="anularNotaCredito(notaCredito)"
+                title="Anular"
+                *ngIf="notaCredito.estado !== 'ANULADA'"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="notasCreditoFiltradas.length === 0">
+          <td colspan="9" class="no-data">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p class="no-data-title">No hay notas de crédito registradas</p>
+            <p class="no-data-subtitle">Comienza creando la primera nota de crédito</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Crear/Editar Nota de Crédito -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditMode ? 'Editar Nota de Crédito' : 'Nueva Nota de Crédito' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="notaCreditoForm" (ngSubmit)="guardarNotaCredito()" class="modal-form">
+        <div class="form-section">
+          <h3 class="section-title">Información General</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="numeroNotaCredito">Número de Nota de Crédito <span class="required">*</span></label>
+              <input type="text" id="numeroNotaCredito" formControlName="numeroNotaCredito" 
+                     placeholder="Ej: NC-001" [class.invalid]="isFieldInvalid('numeroNotaCredito')">
+              <span class="error-message" *ngIf="isFieldInvalid('numeroNotaCredito')">
+                {{ getFieldError('numeroNotaCredito') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="facturaId">Factura <span class="required">*</span></label>
+              <select id="facturaId" formControlName="facturaId" 
+                      (change)="onFacturaChange($event)"
+                      [class.invalid]="isFieldInvalid('facturaId')">
+                <option value="">Seleccione una factura</option>
+                <option *ngFor="let factura of facturas" [value]="factura.id">
+                  {{ factura.numeroFactura }} - {{ factura.clienteNombre }} - ${{ factura.total | number:'1.2-2' }}
+                </option>
+              </select>
+              <span class="error-message" *ngIf="isFieldInvalid('facturaId')">
+                {{ getFieldError('facturaId') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="clienteNombre">Cliente</label>
+              <input type="text" id="clienteNombre" 
+                     [value]="clienteNombreSeleccionado" 
+                     readonly 
+                     placeholder="Se asignará automáticamente al seleccionar factura"
+                     class="readonly-field">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fechaEmision">Fecha Emisión <span class="required">*</span></label>
+              <input type="date" id="fechaEmision" formControlName="fechaEmision" 
+                     [class.invalid]="isFieldInvalid('fechaEmision')">
+            </div>
+
+            <div class="form-group">
+              <label for="tipoNota">Tipo de Nota <span class="required">*</span></label>
+              <select id="tipoNota" formControlName="tipoNota" [class.invalid]="isFieldInvalid('tipoNota')">
+                <option *ngFor="let tipo of tiposNota" [value]="tipo">{{ tipo }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="afectaInventario">Afecta Inventario</label>
+              <input type="checkbox" id="afectaInventario" formControlName="afectaInventario">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group form-group-full">
+              <label for="motivo">Motivo <span class="required">*</span></label>
+              <textarea id="motivo" formControlName="motivo" rows="3"
+                        placeholder="Describa el motivo de la nota de crédito"
+                        [class.invalid]="isFieldInvalid('motivo')"></textarea>
+              <span class="error-message" *ngIf="isFieldInvalid('motivo')">
+                {{ getFieldError('motivo') }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">Montos</h3>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="subtotal">Subtotal <span class="required">*</span></label>
+              <input type="number" id="subtotal" formControlName="subtotal" 
+                     step="0.01" (blur)="calcularTotal()" [class.invalid]="isFieldInvalid('subtotal')">
+            </div>
+
+            <div class="form-group">
+              <label for="descuentoMonto">Descuento</label>
+              <input type="number" id="descuentoMonto" formControlName="descuentoMonto" 
+                     step="0.01" (blur)="calcularTotal()">
+            </div>
+
+            <div class="form-group">
+              <label for="impuestoMonto">Impuesto <span class="required">*</span></label>
+              <input type="number" id="impuestoMonto" formControlName="impuestoMonto" 
+                     step="0.01" (blur)="calcularTotal()" [class.invalid]="isFieldInvalid('impuestoMonto')">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="total">Total <span class="required">*</span></label>
+              <input type="number" id="total" formControlName="total" 
+                     step="0.01" readonly class="readonly-field">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">Observaciones</h3>
+          <div class="form-group form-group-full">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" formControlName="observaciones" 
+                      rows="3" placeholder="Ingrese observaciones adicionales"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            {{ isEditMode ? 'Actualizar' : 'Crear' }} Nota de Crédito
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Detalles -->
+  <div class="modal-overlay" *ngIf="showDetalleModal" (click)="cerrarDetalleModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalles de Nota de Crédito {{ selectedNotaCredito?.numeroNotaCredito }}</h2>
+        <button class="btn-close" (click)="cerrarDetalleModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="detalle-content">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+              <th>Subtotal</th>
+              <th>Impuesto</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let detalle of detallesNotaCredito">
+              <td>{{ detalle.productoNombre }}</td>
+              <td class="number-cell">{{ detalle.cantidad }}</td>
+              <td class="number-cell">{{ detalle.precioUnitario | currency }}</td>
+              <td class="number-cell">{{ detalle.subtotal | currency }}</td>
+              <td class="number-cell">{{ detalle.impuestoMonto | currency }}</td>
+              <td class="number-cell bold-text">{{ detalle.total | currency }}</td>
+            </tr>
+            <tr *ngIf="detallesNotaCredito.length === 0">
+              <td colspan="6" class="no-data">No hay detalles para esta nota de crédito</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarDetalleModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Autorización SRI -->
+  <div class="modal-overlay" *ngIf="showAutorizacionModal" (click)="cerrarAutorizacionModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Autorización SRI</h2>
+        <button class="btn-close" (click)="cerrarAutorizacionModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="autorizacionForm" (ngSubmit)="autorizarSri()" class="modal-form">
+        <div class="form-group">
+          <label for="numeroAutorizacion">Número de Autorización <span class="required">*</span></label>
+          <input type="text" id="numeroAutorizacion" formControlName="numeroAutorizacion" 
+                 placeholder="Ingrese el número de autorización del SRI">
+        </div>
+
+        <div class="form-group">
+          <label for="claveAcceso">Clave de Acceso <span class="required">*</span></label>
+          <input type="text" id="claveAcceso" formControlName="claveAcceso" 
+                 placeholder="Ingrese la clave de acceso">
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarAutorizacionModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Autorizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

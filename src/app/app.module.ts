@@ -52,6 +52,13 @@ import { FormaPagoComponent } from './ModuloVentas/Vista/forma-pago/forma-pago.c
 import { CuentasCobrarComponent } from './ModuloVentas/Vista/cuentas-cobrar/cuentas-cobrar.component';
 import { DetalleCotizacionComponent } from './ModuloVentas/Vista/detalle-cotizacion/detalle-cotizacion.component';
 import { DetalleCobroComponent } from './ModuloVentas/Vista/detalle-cobro/detalle-cobro.component';
+import { CotizacionComponent } from './ModuloVentas/Vista/cotizacion/cotizacion.component';
+import { DespachoComponent } from './ModuloVentas/Vista/despacho/despacho.component';
+import { DetalleDespachoComponent } from './ModuloVentas/Vista/detalle-despacho/detalle-despacho.component';
+import { NotaCreditoComponent } from './ModuloVentas/Vista/nota-credito/nota-credito.component';
+import { DetalleNotaCreditoComponent } from './ModuloVentas/Vista/detalle-nota-credito/detalle-nota-credito.component';
+import { OrdenVentaComponent } from './ModuloVentas/Vista/orden-venta/orden-venta.component';
+import { DetalleOrdenVentaComponent } from './ModuloVentas/Vista/detalle-orden-venta/detalle-orden-venta.component';
 
 @NgModule({
   declarations: [
@@ -103,6 +110,13 @@ import { DetalleCobroComponent } from './ModuloVentas/Vista/detalle-cobro/detall
     CuentasCobrarComponent,
     DetalleCotizacionComponent,
     DetalleCobroComponent,
+    CotizacionComponent,
+    DespachoComponent,
+    DetalleDespachoComponent,
+    NotaCreditoComponent,
+    DetalleNotaCreditoComponent,
+    OrdenVentaComponent,
+    DetalleOrdenVentaComponent,
   ],
   imports: [
     BrowserModule,

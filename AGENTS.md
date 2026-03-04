@@ -15,6 +15,7 @@
 - Éxito: #16A34A
 - Error: #DC2626
 - Advertencia: #F59E0B
+- Nunca hagas que ocupe el 100% solo que necesita
 
 ---
 
@@ -45,3 +46,10 @@ Configuración especial para números:
 - Enfocado en legibilidad de datos
 - No usar más de 1 fuente
 - No usar más de 1 color primario
+
+## Importante para notificaciones
+- Tienes que usar sweet aler
+- Tienes un service donde puedes reutilizar o crear nuevas notificaciones
+
+## En las tablas
+- Nunca pongas la columna de ID

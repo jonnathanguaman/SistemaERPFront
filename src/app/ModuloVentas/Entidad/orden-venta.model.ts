@@ -1,0 +1,66 @@
+export interface OrdenVentaRequest {
+  numeroOrden: string;
+  cotizacionId?: number;
+  clienteId: number;
+  contactoClienteId?: number;
+  fechaOrden: string;
+  fechaEntregaEstimada?: string;
+  vendedorId?: number;
+  bodegaId: number;
+  condicionPagoId: number;
+  diasCredito?: number;
+  direccionEntregaId?: number;
+  direccionEntregaTexto?: string;
+  tiempoEntrega?: string;
+  subtotal?: number;
+  descuentoPorcentaje?: number;
+  descuentoMonto?: number;
+  impuestoMonto?: number;
+  total?: number;
+  requiereFactura?: boolean;
+  requiereGuiaRemision?: boolean;
+  observaciones?: string;
+  usuarioCreacionId?: number;
+}
+
+export interface OrdenVentaResponse {
+  id: number;
+  numeroOrden: string;
+  cotizacionId?: number;
+  cotizacionNumero?: string;
+  clienteId: number;
+  clienteNombre: string;
+  contactoClienteId?: number;
+  fechaOrden: string;
+  fechaEntregaEstimada?: string;
+  fechaEntregaReal?: string;
+  vendedorId?: number;
+  bodegaId: number;
+  condicionPagoId: number;
+  condicionPagoNombre?: string;
+  diasCredito?: number;
+  direccionEntregaId?: number;
+  direccionEntregaTexto?: string;
+  tiempoEntrega?: string;
+  subtotal: number;
+  descuentoPorcentaje: number;
+  descuentoMonto: number;
+  subtotalConDescuento: number;
+  impuestoMonto: number;
+  total: number;
+  estado: string;
+  movimientoInventarioId?: number;
+  requiereFactura: boolean;
+  requiereGuiaRemision: boolean;
+  observaciones?: string;
+  usuarioCreacionId?: number;
+  usuarioAprobacionId?: number;
+  activo: boolean;
+  fechaCreacion: string;
+  fechaModificacion?: string;
+  fechaAprobacion?: string;
+  puedeEditarse: boolean;
+  cantidadDetalles: number;
+  cantidadDespachos: number;
+  cantidadFacturas: number;
+}

@@ -209,10 +209,15 @@ export class CobroComponent implements OnInit {
       return;
     }
 
-    const confirmed = confirm(`¿Confirmar el cobro ${cobro.numeroCobro}?`);
-    if (!confirmed) return;
+    // TODO: Cuando se implemente autenticación, obtener automáticamente del usuario logueado
+    const usuarioId = await this.notificationService.confirmWithUserId(
+      `¿Confirmar el cobro <strong>${cobro.numeroCobro}</strong>?`,
+      'Confirmar Cobro'
+    );
+    
+    if (!usuarioId) return;
 
-    this.cobroService.confirmar(cobro.id).subscribe({
+    this.cobroService.confirmar(cobro.id, usuarioId).subscribe({
       next: () => {
         this.notificationService.toast('Cobro confirmado exitosamente', 'success');
         this.cargarCobros();
@@ -230,10 +235,15 @@ export class CobroComponent implements OnInit {
       return;
     }
 
-    const motivo = prompt('Ingrese el motivo de anulación:');
-    if (!motivo) return;
+    // TODO: Cuando se implemente autenticación, obtener automáticamente del usuario logueado
+    const formValues = await this.notificationService.anularWithUserIdAndReason(
+      `Anular el cobro <strong>${cobro.numeroCobro}</strong>`,
+      'Anular Cobro'
+    );
 
-    this.cobroService.anular(cobro.id, motivo).subscribe({
+    if (!formValues) return;
+
+    this.cobroService.anular(cobro.id, formValues.usuarioId, formValues.motivo).subscribe({
       next: () => {
         this.notificationService.toast('Cobro anulado exitosamente', 'success');
         this.cargarCobros();
