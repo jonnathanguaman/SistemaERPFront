@@ -1,0 +1,59 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Sistema de Gestión</h1>
+      <p>Iniciar Sesión</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      
+      <!-- Campo de usuario -->
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <input 
+          type="text" 
+          id="username" 
+          formControlName="username" 
+          class="form-control"
+          [class.invalid]="isFieldInvalid('username')"
+          placeholder="Ingrese su usuario"
+        />
+        <div class="error-message" *ngIf="isFieldInvalid('username')">
+          El usuario es requerido
+        </div>
+      </div>
+
+      <!-- Campo de contraseña -->
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input 
+          type="password" 
+          id="password" 
+          formControlName="password" 
+          class="form-control"
+          [class.invalid]="isFieldInvalid('password')"
+          placeholder="Ingrese su contraseña"
+        />
+        <div class="error-message" *ngIf="isFieldInvalid('password')">
+          La contraseña es requerida
+        </div>
+      </div>
+
+      <!-- Mensaje de error general -->
+      <div class="alert-error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Botón de login -->
+      <button 
+        type="submit" 
+        class="btn-login"
+        [disabled]="isLoading"
+      >
+        <span *ngIf="!isLoading">Iniciar Sesión</span>
+        <span *ngIf="isLoading">Cargando...</span>
+      </button>
+
+    </form>
+  </div>
+</div>

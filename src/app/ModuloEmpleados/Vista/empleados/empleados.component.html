@@ -189,6 +189,76 @@
         </span>
       </div>
 
+      <!-- Sección de credenciales (solo en modo creación) -->
+      <div class="credentials-section" *ngIf="!isEditMode">
+        <div class="section-divider">
+          <span class="divider-line"></span>
+          <span class="divider-text">Credenciales de Acceso (Opcional)</span>
+          <span class="divider-line"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="crearUsuario"
+              [ngModelOptions]="{standalone: true}"
+              (change)="onCrearUsuarioChange()"
+            />
+            <span>Crear usuario de acceso al sistema</span>
+          </label>
+        </div>
+
+        <div *ngIf="crearUsuario" class="credentials-fields">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="username">Nombre de Usuario <span class="required">*</span></label>
+              <input
+                type="text"
+                id="username"
+                formControlName="username"
+                placeholder="Ej: jperez"
+                [class.invalid]="isFieldInvalid('username')"
+              />
+              <span class="error-message" *ngIf="isFieldInvalid('username')">
+                {{ getFieldError('username') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="password">Contraseña <span class="required">*</span></label>
+              <input
+                type="password"
+                id="password"
+                formControlName="password"
+                placeholder="Mínimo 6 caracteres"
+                [class.invalid]="isFieldInvalid('password')"
+              />
+              <span class="error-message" *ngIf="isFieldInvalid('password')">
+                {{ getFieldError('password') }}
+              </span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="rolId">Rol <span class="required">*</span></label>
+            <select
+              id="rolId"
+              formControlName="rolId"
+              [class.invalid]="isFieldInvalid('rolId')"
+            >
+              <option [ngValue]="null" disabled>Seleccione un rol</option>
+              <option *ngFor="let rol of roles" [ngValue]="rol.id">
+                {{ rol.nombre }}
+              </option>
+            </select>
+            <span class="error-message" *ngIf="isFieldInvalid('rolId')">
+              Debe seleccionar un rol
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="cerrarModal()" [disabled]="isLoading">
           Cancelar

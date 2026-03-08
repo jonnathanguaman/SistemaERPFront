@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 import { PersonaRequest, PersonaResponse } from '../Entidades/persona.model';
+import { PersonaConCredencialesRequest } from '../Entidades/persona-con-credenciales.model';
 import { environment } from '../../../environments/environment';
 
 /**
@@ -56,6 +57,19 @@ export class PersonaService {
      */
     save(persona: PersonaRequest): Observable<PersonaResponse> {
         return this.http.post<PersonaResponse>(this.apiUrl, persona, this.httpOptions)
+        .pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    /**
+     * Crear un nuevo empleado con credenciales de acceso y roles
+     * @param persona Datos del empleado, credenciales y roles
+     * @returns Observable con el empleado creado
+     */
+    saveConCredenciales(persona: PersonaConCredencialesRequest): Observable<PersonaResponse> {
+        const url = `${this.apiUrl}/con-credenciales`;
+        return this.http.post<PersonaResponse>(url, persona, this.httpOptions)
         .pipe(
             catchError(this.handleError)
         );

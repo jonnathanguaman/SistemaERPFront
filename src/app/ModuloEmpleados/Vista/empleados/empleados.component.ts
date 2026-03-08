@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PersonaService } from '../../Service/persona.service';
+import { RolAccesoService } from '../../Service/rol.service';
 import { PersonaRequest, PersonaResponse } from '../../Entidades/persona.model';
+import { PersonaConCredencialesRequest } from '../../Entidades/persona-con-credenciales.model';
+import { RolAccesoResponse } from '../../Entidades/rol.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
 
 @Component({
@@ -16,6 +19,9 @@ export class EmpleadosComponent implements OnInit {
   empleadoSeleccionado: PersonaResponse | null = null;
   empleadoForm: FormGroup;
   
+  roles: RolAccesoResponse[] = [];
+  crearUsuario: boolean = false;
+  
   isLoading: boolean = false;
   showModal: boolean = false;
   isEditMode: boolean = false;
@@ -24,6 +30,7 @@ export class EmpleadosComponent implements OnInit {
   
   constructor(
     private readonly personaService: PersonaService,
+    private readonly rolService: RolAccesoService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
@@ -32,12 +39,28 @@ export class EmpleadosComponent implements OnInit {
       cedula: ['', [Validators.required, Validators.minLength(10)]],
       direccion: ['', [Validators.required]],
       telefono: ['', [Validators.required, Validators.minLength(10)]],
-      email: ['', [Validators.required, Validators.email]]
+      email: ['', [Validators.required, Validators.email]],
+      username: [''],
+      password: [''],
+      rolId: [null]
     });
   }
 
   ngOnInit(): void {
     this.cargarEmpleados();
+    this.cargarRoles();
+  }
+  
+  cargarRoles(): void {
+    this.rolService.findAll().subscribe({
+      next: (data) => {
+        this.roles = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar roles:', error);
+        this.notificationService.error('Error al cargar la lista de roles');
+      }
+    });
   }
 
   cargarEmpleados(): void {
@@ -59,6 +82,7 @@ export class EmpleadosComponent implements OnInit {
   abrirModalCrear(): void {
     this.isEditMode = false;
     this.empleadoSeleccionado = null;
+    this.crearUsuario = false;
     this.empleadoForm.reset();
     this.showModal = true;
   }
@@ -66,6 +90,7 @@ export class EmpleadosComponent implements OnInit {
   abrirModalEditar(empleado: PersonaResponse): void {
     this.isEditMode = true;
     this.empleadoSeleccionado = empleado;
+    this.crearUsuario = false;
     
     this.empleadoForm.patchValue({
       nombre: empleado.nombre,
@@ -82,6 +107,27 @@ export class EmpleadosComponent implements OnInit {
     this.showModal = false;
     this.empleadoForm.reset();
     this.empleadoSeleccionado = null;
+    this.crearUsuario = false;
+  }
+  
+  onCrearUsuarioChange(): void {
+    const usernameControl = this.empleadoForm.get('username');
+    const passwordControl = this.empleadoForm.get('password');
+    const rolControl = this.empleadoForm.get('rolId');
+    
+    if (this.crearUsuario) {
+      usernameControl?.setValidators([Validators.required, Validators.minLength(4)]);
+      passwordControl?.setValidators([Validators.required, Validators.minLength(6)]);
+      rolControl?.setValidators([Validators.required]);
+    } else {
+      usernameControl?.clearValidators();
+      passwordControl?.clearValidators();
+      rolControl?.clearValidators();
+    }
+    
+    usernameControl?.updateValueAndValidity();
+    passwordControl?.updateValueAndValidity();
+    rolControl?.updateValueAndValidity();
   }
 
   guardarEmpleado(): void {
@@ -92,10 +138,17 @@ export class EmpleadosComponent implements OnInit {
     }
 
     this.isLoading = true;
-    
-    const personaData: PersonaRequest = this.empleadoForm.value;
 
     if (this.isEditMode && this.empleadoSeleccionado) {
+      // Modo edición - solo actualiza datos de persona
+      const personaData: PersonaRequest = {
+        nombre: this.empleadoForm.value.nombre,
+        cedula: this.empleadoForm.value.cedula,
+        direccion: this.empleadoForm.value.direccion,
+        telefono: this.empleadoForm.value.telefono,
+        email: this.empleadoForm.value.email
+      };
+      
       this.personaService.update(this.empleadoSeleccionado.id, personaData).subscribe({
         next: (response) => {
           this.isLoading = false;
@@ -109,18 +162,55 @@ export class EmpleadosComponent implements OnInit {
         }
       });
     } else {
-      this.personaService.save(personaData).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          this.notificationService.success('Empleado creado exitosamente');
-          this.cargarEmpleados();
-          this.cerrarModal();
-        },
-        error: (error) => {
-          this.isLoading = false;
-          this.notificationService.error(error.message, 'Error al crear');
-        }
-      });
+      // Modo creación
+      if (this.crearUsuario) {
+        // Crear persona con credenciales y roles
+        const personaConCredenciales: PersonaConCredencialesRequest = {
+          nombre: this.empleadoForm.value.nombre,
+          cedula: this.empleadoForm.value.cedula,
+          direccion: this.empleadoForm.value.direccion,
+          telefono: this.empleadoForm.value.telefono,
+          email: this.empleadoForm.value.email,
+          username: this.empleadoForm.value.username,
+          password: this.empleadoForm.value.password,
+          rolesIds: this.empleadoForm.value.rolId ? [this.empleadoForm.value.rolId] : []
+        };
+        
+        this.personaService.saveConCredenciales(personaConCredenciales).subscribe({
+          next: (response) => {
+            this.isLoading = false;
+            this.notificationService.success('Empleado y usuario creados exitosamente');
+            this.cargarEmpleados();
+            this.cerrarModal();
+          },
+          error: (error) => {
+            this.isLoading = false;
+            this.notificationService.error(error.message, 'Error al crear');
+          }
+        });
+      } else {
+        // Crear solo persona sin credenciales
+        const personaData: PersonaRequest = {
+          nombre: this.empleadoForm.value.nombre,
+          cedula: this.empleadoForm.value.cedula,
+          direccion: this.empleadoForm.value.direccion,
+          telefono: this.empleadoForm.value.telefono,
+          email: this.empleadoForm.value.email
+        };
+        
+        this.personaService.save(personaData).subscribe({
+          next: (response) => {
+            this.isLoading = false;
+            this.notificationService.success('Empleado creado exitosamente');
+            this.cargarEmpleados();
+            this.cerrarModal();
+          },
+          error: (error) => {
+            this.isLoading = false;
+            this.notificationService.error(error.message, 'Error al crear');
+          }
+        });
+      }
     }
   }
 

@@ -1,10 +1,12 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { JwtInterceptor } from './Compartido/interceptors/jwt.interceptor';
+import { LoginComponent } from './Compartido/login/login.component';
 import { EmpleadosComponent } from './ModuloEmpleados/Vista/empleados/empleados.component';
 import { RolesComponent } from './ModuloEmpleados/Vista/roles/roles.component';
 import { MenuComponent } from './Compartido/menu/menu.component';
@@ -68,6 +70,7 @@ import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepci
 @NgModule({
   declarations: [
     AppComponent,
+    LoginComponent,
     EmpleadosComponent,
     RolesComponent,
     MenuComponent,
@@ -135,7 +138,12 @@ import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepci
     FormsModule
   ],
   providers: [
-    provideHttpClient(withInterceptorsFromDi())
+    provideHttpClient(withInterceptorsFromDi()),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: JwtInterceptor,
+      multi: true
+    }
   ],
   bootstrap: [AppComponent]
 })

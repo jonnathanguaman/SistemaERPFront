@@ -1,5 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { LoginComponent } from './Compartido/login/login.component';
+import { AuthGuard } from './Compartido/guards/auth.guard';
 import { EmpleadosComponent } from './ModuloEmpleados/Vista/empleados/empleados.component';
 import { RolesComponent } from './ModuloEmpleados/Vista/roles/roles.component';
 import { AsignarRolesComponent } from './ModuloEmpleados/Vista/asignar-roles/asignar-roles.component';
@@ -59,74 +61,82 @@ import { RecepcionInventarioComponent } from './ModuloCompras/Vista/recepcion-in
 import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepcion/detalle-recepcion.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/empleados', pathMatch: 'full' },
+  // Ruta de login (pública)
+  { path: 'login', component: LoginComponent },
+  
+  // Ruta raíz redirige a login
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  
+  // Rutas protegidas con AuthGuard
   // Rutas del módulo de empleados
-  { path: 'empleados', component: EmpleadosComponent },
-  { path: 'roles', component: RolesComponent },
-  { path: 'asignar-roles', component: AsignarRolesComponent },
+  { path: 'empleados', component: EmpleadosComponent, canActivate: [AuthGuard] },
+  { path: 'roles', component: RolesComponent, canActivate: [AuthGuard] },
+  { path: 'asignar-roles', component: AsignarRolesComponent, canActivate: [AuthGuard] },
+  
   // Rutas del módulo de compras
-  { path: 'proveedores', component: ProveedorComponent },
+  { path: 'proveedores', component: ProveedorComponent, canActivate: [AuthGuard] },
+  
   // Rutas del módulo de empresa
-  { path: 'empresas', component: EmpresaComponent },
-  { path: 'bodegas', component: BodegaComponent },
-  { path: 'bodegas-responsables', component: BodegaResponsableComponent },
-  { path: 'personas-empresa', component: PersonaEmpresaComponent },
-  { path: 'procesos', component: ProcesoComponent },
-  { path: 'acciones-proceso', component: AccionProcesoComponent },
-  { path: 'roles-empresa', component: RolEmpresaComponent },
-  { path: 'personas-empresa-roles', component: PersonaEmpresaRolComponent },
-  { path: 'permisos-directos', component: PermisoDirectoPersonalComponent },
-  { path: 'roles-procesos-permisos', component: RolProcesoPermisoComponent },
-  { path: 'reportes-jerarquicos', component: ReporteJerarquicoComponent },
-  { path: 'unidades-organizacionales', component: UnidadOrganizacionalComponent },
+  { path: 'empresas', component: EmpresaComponent, canActivate: [AuthGuard] },
+  { path: 'bodegas', component: BodegaComponent, canActivate: [AuthGuard] },
+  { path: 'bodegas-responsables', component: BodegaResponsableComponent, canActivate: [AuthGuard] },
+  { path: 'personas-empresa', component: PersonaEmpresaComponent, canActivate: [AuthGuard] },
+  { path: 'procesos', component: ProcesoComponent, canActivate: [AuthGuard] },
+  { path: 'acciones-proceso', component: AccionProcesoComponent, canActivate: [AuthGuard] },
+  { path: 'roles-empresa', component: RolEmpresaComponent, canActivate: [AuthGuard] },
+  { path: 'personas-empresa-roles', component: PersonaEmpresaRolComponent, canActivate: [AuthGuard] },
+  { path: 'permisos-directos', component: PermisoDirectoPersonalComponent, canActivate: [AuthGuard] },
+  { path: 'roles-procesos-permisos', component: RolProcesoPermisoComponent, canActivate: [AuthGuard] },
+  { path: 'reportes-jerarquicos', component: ReporteJerarquicoComponent, canActivate: [AuthGuard] },
+  { path: 'unidades-organizacionales', component: UnidadOrganizacionalComponent, canActivate: [AuthGuard] },
   // Rutas del módulo de inventario
-  { path: 'productos', component: ProductoComponent },
-  { path: 'producto-lotes', component: ProductoLoteComponent },
-  { path: 'producto-tipos', component: ProductoTipoComponent },
-  { path: 'producto-existencias', component: ProductoExistenciasComponent },
-  { path: 'producto-configuracion-contable', component: ProductoConfiguracionContableComponent },
-  { path: 'categorias', component: CategoriaComponent },
-  { path: 'subcategorias', component: SubcategoriaComponent },
-  { path: 'grupos', component: GrupoComponent },
-  { path: 'subgrupos', component: SubgrupoComponent },
-  { path: 'centros-costos', component: CentroCostosComponent },
-  { path: 'cuentas-contables', component: CuentaContableComponent },
-  { path: 'lineas-negocio', component: LineaNegocioComponent },
-  { path: 'metodos-valuacion', component: MetodoValuacionComponent },
-  { path: 'tipos-movimiento', component: TipoMovimientoComponent },
-  { path: 'movimientos-inventario', component: MoviminetoInventarioComponent },
-  { path: 'detalles-movimiento', component: DetalleMoviminetoComponent },
+  { path: 'productos', component: ProductoComponent, canActivate: [AuthGuard] },
+  { path: 'producto-lotes', component: ProductoLoteComponent, canActivate: [AuthGuard] },
+  { path: 'producto-tipos', component: ProductoTipoComponent, canActivate: [AuthGuard] },
+  { path: 'producto-existencias', component: ProductoExistenciasComponent, canActivate: [AuthGuard] },
+  { path: 'producto-configuracion-contable', component: ProductoConfiguracionContableComponent, canActivate: [AuthGuard] },
+  { path: 'categorias', component: CategoriaComponent, canActivate: [AuthGuard] },
+  { path: 'subcategorias', component: SubcategoriaComponent, canActivate: [AuthGuard] },
+  { path: 'grupos', component: GrupoComponent, canActivate: [AuthGuard] },
+  { path: 'subgrupos', component: SubgrupoComponent, canActivate: [AuthGuard] },
+  { path: 'centros-costos', component: CentroCostosComponent, canActivate: [AuthGuard] },
+  { path: 'cuentas-contables', component: CuentaContableComponent, canActivate: [AuthGuard] },
+  { path: 'lineas-negocio', component: LineaNegocioComponent, canActivate: [AuthGuard] },
+  { path: 'metodos-valuacion', component: MetodoValuacionComponent, canActivate: [AuthGuard] },
+  { path: 'tipos-movimiento', component: TipoMovimientoComponent, canActivate: [AuthGuard] },
+  { path: 'movimientos-inventario', component: MoviminetoInventarioComponent, canActivate: [AuthGuard] },
+  { path: 'detalles-movimiento', component: DetalleMoviminetoComponent, canActivate: [AuthGuard] },
   // Rutas del módulo de ventas
-  { path: 'facturas', component: FacturaComponent },
-  { path: 'zonas-venta', component: ZonaVentaComponent },
-  { path: 'tipos-cliente', component: TipoClienteComponent },
-  { path: 'listas-precios', component: ListaPreciosComponent },
-  { path: 'precios-producto', component: PrecioProductoComponent },
-  { path: 'detalles-factura', component: DetalleFacturaComponent },
-  { path: 'clientes', component: ClienteComponent },
-  { path: 'contactos-cliente', component: ContactoClienteComponent },
-  { path: 'direcciones-cliente', component: DireccionClienteComponent },
-  { path: 'cobros', component: CobroComponent },
-  { path: 'condiciones-pago', component: CondicionPagoComponent },
-  { path: 'cotizaciones', component: CotizacionComponent },
-  { path: 'detalles-cotizacion', component: DetalleCotizacionComponent },
-  { path: 'despachos', component: DespachoComponent },
-  { path: 'detalles-despacho', component: DetalleDespachoComponent },
-  { path: 'formas-pago', component: FormaPagoComponent },
-  { path: 'cuentas-por-cobrar', component: CuentasCobrarComponent },
-  { path: 'notas-credito', component: NotaCreditoComponent },
-  { path: 'detalles-nota-credito', component: DetalleNotaCreditoComponent },
-  { path: 'ordenes-venta', component: OrdenVentaComponent },
-  { path: 'detalles-orden-venta', component: DetalleOrdenVentaComponent },
-  { path: 'detalles-orden-venta/:id', component: DetalleOrdenVentaComponent },
+  { path: 'facturas', component: FacturaComponent, canActivate: [AuthGuard] },
+  { path: 'zonas-venta', component: ZonaVentaComponent, canActivate: [AuthGuard] },
+  { path: 'tipos-cliente', component: TipoClienteComponent, canActivate: [AuthGuard] },
+  { path: 'listas-precios', component: ListaPreciosComponent, canActivate: [AuthGuard] },
+  { path: 'precios-producto', component: PrecioProductoComponent, canActivate: [AuthGuard] },
+  { path: 'detalles-factura', component: DetalleFacturaComponent, canActivate: [AuthGuard] },
+  { path: 'clientes', component: ClienteComponent, canActivate: [AuthGuard] },
+  { path: 'contactos-cliente', component: ContactoClienteComponent, canActivate: [AuthGuard] },
+  { path: 'direcciones-cliente', component: DireccionClienteComponent, canActivate: [AuthGuard] },
+  { path: 'cobros', component: CobroComponent, canActivate: [AuthGuard] },
+  { path: 'condiciones-pago', component: CondicionPagoComponent, canActivate: [AuthGuard] },
+  { path: 'cotizaciones', component: CotizacionComponent, canActivate: [AuthGuard] },
+  { path: 'detalles-cotizacion', component: DetalleCotizacionComponent, canActivate: [AuthGuard] },
+  { path: 'despachos', component: DespachoComponent, canActivate: [AuthGuard] },
+  { path: 'detalles-despacho', component: DetalleDespachoComponent, canActivate: [AuthGuard] },
+  { path: 'formas-pago', component: FormaPagoComponent, canActivate: [AuthGuard] },
+  { path: 'cuentas-por-cobrar', component: CuentasCobrarComponent, canActivate: [AuthGuard] },
+  { path: 'notas-credito', component: NotaCreditoComponent, canActivate: [AuthGuard] },
+  { path: 'detalles-nota-credito', component: DetalleNotaCreditoComponent, canActivate: [AuthGuard] },
+  { path: 'ordenes-venta', component: OrdenVentaComponent, canActivate: [AuthGuard] },
+  { path: 'detalles-orden-venta', component: DetalleOrdenVentaComponent, canActivate: [AuthGuard] },
+  { path: 'detalles-orden-venta/:id', component: DetalleOrdenVentaComponent, canActivate: [AuthGuard] },
   // Rutas del módulo de compras
-  { path: 'compras/ordenes', component: OrdenCompraComponent },
-  { path: 'compras/detalles-orden', component: DetalleOrdenCompraComponent },
-  { path: 'compras/proveedores', component: ProveedorComponent },
-  { path: 'compras/recepciones', component: RecepcionInventarioComponent },
-  { path: 'compras/detalles-recepcion', component: DetalleRecepcionComponent },
+  { path: 'compras/ordenes', component: OrdenCompraComponent, canActivate: [AuthGuard] },
+  { path: 'compras/detalles-orden', component: DetalleOrdenCompraComponent, canActivate: [AuthGuard] },
+  { path: 'compras/proveedores', component: ProveedorComponent, canActivate: [AuthGuard] },
+  { path: 'compras/recepciones', component: RecepcionInventarioComponent, canActivate: [AuthGuard] },
+  { path: 'compras/detalles-recepcion', component: DetalleRecepcionComponent, canActivate: [AuthGuard] },
   // Ruta por defecto (404)
-  { path: '**', redirectTo: '/empleados' }
+  { path: '**', redirectTo: '/login' }
 ];
 
 @NgModule({

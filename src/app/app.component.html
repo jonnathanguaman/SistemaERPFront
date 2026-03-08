@@ -1,9 +1,9 @@
 <div class="app-container">
-  <!-- Menú lateral -->
-  <app-menu></app-menu>
+  <!-- Menú lateral - solo visible cuando está autenticado -->
+  <app-menu *ngIf="isAuthenticated"></app-menu>
   
   <!-- Contenido principal -->
-  <main class="main-content">
+  <main class="main-content" [class.full-width]="!isAuthenticated">
     <router-outlet></router-outlet>
   </main>
 </div>

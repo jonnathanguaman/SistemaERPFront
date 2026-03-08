@@ -1,4 +1,5 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
+import { AuthService } from './Compartido/services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -6,25 +7,28 @@ import { Component, OnInit, HostListener } from '@angular/core';
   standalone: false,
   styleUrl: './app.component.css'
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   title = 'ERP Sistema de Gestión';
+  isAuthenticated: boolean = false;
 
-  ngOnInit(): void {
-    // Escuchar cambios en el localStorage para actualizar el margen del contenido
-    window.addEventListener('storage', (event) => {
-      if (event.key === 'sidebarCollapsed') {
-        this.updateMainContentMargin();
+  constructor(private readonly authService: AuthService) {
+    // Suscribirse al estado de autenticación
+    this.authService.userLoginOn.subscribe(
+      (isLoggedIn) => {
+        this.isAuthenticated = isLoggedIn;
       }
-    });
-    
-    // Actualizar margen inicial
-    this.updateMainContentMargin();
+    );
   }
 
   /**
    * Actualiza el margen del contenido principal según el estado del sidebar
    */
   private updateMainContentMargin(): void {
+    // Solo actualizar si está autenticado
+    if (!this.isAuthenticated) {
+      return;
+    }
+    
     const isCollapsed = JSON.parse(localStorage.getItem('sidebarCollapsed') || 'false');
     const mainContent = document.querySelector('.main-content') as HTMLElement;
     

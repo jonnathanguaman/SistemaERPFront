@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-menu',
@@ -13,7 +14,7 @@ export class MenuComponent implements OnInit {
   // Módulo activo actual
   activeModule: string = 'dashboard';
 
-  constructor() { }
+  constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
     // Cargar estado del sidebar desde localStorage
@@ -86,12 +87,8 @@ export class MenuComponent implements OnInit {
   logout(): void {
     // Confirmación antes de cerrar sesión
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-      // Limpiar datos de sesión
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Redirigir al login (ajusta la ruta según tu aplicación)
-      globalThis.location.href = '/login';
+      // Usar el servicio de autenticación para cerrar sesión
+      this.authService.logout();
     }
   }
 }
