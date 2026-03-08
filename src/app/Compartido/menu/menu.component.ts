@@ -8,52 +8,47 @@ import { AuthService } from '../services/auth.service';
   styleUrl: './menu.component.css'
 })
 export class MenuComponent implements OnInit {
-  // Estado del sidebar (colapsado o expandido)
   isCollapsed: boolean = false;
-  
-  // Módulo activo actual
   activeModule: string = 'dashboard';
+  
+  userName: string = '';
+  userRole: string = '';
 
-  constructor(private authService: AuthService) { }
+  constructor(private readonly authService: AuthService) { }
 
   ngOnInit(): void {
-    // Cargar estado del sidebar desde localStorage
     const savedState = localStorage.getItem('sidebarCollapsed');
     if (savedState !== null) {
       this.isCollapsed = JSON.parse(savedState);
     }
 
-    // Detectar el módulo activo desde la URL
+    this.userName = this.authService.userName || 'Usuario';
+    const roles = this.authService.userRoles;
+    this.userRole = roles.length > 0 ? roles[0] : 'Sin rol';
+
     this.detectActiveModule();
   }
 
   /**
-   * Alterna el estado colapsado/expandido del sidebar
+   * Verifica si el usuario tiene acceso a un módulo del menú
    */
+  hasAccess(module: string): boolean {
+    return this.authService.hasModuleAccess(module);
+  }
+
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
-    // Guardar el estado en localStorage
     localStorage.setItem('sidebarCollapsed', JSON.stringify(this.isCollapsed));
   }
 
-  /**
-   * Establece el módulo activo
-   * Si el módulo ya está activo, lo cierra
-   * @param module Nombre del módulo
-   */
   setActiveModule(module: string): void {
     if (this.activeModule === module) {
-      // Si el módulo ya está activo, lo cerramos
       this.activeModule = '';
     } else {
-      // Si es un módulo diferente, lo activamos
       this.activeModule = module;
     }
   }
 
-  /**
-   * Detecta el módulo activo basándose en la URL actual
-   */
   detectActiveModule(): void {
     const currentPath = globalThis.location.pathname;
     if (currentPath.includes('clientes') || currentPath.includes('contactos-cliente') || 
@@ -71,7 +66,8 @@ export class MenuComponent implements OnInit {
     } else if (currentPath.includes('inventario') || currentPath.includes('productos') || 
                currentPath.includes('categorias') || currentPath.includes('grupos')) {
       this.activeModule = 'inventario';
-    } else if (currentPath.includes('empleados') || currentPath.includes('roles')) {
+    } else if (currentPath.includes('empleados') || currentPath.includes('roles') ||
+               currentPath.includes('permisos-rol')) {
       this.activeModule = 'empleados';
     } else if (currentPath.includes('empresa') || currentPath.includes('bodegas') || 
                currentPath.includes('personas-empresa') || currentPath.includes('procesos')) {
@@ -81,13 +77,8 @@ export class MenuComponent implements OnInit {
     }
   }
 
-  /**
-   * Maneja el cierre de sesión
-   */
   logout(): void {
-    // Confirmación antes de cerrar sesión
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-      // Usar el servicio de autenticación para cerrar sesión
       this.authService.logout();
     }
   }

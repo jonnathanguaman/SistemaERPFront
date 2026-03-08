@@ -66,6 +66,8 @@ import { DetalleOrdenCompraComponent } from './ModuloCompras/Vista/detalle-orden
 import { ProveedorComponent } from './ModuloCompras/Vista/proveedor/proveedor.component';
 import { RecepcionInventarioComponent } from './ModuloCompras/Vista/recepcion-inventario/recepcion-inventario.component';
 import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepcion/detalle-recepcion.component';
+import { SinAccesoComponent } from './Compartido/sin-acceso/sin-acceso.component';
+import { PermisosRolComponent } from './ModuloEmpleados/Vista/permisos-rol/permisos-rol.component';
 
 @NgModule({
   declarations: [
@@ -130,6 +132,8 @@ import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepci
     ProveedorComponent,
     RecepcionInventarioComponent,
     DetalleRecepcionComponent,
+    SinAccesoComponent,
+    PermisosRolComponent,
   ],
   imports: [
     BrowserModule,

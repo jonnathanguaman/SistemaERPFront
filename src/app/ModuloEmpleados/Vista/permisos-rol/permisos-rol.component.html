@@ -1,0 +1,117 @@
+<div class="permisos-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Permisos por Rol</h1>
+      <p class="subtitle">Configura los módulos que cada rol puede acceder</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="restaurarDefecto()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+        Restaurar Defecto
+      </button>
+      <button class="btn btn-primary" (click)="guardarPermisos()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        Guardar Cambios
+      </button>
+    </div>
+  </div>
+
+  <!-- Leyenda -->
+  <div class="legend">
+    <div class="legend-item">
+      <span class="legend-dot active"></span>
+      <span>Acceso permitido</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot inactive"></span>
+      <span>Sin acceso</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-dot protected"></span>
+      <span>Protegido (no editable)</span>
+    </div>
+  </div>
+
+  <!-- Tabla de permisos -->
+  <div class="table-container">
+    <table class="permisos-table">
+      <thead>
+        <tr>
+          <th class="role-header">Rol</th>
+          <th *ngFor="let mod of modules" class="module-header">
+            <span class="module-icon">{{ mod.icon }}</span>
+            <span class="module-name">{{ mod.label }}</span>
+          </th>
+          <th class="count-header">Módulos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let role of roles; let i = index" [class.protected-row]="isProtectedRole(role.roleName)">
+          <td class="role-cell">
+            <div class="role-info">
+              <span class="role-name">{{ role.roleName }}</span>
+              <span class="role-badge" *ngIf="isProtectedRole(role.roleName)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Acceso total
+              </span>
+            </div>
+          </td>
+          <td *ngFor="let mod of modules" class="permission-cell">
+            <button 
+              class="toggle-btn"
+              [class.active]="role.modules[mod.module]"
+              [class.protected]="isProtectedRole(role.roleName)"
+              (click)="togglePermission(i, mod.module)"
+              [title]="role.modules[mod.module] ? 'Quitar acceso a ' + mod.label : 'Dar acceso a ' + mod.label"
+            >
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+            </button>
+          </td>
+          <td class="count-cell">
+            <span class="module-count">{{ getActiveModulesCount(role) }}/{{ modules.length }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Cards en móvil -->
+  <div class="cards-container">
+    <div *ngFor="let role of roles; let i = index" class="role-card" [class.protected-card]="isProtectedRole(role.roleName)">
+      <div class="card-header">
+        <h3>{{ role.roleName }}</h3>
+        <span class="module-count-badge">{{ getActiveModulesCount(role) }}/{{ modules.length }}</span>
+      </div>
+      <div class="card-body">
+        <div *ngFor="let mod of modules" class="permission-row" (click)="togglePermission(i, mod.module)" (keydown.enter)="togglePermission(i, mod.module)">
+          <div class="permission-label">
+            <span>{{ mod.icon }}</span>
+            <span>{{ mod.label }}</span>
+          </div>
+          <button 
+            class="toggle-btn"
+            [class.active]="role.modules[mod.module]"
+            [class.protected]="isProtectedRole(role.roleName)"
+          >
+            <span class="toggle-track">
+              <span class="toggle-thumb"></span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

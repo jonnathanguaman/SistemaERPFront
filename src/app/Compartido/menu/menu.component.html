@@ -14,16 +14,9 @@
   <!-- Menú principal -->
   <div class="menu-container">
     <ul class="menu-list">
-      <!-- Dashboard -->
-      <li class="menu-item" [class.active]="activeModule === 'dashboard'" (click)="setActiveModule('dashboard')" (keydown.enter)="setActiveModule('dashboard')" [attr.data-tooltip]="'Dashboard'" tabindex="0" role="button">
-        <a routerLink="/dashboard" class="menu-link">
-          <span class="menu-icon">📈</span>
-          <span class="menu-text" *ngIf="!isCollapsed">Dashboard</span>
-        </a>
-      </li>
 
       <!-- Módulo Ventas -->
-      <li class="menu-item" [class.active]="activeModule === 'ventas'" (click)="setActiveModule('ventas')" (keydown.enter)="setActiveModule('ventas')" [attr.data-tooltip]="'Ventas'" tabindex="0" role="button">
+      <li class="menu-item" *ngIf="hasAccess('ventas')" [class.active]="activeModule === 'ventas'" (click)="setActiveModule('ventas')" (keydown.enter)="setActiveModule('ventas')" [attr.data-tooltip]="'Ventas'" tabindex="0" role="button">
         <a routerLink="/facturas" class="menu-link">
           <span class="menu-icon">🛒</span>
           <span class="menu-text" *ngIf="!isCollapsed">Ventas</span>
@@ -53,7 +46,7 @@
       </li>
 
       <!-- Módulo Compras -->
-      <li class="menu-item" [class.active]="activeModule === 'compras'" (click)="setActiveModule('compras')" (keydown.enter)="setActiveModule('compras')" [attr.data-tooltip]="'Compras'" tabindex="0" role="button">
+      <li class="menu-item" *ngIf="hasAccess('compras')" [class.active]="activeModule === 'compras'" (click)="setActiveModule('compras')" (keydown.enter)="setActiveModule('compras')" [attr.data-tooltip]="'Compras'" tabindex="0" role="button">
         <a routerLink="/compras/ordenes" class="menu-link">
           <span class="menu-icon">🛍️</span>
           <span class="menu-text" *ngIf="!isCollapsed">Compras</span>
@@ -67,8 +60,8 @@
       </li>
 
       <!-- Módulo Inventario -->
-      <li class="menu-item" [class.active]="activeModule === 'inventario'" (click)="setActiveModule('inventario')" (keydown.enter)="setActiveModule('inventario')" [attr.data-tooltip]="'Inventario'" tabindex="0" role="button">
-        <a routerLink="/inventario" class="menu-link">
+      <li class="menu-item" *ngIf="hasAccess('inventario')" [class.active]="activeModule === 'inventario'" (click)="setActiveModule('inventario')" (keydown.enter)="setActiveModule('inventario')" [attr.data-tooltip]="'Inventario'" tabindex="0" role="button">
+        <a routerLink="/productos" class="menu-link">
           <span class="menu-icon">📦</span>
           <span class="menu-text" *ngIf="!isCollapsed">Inventario</span>
         </a>
@@ -93,7 +86,7 @@
       </li>
 
       <!-- Módulo Empleados -->
-      <li class="menu-item" [class.active]="activeModule === 'empleados'" (click)="setActiveModule('empleados')" (keydown.enter)="setActiveModule('empleados')" [attr.data-tooltip]="'Empleados'" tabindex="0" role="button">
+      <li class="menu-item" *ngIf="hasAccess('empleados')" [class.active]="activeModule === 'empleados'" (click)="setActiveModule('empleados')" (keydown.enter)="setActiveModule('empleados')" [attr.data-tooltip]="'Empleados'" tabindex="0" role="button">
         <a routerLink="/empleados" class="menu-link">
           <span class="menu-icon">👥</span>
           <span class="menu-text" *ngIf="!isCollapsed">Empleados</span>
@@ -102,11 +95,12 @@
           <li><a routerLink="/empleados" (click)="$event.stopPropagation()">Lista Empleados</a></li>
           <li><a routerLink="/roles" (click)="$event.stopPropagation()">Roles</a></li>
           <li><a routerLink="/asignar-roles" (click)="$event.stopPropagation()">Asignar Roles</a></li>
+          <li><a routerLink="/permisos-rol" (click)="$event.stopPropagation()">Permisos por Rol</a></li>
         </ul>
       </li>
 
       <!-- Módulo Empresa -->
-      <li class="menu-item" [class.active]="activeModule === 'empresa'" (click)="setActiveModule('empresa')" (keydown.enter)="setActiveModule('empresa')" [attr.data-tooltip]="'Empresa'" tabindex="0" role="button">
+      <li class="menu-item" *ngIf="hasAccess('empresa')" [class.active]="activeModule === 'empresa'" (click)="setActiveModule('empresa')" (keydown.enter)="setActiveModule('empresa')" [attr.data-tooltip]="'Empresa'" tabindex="0" role="button">
         <a routerLink="/empresas" class="menu-link">
           <span class="menu-icon">🏢</span>
           <span class="menu-text" *ngIf="!isCollapsed">Empresa</span>
@@ -135,8 +129,8 @@
     <div class="user-info" *ngIf="!isCollapsed">
       <div class="user-avatar">👤</div>
       <div class="user-details">
-        <span class="user-name">Usuario</span>
-        <span class="user-role">Administrador</span>
+        <span class="user-name">{{ userName }}</span>
+        <span class="user-role">{{ userRole }}</span>
       </div>
     </div>
     <button class="logout-btn" *ngIf="!isCollapsed" (click)="logout()">
