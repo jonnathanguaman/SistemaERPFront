@@ -54,15 +54,15 @@
 
       <!-- Módulo Compras -->
       <li class="menu-item" [class.active]="activeModule === 'compras'" (click)="setActiveModule('compras')" (keydown.enter)="setActiveModule('compras')" [attr.data-tooltip]="'Compras'" tabindex="0" role="button">
-        <a routerLink="/compras" class="menu-link">
+        <a routerLink="/compras/ordenes" class="menu-link">
           <span class="menu-icon">🛍️</span>
           <span class="menu-text" *ngIf="!isCollapsed">Compras</span>
         </a>
         <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'compras'">
-          <li><a routerLink="/compras/nueva" (click)="$event.stopPropagation()">Nueva Compra</a></li>
-          <li><a routerLink="/compras/lista" (click)="$event.stopPropagation()">Lista Compras</a></li>
+          <li><a routerLink="/compras/ordenes" (click)="$event.stopPropagation()">Órdenes de Compra</a></li>
           <li><a routerLink="/compras/proveedores" (click)="$event.stopPropagation()">Proveedores</a></li>
-          <li><a routerLink="/compras/ordenes" (click)="$event.stopPropagation()">Órdenes</a></li>
+          <li><a routerLink="/compras/recepciones" (click)="$event.stopPropagation()">Recepciones</a></li>
+          <li><a routerLink="/compras/detalles-recepcion" (click)="$event.stopPropagation()">Detalles Recepción</a></li>
         </ul>
       </li>
 

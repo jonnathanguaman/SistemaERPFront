@@ -59,6 +59,11 @@ import { NotaCreditoComponent } from './ModuloVentas/Vista/nota-credito/nota-cre
 import { DetalleNotaCreditoComponent } from './ModuloVentas/Vista/detalle-nota-credito/detalle-nota-credito.component';
 import { OrdenVentaComponent } from './ModuloVentas/Vista/orden-venta/orden-venta.component';
 import { DetalleOrdenVentaComponent } from './ModuloVentas/Vista/detalle-orden-venta/detalle-orden-venta.component';
+import { OrdenCompraComponent } from './ModuloCompras/Vista/orden-compra/orden-compra.component';
+import { DetalleOrdenCompraComponent } from './ModuloCompras/Vista/detalle-orden-compra/detalle-orden-compra.component';
+import { ProveedorComponent } from './ModuloCompras/Vista/proveedor/proveedor.component';
+import { RecepcionInventarioComponent } from './ModuloCompras/Vista/recepcion-inventario/recepcion-inventario.component';
+import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepcion/detalle-recepcion.component';
 
 @NgModule({
   declarations: [
@@ -117,6 +122,11 @@ import { DetalleOrdenVentaComponent } from './ModuloVentas/Vista/detalle-orden-v
     DetalleNotaCreditoComponent,
     OrdenVentaComponent,
     DetalleOrdenVentaComponent,
+    OrdenCompraComponent,
+    DetalleOrdenCompraComponent,
+    ProveedorComponent,
+    RecepcionInventarioComponent,
+    DetalleRecepcionComponent,
   ],
   imports: [
     BrowserModule,

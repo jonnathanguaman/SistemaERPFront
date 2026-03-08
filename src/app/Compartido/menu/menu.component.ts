@@ -64,7 +64,8 @@ export class MenuComponent implements OnInit {
         currentPath.includes('detalles-nota-credito') || currentPath.includes('ordenes-venta') ||
         currentPath.includes('detalles-orden-venta')) {
       this.activeModule = 'ventas';
-    } else if (currentPath.includes('compras')) {
+    } else if (currentPath.includes('compras') || currentPath.includes('proveedores') || 
+               currentPath.includes('ordenes-compra') || currentPath.includes('recepciones')) {
       this.activeModule = 'compras';
     } else if (currentPath.includes('inventario') || currentPath.includes('productos') || 
                currentPath.includes('categorias') || currentPath.includes('grupos')) {

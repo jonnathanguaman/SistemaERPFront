@@ -1,0 +1,248 @@
+/* Sección de formulario */
+.form-section {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+/* Tabla de detalles */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.detalles-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detalles-table thead {
+  background: #1F2937;
+  color: #F5F7FA;
+}
+
+.detalles-table th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.detalles-table tbody tr {
+  border-bottom: 1px solid #E5E7EB;
+  transition: background 0.2s ease;
+}
+
+.detalles-table tbody tr:hover {
+  background: #F9FAFB;
+}
+
+.detalles-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.detalles-table td {
+  padding: 12px;
+  font-size: 14px;
+  color: #111827;
+  vertical-align: middle;
+}
+
+.item-number {
+  font-weight: 600;
+  color: #2563EB;
+  text-align: center;
+}
+
+.total-cell {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #059669;
+}
+
+/* Inputs dentro de la tabla */
+.table-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.table-input:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.table-input:read-only {
+  background-color: #F3F4F6;
+  color: #6B7280;
+  cursor: not-allowed;
+  border-color: #E5E7EB;
+}
+
+.table-input.invalid {
+  border-color: #DC2626;
+  background-color: #FEF2F2;
+}
+
+.table-select {
+  cursor: pointer;
+  appearance: auto;
+}
+
+.table-select:read-only {
+  pointer-events: none;
+}
+
+/* Texto readonly */
+.readonly-text {
+  display: block;
+  padding: 8px 10px;
+  color: #111827;
+  font-size: 13px;
+}
+
+/* Sin datos */
+.no-data {
+  text-align: center;
+  padding: 60px 20px !important;
+  color: #9CA3AF;
+}
+
+.no-data svg {
+  color: #D1D5DB;
+  margin-bottom: 12px;
+}
+
+.no-data p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Celda de acciones */
+.actions-cell {
+  text-align: center;
+}
+
+/* Footer de totales */
+.detalles-table tfoot {
+  background: #F9FAFB;
+  border-top: 2px solid #E5E7EB;
+}
+
+.detalles-table tfoot tr.total-row td {
+  padding: 16px 12px;
+  font-weight: 600;
+}
+
+.total-label {
+  text-align: right;
+  font-size: 15px;
+  color: #111827;
+}
+
+.total-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2563EB;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Botones */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #2563EB;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1D4ED8;
+}
+
+.btn-secondary {
+  background: #F3F4F6;
+  color: #111827;
+  border: 1px solid #D1D5DB;
+}
+
+.btn-secondary:hover {
+  background: #E5E7EB;
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.btn-icon {
+  padding: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background: #F3F4F6;
+}
+
+.btn-delete {
+  color: #DC2626;
+}
+
+.btn-delete:hover {
+  background: #FEE2E2;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  .detalles-table {
+    font-size: 13px;
+  }
+  
+  .detalles-table th,
+  .detalles-table td {
+    padding: 10px 8px;
+  }
+}

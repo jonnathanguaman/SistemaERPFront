@@ -8,6 +8,7 @@ import { BodegaComponent } from './ModuloEmpresa/Vista/bodega/bodega.component';
 import { BodegaResponsableComponent } from './ModuloEmpresa/Vista/bodega-responsable/bodega-responsable.component';
 import { PersonaEmpresaComponent } from './ModuloEmpresa/Vista/persona-empresa/persona-empresa.component';
 import { ProcesoComponent } from './ModuloEmpresa/Vista/proceso/proceso.component';
+import { ProveedorComponent } from './ModuloCompras/Vista/proveedor/proveedor.component';
 import { AccionProcesoComponent } from './ModuloEmpresa/Vista/accion-proceso/accion-proceso.component';
 import { RolEmpresaComponent } from './ModuloEmpresa/Vista/rol-empresa/rol-empresa.component';
 import { PersonaEmpresaRolComponent } from './ModuloEmpresa/Vista/persona-empresa-rol/persona-empresa-rol.component';
@@ -52,6 +53,10 @@ import { NotaCreditoComponent } from './ModuloVentas/Vista/nota-credito/nota-cre
 import { DetalleNotaCreditoComponent } from './ModuloVentas/Vista/detalle-nota-credito/detalle-nota-credito.component';
 import { OrdenVentaComponent } from './ModuloVentas/Vista/orden-venta/orden-venta.component';
 import { DetalleOrdenVentaComponent } from './ModuloVentas/Vista/detalle-orden-venta/detalle-orden-venta.component';
+import { OrdenCompraComponent } from './ModuloCompras/Vista/orden-compra/orden-compra.component';
+import { DetalleOrdenCompraComponent } from './ModuloCompras/Vista/detalle-orden-compra/detalle-orden-compra.component';
+import { RecepcionInventarioComponent } from './ModuloCompras/Vista/recepcion-inventario/recepcion-inventario.component';
+import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepcion/detalle-recepcion.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/empleados', pathMatch: 'full' },
@@ -59,6 +64,8 @@ const routes: Routes = [
   { path: 'empleados', component: EmpleadosComponent },
   { path: 'roles', component: RolesComponent },
   { path: 'asignar-roles', component: AsignarRolesComponent },
+  // Rutas del módulo de compras
+  { path: 'proveedores', component: ProveedorComponent },
   // Rutas del módulo de empresa
   { path: 'empresas', component: EmpresaComponent },
   { path: 'bodegas', component: BodegaComponent },
@@ -112,6 +119,12 @@ const routes: Routes = [
   { path: 'ordenes-venta', component: OrdenVentaComponent },
   { path: 'detalles-orden-venta', component: DetalleOrdenVentaComponent },
   { path: 'detalles-orden-venta/:id', component: DetalleOrdenVentaComponent },
+  // Rutas del módulo de compras
+  { path: 'compras/ordenes', component: OrdenCompraComponent },
+  { path: 'compras/detalles-orden', component: DetalleOrdenCompraComponent },
+  { path: 'compras/proveedores', component: ProveedorComponent },
+  { path: 'compras/recepciones', component: RecepcionInventarioComponent },
+  { path: 'compras/detalles-recepcion', component: DetalleRecepcionComponent },
   // Ruta por defecto (404)
   { path: '**', redirectTo: '/empleados' }
 ];

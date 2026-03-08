@@ -324,27 +324,27 @@
           <div class="info-grid">
             <div class="info-item">
               <strong>Número de Despacho:</strong>
-              <span class="info-value">{{ despachoSeleccionado?.numeroDespacho }}</span>
+              <span class="info-value">{{ despachoSeleccionado.numeroDespacho }}</span>
             </div>
             <div class="info-item">
               <strong>Guía de Remisión:</strong>
-              <span class="info-value">{{ despachoSeleccionado?.numeroGuiaRemision || '-' }}</span>
+              <span class="info-value">{{ despachoSeleccionado.numeroGuiaRemision || '-' }}</span>
             </div>
             <div class="info-item">
               <strong>Orden de Venta:</strong>
-              <span class="info-value">{{ despachoSeleccionado?.ordenVentaNumero || despachoSeleccionado?.ordenVentaId }}</span>
+              <span class="info-value">{{ despachoSeleccionado.ordenVentaNumero || despachoSeleccionado.ordenVentaId }}</span>
             </div>
             <div class="info-item">
               <strong>Estado:</strong>
-              <span class="badge" [ngClass]="getEstadoClass(despachoSeleccionado?.estado || '')">{{ despachoSeleccionado?.estado }}</span>
+              <span class="badge" [ngClass]="getEstadoClass(despachoSeleccionado.estado || '')">{{ despachoSeleccionado.estado }}</span>
             </div>
             <div class="info-item">
               <strong>Fecha Despacho:</strong>
-              <span class="info-value">{{ formatDate(despachoSeleccionado?.fechaDespacho) }}</span>
+              <span class="info-value">{{ formatDate(despachoSeleccionado.fechaDespacho) }}</span>
             </div>
             <div class="info-item">
               <strong>Fecha Entrega Estimada:</strong>
-              <span class="info-value">{{ formatDate(despachoSeleccionado?.fechaEntregaEstimada) }}</span>
+              <span class="info-value">{{ formatDate(despachoSeleccionado.fechaEntregaEstimada) }}</span>
             </div>
           </div>
         </div>
@@ -354,19 +354,19 @@
           <div class="info-grid">
             <div class="info-item">
               <strong>Transportista:</strong>
-              <span class="info-value">{{ despachoSeleccionado?.transportista }}</span>
+              <span class="info-value">{{ despachoSeleccionado.transportista }}</span>
             </div>
             <div class="info-item">
               <strong>Placa Vehículo:</strong>
-              <span class="info-value">{{ despachoSeleccionado?.placaVehiculo || '-' }}</span>
+              <span class="info-value">{{ despachoSeleccionado.placaVehiculo || '-' }}</span>
             </div>
             <div class="info-item">
               <strong>Conductor:</strong>
-              <span class="info-value">{{ despachoSeleccionado?.conductor || '-' }}</span>
+              <span class="info-value">{{ despachoSeleccionado.conductor || '-' }}</span>
             </div>
             <div class="info-item">
               <strong>Cédula Conductor:</strong>
-              <span class="info-value">{{ despachoSeleccionado?.cedulaConductor || '-' }}</span>
+              <span class="info-value">{{ despachoSeleccionado.cedulaConductor || '-' }}</span>
             </div>
           </div>
         </div>
@@ -376,15 +376,15 @@
           <div class="info-grid">
             <div class="info-item full-width">
               <strong>Dirección:</strong>
-              <span class="info-value">{{ despachoSeleccionado?.direccionEntregaTexto }}</span>
+              <span class="info-value">{{ despachoSeleccionado.direccionEntregaTexto }}</span>
             </div>
             <div class="info-item">
               <strong>Recibido Por:</strong>
-              <span class="info-value">{{ despachoSeleccionado?.nombreQuienRecibe || '-' }}</span>
+              <span class="info-value">{{ despachoSeleccionado.nombreQuienRecibe || '-' }}</span>
             </div>
             <div class="info-item">
               <strong>Cédula:</strong>
-              <span class="info-value">{{ despachoSeleccionado?.cedulaQuienRecibe || '-' }}</span>
+              <span class="info-value">{{ despachoSeleccionado.cedulaQuienRecibe || '-' }}</span>
             </div>
           </div>
         </div>
@@ -419,9 +419,9 @@
           </div>
         </div>
 
-        <div class="info-section" *ngIf="despachoSeleccionado?.observaciones">
+        <div class="info-section" *ngIf="despachoSeleccionado.observaciones">
           <h3>Observaciones</h3>
-          <p class="info-text">{{ despachoSeleccionado?.observaciones }}</p>
+          <p class="info-text">{{ despachoSeleccionado.observaciones }}</p>
         </div>
       </div>
     </div>

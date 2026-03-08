@@ -226,6 +226,42 @@ export class NotificationService {
         return result.isConfirmed ? result.value : null;
     }
 
+    /**
+     * Muestra un diálogo de confirmación con input de texto
+     * @param message Mensaje de confirmación
+     * @param inputLabel Etiqueta del input
+     * @param title Título del diálogo
+     * @param placeholder Placeholder del input
+     * @returns Promise que resuelve con el objeto SweetAlert2Result completo
+     */
+    confirmWithInput(
+        message: string,
+        inputLabel: string = 'Motivo',
+        title: string = '¿Estás seguro?',
+        placeholder: string = 'Ingresa el motivo...'
+    ): Promise<any> {
+        return Swal.fire({
+            icon: 'warning',
+            title: title,
+            text: message,
+            input: 'text',
+            inputLabel: inputLabel,
+            inputPlaceholder: placeholder,
+            showCancelButton: true,
+            confirmButtonColor: '#F59E0B',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Sí, continuar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true,
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Este campo es requerido';
+                }
+                return null;
+            }
+        });
+    }
+
     // ========== Alias para compatibilidad con componentes ==========
     
     /**
@@ -365,4 +401,5 @@ export class NotificationService {
 
         return result.isConfirmed && result.value ? result.value : null;
     }
+
 }

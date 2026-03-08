@@ -1,0 +1,129 @@
+<div class="form-section">
+  <div class="section-header">
+    <h3>Detalles de la Orden</h3>
+    <button type="button" class="btn btn-secondary btn-sm" (click)="onAgregarDetalle()" *ngIf="!isViewMode">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Agregar Item
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table class="detalles-table">
+      <thead>
+        <tr>
+          <th style="width: 50px;">#</th>
+          <th style="width: 180px;">Producto</th>
+          <th style="width: 100px;">Cantidad</th>
+          <th style="width: 120px;">Precio Unit.</th>
+          <th style="width: 100px;">Desc. %</th>
+          <th style="width: 120px;">Desc. Monto</th>
+          <th style="width: 100px;">Imp. %</th>
+          <th style="width: 120px;">Total</th>
+          <th style="width: 60px;" *ngIf="!isViewMode">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="detalles.length === 0">
+          <td [colSpan]="isViewMode ? 8 : 9" class="no-data">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <p>No hay items agregados. Haz clic en "Agregar Item" para comenzar.</p>
+          </td>
+        </tr>
+        <tr *ngFor="let detalle of detallesControls; let i = index" [formGroup]="detalle">
+          <td class="item-number">{{ i + 1 }}</td>
+          <td>
+            <select
+              formControlName="productoId"
+              [class.invalid]="isDetalleFieldInvalid(i, 'productoId')"
+              class="table-input table-select"
+              *ngIf="!isViewMode"
+            >
+              <option value="">Seleccione un producto</option>
+              <option *ngFor="let producto of productos" [value]="producto.id">
+                {{ producto.productoNombre }} - {{ producto.sku }}
+              </option>
+            </select>
+            <span class="readonly-text" *ngIf="isViewMode">
+              {{ getNombreProducto(detalle.get('productoId')?.value) }}
+            </span>
+          </td>
+          <td>
+            <input
+              type="number"
+              formControlName="cantidadOrdenada"
+              placeholder="1"
+              step="0.01"
+              [class.invalid]="isDetalleFieldInvalid(i, 'cantidadOrdenada')"
+              class="table-input"
+              [readonly]="isViewMode"
+            />
+          </td>
+          <td>
+            <input
+              type="number"
+              formControlName="precioUnitario"
+              placeholder="0.00"
+              step="0.01"
+              [class.invalid]="isDetalleFieldInvalid(i, 'precioUnitario')"
+              class="table-input"
+              [readonly]="isViewMode"
+            />
+          </td>
+          <td>
+            <input
+              type="number"
+              formControlName="descuentoPorcentaje"
+              placeholder="0"
+              step="0.01"
+              class="table-input"
+              [readonly]="isViewMode"
+            />
+          </td>
+          <td>
+            <input
+              type="number"
+              formControlName="descuentoMonto"
+              placeholder="0.00"
+              step="0.01"
+              class="table-input"
+              [readonly]="isViewMode"
+            />
+          </td>
+          <td>
+            <input
+              type="number"
+              formControlName="impuestoPorcentaje"
+              placeholder="0"
+              step="0.01"
+              [class.invalid]="isDetalleFieldInvalid(i, 'impuestoPorcentaje')"
+              class="table-input"
+              [readonly]="isViewMode"
+            />
+          </td>
+          <td class="total-cell">{{ calcularTotalDetalle(i) | currency: 'USD' }}</td>
+          <td class="actions-cell" *ngIf="!isViewMode">
+            <button type="button" class="btn-icon btn-delete" (click)="onEliminarDetalle(i)" title="Eliminar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot *ngIf="detalles.length > 0">
+        <tr class="total-row">
+          <td [colSpan]="isViewMode ? 7 : 8" class="total-label">Total de la Orden:</td>
+          <td class="total-value">{{ calcularTotalOrden() | currency: 'USD' }}</td>
+          <td *ngIf="!isViewMode"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
