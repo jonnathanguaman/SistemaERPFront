@@ -2,8 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DespachoService } from '../../Service/despacho.service';
 import { DetalleDespachoService } from '../../Service/detalle-despacho.service';
+import { OrdenVentaService } from '../../Service/orden-venta.service';
+import { BodegaService } from '../../../ModuloEmpresa/Service/bodega.service';
 import { DespachoResponse, DespachoRequest } from '../../Entidad/despacho.model';
 import { DetalleDespachoResponse } from '../../Entidad/detalle-despacho.model';
+import { OrdenVentaResponse } from '../../Entidad/orden-venta.model';
+import { BodegaResponse } from '../../../ModuloEmpresa/Entidad/bodega.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
 
 @Component({
@@ -24,6 +28,8 @@ export class DespachoComponent implements OnInit {
   busqueda: string = '';
   detallesDespacho: DetalleDespachoResponse[] = [];
   despachoSeleccionado: DespachoResponse | null = null;
+  ordenesVenta: OrdenVentaResponse[] = [];
+  bodegas: BodegaResponse[] = [];
 
   // Filtros
   filtroEstado: string = 'TODOS';
@@ -32,6 +38,8 @@ export class DespachoComponent implements OnInit {
   constructor(
     private readonly despachoService: DespachoService,
     private readonly detalleService: DetalleDespachoService,
+    private readonly ordenVentaService: OrdenVentaService,
+    private readonly bodegaService: BodegaService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
@@ -59,6 +67,8 @@ export class DespachoComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDespachos();
+    this.cargarOrdenesVenta();
+    this.cargarBodegas();
   }
 
   getFechaHoy(): string {
@@ -77,6 +87,33 @@ export class DespachoComponent implements OnInit {
         console.error('Error al cargar despachos:', error);
         this.notificationService.error(error.message, 'Error al cargar despachos');
         this.loading = false;
+      }
+    });
+  }
+
+  cargarOrdenesVenta(): void {
+    this.ordenVentaService.findAll().subscribe({
+      next: (data) => {
+        this.ordenesVenta = data.filter(orden => {
+          const estado = (orden.estado || '').toUpperCase();
+          return estado === 'PREPARADO' || estado === 'CONFIRMADA';
+        });
+      },
+      error: (error) => {
+        console.error('Error al cargar órdenes de venta:', error);
+        this.notificationService.error('Error al cargar órdenes de venta');
+      }
+    });
+  }
+
+  cargarBodegas(): void {
+    this.bodegaService.findAll().subscribe({
+      next: (data) => {
+        this.bodegas = data.filter(bodega => bodega.activo);
+      },
+      error: (error) => {
+        console.error('Error al cargar bodegas:', error);
+        this.notificationService.error('Error al cargar bodegas');
       }
     });
   }

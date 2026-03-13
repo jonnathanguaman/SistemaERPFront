@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../services/auth.service';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-menu',
@@ -14,7 +15,10 @@ export class MenuComponent implements OnInit {
   userName: string = '';
   userRole: string = '';
 
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly notificationService: NotificationService
+  ) { }
 
   ngOnInit(): void {
     const savedState = localStorage.getItem('sidebarCollapsed');
@@ -77,8 +81,9 @@ export class MenuComponent implements OnInit {
     }
   }
 
-  logout(): void {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+  async logout(): Promise<void> {
+    const confirmed = await this.notificationService.confirm('¿Estás seguro de que deseas cerrar sesión?');
+    if (confirmed) {
       this.authService.logout();
     }
   }

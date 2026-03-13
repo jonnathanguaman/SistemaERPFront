@@ -161,24 +161,32 @@
           <div class="form-row">
             <div class="form-group">
               <label for="ordenVentaId">Orden de Venta <span class="required">*</span></label>
-              <input 
-                type="number" 
+              <select 
                 id="ordenVentaId"
                 formControlName="ordenVentaId"
                 [class.invalid]="isFieldInvalid('ordenVentaId')"
               >
+                <option [ngValue]="null">Seleccione una orden de venta</option>
+                <option *ngFor="let orden of ordenesVenta" [ngValue]="orden.id">
+                  {{ orden.numeroOrden || ('Orden #' + orden.id) }}
+                </option>
+              </select>
               <span class="error-message" *ngIf="isFieldInvalid('ordenVentaId')">
                 {{ getFieldError('ordenVentaId') }}
               </span>
             </div>
             <div class="form-group">
               <label for="bodegaId">Bodega <span class="required">*</span></label>
-              <input 
-                type="number" 
+              <select 
                 id="bodegaId"
                 formControlName="bodegaId"
                 [class.invalid]="isFieldInvalid('bodegaId')"
               >
+                <option [ngValue]="null">Seleccione una bodega</option>
+                <option *ngFor="let bodega of bodegas" [ngValue]="bodega.id">
+                  {{ bodega.codigo }} - {{ bodega.nombre }}
+                </option>
+              </select>
               <span class="error-message" *ngIf="isFieldInvalid('bodegaId')">
                 {{ getFieldError('bodegaId') }}
               </span>

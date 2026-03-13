@@ -2,8 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { OrdenCompraService } from '../../Service/orden-compra.service';
 import { ProveedorService } from '../../Service/proveedor.service';
+import { BodegaService } from '../../../ModuloEmpresa/Service/bodega.service';
 import { OrdenCompraRequest, OrdenCompraResponse } from '../../Entidades/orden-compra.model';
 import { ProveedorResponse } from '../../Entidades/proveedor.model';
+import { BodegaResponse } from '../../../ModuloEmpresa/Entidad/bodega.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
 
 @Component({
@@ -16,6 +18,7 @@ export class OrdenCompraComponent implements OnInit {
   
   ordenes: OrdenCompraResponse[] = [];
   proveedores: ProveedorResponse[] = [];
+  bodegas: BodegaResponse[] = [];
   ordenSeleccionada: OrdenCompraResponse | null = null;
   ordenForm: FormGroup;
   
@@ -42,6 +45,7 @@ export class OrdenCompraComponent implements OnInit {
   constructor(
     private readonly ordenCompraService: OrdenCompraService,
     private readonly proveedorService: ProveedorService,
+    private readonly bodegaService: BodegaService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
@@ -50,7 +54,7 @@ export class OrdenCompraComponent implements OnInit {
       proveedorId: ['', [Validators.required]],
       fechaOrden: ['', [Validators.required]],
       fechaEntregaEsperada: [''],
-      bodegaId: ['', [Validators.required]],
+      bodegaId: [null, [Validators.required]],
       direccionEntrega: [''],
       compradorId: [''],
       aprobadorId: [''],
@@ -69,6 +73,7 @@ export class OrdenCompraComponent implements OnInit {
   ngOnInit(): void {
     this.cargarOrdenes();
     this.cargarProveedores();
+    this.cargarBodegas();
   }
 
   get detalles(): FormArray {
@@ -103,10 +108,23 @@ export class OrdenCompraComponent implements OnInit {
     });
   }
 
+  cargarBodegas(): void {
+    this.bodegaService.findAll().subscribe({
+      next: (data) => {
+        this.bodegas = data.filter(bodega => bodega.activo);
+      },
+      error: (error) => {
+        this.notificationService.error(error.message, 'Error al cargar bodegas');
+        console.error('Error al cargar bodegas:', error);
+      }
+    });
+  }
+
   abrirModalCrear(): void {
     this.isEditMode = false;
     this.isViewMode = false;
     this.ordenSeleccionada = null;
+    this.ordenForm.enable();
     this.ordenForm.reset({
       estado: 'BORRADOR',
       descuentoPorcentaje: 0,
@@ -115,6 +133,7 @@ export class OrdenCompraComponent implements OnInit {
     });
     this.detalles.clear();
     this.agregarDetalle();
+    this.detalles.enable({ emitEvent: false });
     this.showModal = true;
   }
 
@@ -167,6 +186,7 @@ export class OrdenCompraComponent implements OnInit {
     this.isEditMode = true;
     this.isViewMode = false;
     this.ordenSeleccionada = orden;
+    this.ordenForm.enable();
     
     this.ordenForm.patchValue({
       numeroOrden: orden.numeroOrden,
@@ -203,6 +223,8 @@ export class OrdenCompraComponent implements OnInit {
     } else {
       this.agregarDetalle();
     }
+
+    this.detalles.enable({ emitEvent: false });
     
     this.showModal = true;
   }
@@ -218,7 +240,7 @@ export class OrdenCompraComponent implements OnInit {
 
   agregarDetalle(): void {
     const detalleGroup = this.formBuilder.group({
-      productoId: ['', [Validators.required]],
+      productoId: [null, [Validators.required]],
       cantidadOrdenada: [1, [Validators.required, Validators.min(0.0001)]],
       precioUnitario: [0, [Validators.required, Validators.min(0)]],
       descuentoPorcentaje: [0],
@@ -228,6 +250,10 @@ export class OrdenCompraComponent implements OnInit {
     });
 
     this.detalles.push(detalleGroup);
+
+    if (!this.isViewMode) {
+      detalleGroup.enable({ emitEvent: false });
+    }
   }
 
   eliminarDetalle(index: number): void {

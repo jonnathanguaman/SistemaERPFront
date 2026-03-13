@@ -37,6 +37,7 @@ import { MetodoValuacionComponent } from './ModuloInventario/Vista/metodo-valuac
 import { TipoMovimientoComponent } from './ModuloInventario/Vista/tipo-movimiento/tipo-movimiento.component';
 import { MoviminetoInventarioComponent } from './ModuloInventario/Vista/movimineto-inventario/movimineto-inventario.component';
 import { DetalleMoviminetoComponent } from './ModuloInventario/Vista/detalle-movimineto/detalle-movimineto.component';
+import { KardexComponent } from './ModuloInventario/Vista/kardex/kardex.component';
 import { FacturaComponent } from './ModuloVentas/Vista/factura/factura.component';
 import { DetalleFacturaComponent } from './ModuloVentas/Vista/detalle-factura/detalle-factura.component';
 import { ClienteComponent } from './ModuloVentas/Vista/cliente/cliente.component';
@@ -51,6 +52,7 @@ import { CondicionPagoComponent } from './ModuloVentas/Vista/condicion-pago/cond
 import { FormaPagoComponent } from './ModuloVentas/Vista/forma-pago/forma-pago.component';
 import { CuentasCobrarComponent } from './ModuloVentas/Vista/cuentas-cobrar/cuentas-cobrar.component';
 import { CotizacionComponent } from './ModuloVentas/Vista/cotizacion/cotizacion.component';
+import { CotizacionFormComponent } from './ModuloVentas/Vista/cotizacion-form/cotizacion-form.component';
 import { DetalleCotizacionComponent } from './ModuloVentas/Vista/detalle-cotizacion/detalle-cotizacion.component';
 import { DespachoComponent } from './ModuloVentas/Vista/despacho/despacho.component';
 import { DetalleDespachoComponent } from './ModuloVentas/Vista/detalle-despacho/detalle-despacho.component';
@@ -112,6 +114,7 @@ const routes: Routes = [
   { path: 'tipos-movimiento', component: TipoMovimientoComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
   { path: 'movimientos-inventario', component: MoviminetoInventarioComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
   { path: 'detalles-movimiento', component: DetalleMoviminetoComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
+  { path: 'kardex', component: KardexComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
   // Rutas del módulo de ventas
   { path: 'facturas', component: FacturaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'zonas-venta', component: ZonaVentaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
@@ -124,6 +127,8 @@ const routes: Routes = [
   { path: 'direcciones-cliente', component: DireccionClienteComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'cobros', component: CobroComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'condiciones-pago', component: CondicionPagoComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
+  { path: 'cotizaciones/nueva', component: CotizacionFormComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
+  { path: 'cotizaciones/:id', component: CotizacionFormComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'cotizaciones', component: CotizacionComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'detalles-cotizacion', component: DetalleCotizacionComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'despachos', component: DespachoComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },

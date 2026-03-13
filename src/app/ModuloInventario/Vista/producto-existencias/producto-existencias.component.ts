@@ -185,8 +185,9 @@ export class ProductoExistenciasComponent implements OnInit {
     }
   }
 
-  delete(id: number): void {
-    if (confirm('¿Está seguro de eliminar este registro de existencias?')) {
+  async delete(id: number): Promise<void> {
+    const confirmed = await this.notificationService.showConfirm('¿Está seguro de eliminar este registro de existencias?');
+    if (confirmed) {
       this.existenciasService.delete(id).subscribe({
         next: () => {
           this.notificationService.showSuccess('Existencias eliminadas exitosamente');

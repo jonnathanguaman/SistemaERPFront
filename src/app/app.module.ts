@@ -55,6 +55,7 @@ import { CuentasCobrarComponent } from './ModuloVentas/Vista/cuentas-cobrar/cuen
 import { DetalleCotizacionComponent } from './ModuloVentas/Vista/detalle-cotizacion/detalle-cotizacion.component';
 import { DetalleCobroComponent } from './ModuloVentas/Vista/detalle-cobro/detalle-cobro.component';
 import { CotizacionComponent } from './ModuloVentas/Vista/cotizacion/cotizacion.component';
+import { CotizacionFormComponent } from './ModuloVentas/Vista/cotizacion-form/cotizacion-form.component';
 import { DespachoComponent } from './ModuloVentas/Vista/despacho/despacho.component';
 import { DetalleDespachoComponent } from './ModuloVentas/Vista/detalle-despacho/detalle-despacho.component';
 import { NotaCreditoComponent } from './ModuloVentas/Vista/nota-credito/nota-credito.component';
@@ -121,6 +122,7 @@ import { PermisosRolComponent } from './ModuloEmpleados/Vista/permisos-rol/permi
     DetalleCotizacionComponent,
     DetalleCobroComponent,
     CotizacionComponent,
+    CotizacionFormComponent,
     DespachoComponent,
     DetalleDespachoComponent,
     NotaCreditoComponent,

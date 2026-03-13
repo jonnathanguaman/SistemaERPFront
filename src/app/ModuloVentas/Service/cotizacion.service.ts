@@ -124,8 +124,8 @@ export class CotizacionService {
     );
   }
 
-  aprobar(id: number): Observable<CotizacionResponse> {
-    return this.http.post<CotizacionResponse>(`${this.apiUrl}/${id}/aprobar`, {}).pipe(
+  aprobar(id: number, usuarioId: number): Observable<CotizacionResponse> {
+    return this.http.post<CotizacionResponse>(`${this.apiUrl}/${id}/aprobar?usuarioId=${usuarioId}`, {}).pipe(
       catchError(this.handleError)
     );
   }
@@ -136,8 +136,8 @@ export class CotizacionService {
     );
   }
 
-  convertirAOrdenVenta(id: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/${id}/convertir-orden`, {}).pipe(
+  convertirAOrdenVenta(id: number, ordenVentaId: number): Observable<CotizacionResponse> {
+    return this.http.post<CotizacionResponse>(`${this.apiUrl}/${id}/convertir?ordenVentaId=${ordenVentaId}`, {}).pipe(
       catchError(this.handleError)
     );
   }
@@ -147,6 +147,10 @@ export class CotizacionService {
     
     if (error.error instanceof ErrorEvent) {
       errorMessage = error.error.message;
+    } else if (error.status === 401) {
+      errorMessage = 'Tu sesión expiró. Inicia sesión nuevamente';
+    } else if (error.status === 403) {
+      errorMessage = 'No tienes permisos para realizar esta acción';
     } else if (error.status === 404) {
       errorMessage = 'Cotización no encontrada';
     } else if (error.status === 400) {

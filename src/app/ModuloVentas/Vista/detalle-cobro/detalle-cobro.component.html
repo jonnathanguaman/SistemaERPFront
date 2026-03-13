@@ -45,7 +45,6 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Cobro</th>
           <th>Factura</th>
           <th>Monto Aplicado</th>
@@ -56,7 +55,6 @@
       </thead>
       <tbody>
         <tr *ngFor="let detalle of detallesCobroFiltrados">
-          <td class="codigo-cell">{{ detalle.id }}</td>
           <td class="nombre-cell">{{ detalle.cobroNumero }}</td>
           <td class="codigo-cell">{{ detalle.facturaNumero }}</td>
           <td class="monto-cell">{{ detalle.montoAplicado | number: '1.2-2' }}</td>

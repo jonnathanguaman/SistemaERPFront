@@ -187,8 +187,9 @@ export class ProductoConfiguracionContableComponent implements OnInit {
     }
   }
 
-  delete(id: number): void {
-    if (confirm('¿Está seguro de eliminar esta configuración contable?')) {
+  async delete(id: number): Promise<void> {
+    const confirmed = await this.notificationService.showConfirm('¿Está seguro de eliminar esta configuración contable?');
+    if (confirmed) {
       this.configuracionService.delete(id).subscribe({
         next: () => {
           this.notificationService.showSuccess('Configuración eliminada exitosamente');

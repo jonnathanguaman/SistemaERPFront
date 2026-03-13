@@ -53,7 +53,6 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Factura</th>
           <th>Producto</th>
           <th>Código</th>
@@ -68,7 +67,6 @@
       </thead>
       <tbody>
         <tr *ngFor="let detalle of detallesFiltrados">
-          <td class="bold-text">{{ detalle.id }}</td>
           <td>{{ detalle.facturaNumero }}</td>
           <td>{{ detalle.productoNombre }}</td>
           <td>{{ detalle.productoCodigo }}</td>

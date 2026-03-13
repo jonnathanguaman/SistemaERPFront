@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { CotizacionService } from '../../Service/cotizacion.service';
 import { ClienteService } from '../../Service/cliente.service';
 import { CondicionPagoService } from '../../Service/condicion-pago.service';
@@ -9,6 +10,7 @@ import { ClienteResponse } from '../../Entidad/cliente.model';
 import { CondicionPagoResponse } from '../../Entidad/condicion-pago.model';
 import { ListaPreciosResponse } from '../../Entidad/lista-precios.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
+import { AuthService } from '../../../Compartido/services/auth.service';
 
 interface DetalleItem {
   productoId: number;
@@ -54,7 +56,9 @@ export class CotizacionComponent implements OnInit {
     private readonly condicionPagoService: CondicionPagoService,
     private readonly listaPreciosService: ListaPreciosService,
     private readonly formBuilder: FormBuilder,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly authService: AuthService,
+    private readonly router: Router
   ) {
     this.cotizacionForm = this.formBuilder.group({
       numeroCotizacion: ['', Validators.required],
@@ -71,6 +75,7 @@ export class CotizacionComponent implements OnInit {
       descuentoMonto: [0],
       impuestoMonto: [0],
       total: [0],
+      estado: ['BORRADOR', Validators.required],
       observaciones: [''],
       terminosCondiciones: [''],
       tiempoEntrega: ['']
@@ -162,22 +167,7 @@ export class CotizacionComponent implements OnInit {
   }
 
   abrirModalCrear(): void {
-    this.isEditing = false;
-    this.editingCotizacionId = null;
-    this.detallesCotizacion = [];
-    this.cotizacionForm.reset({
-      numeroCotizacion: `COT-${Date.now()}`,
-      fechaCotizacion: this.getFechaHoy(),
-      fechaVencimiento: this.getFechaFutura(30),
-      vendedorId: 1,
-      bodegaId: 1,
-      subtotal: 0,
-      descuentoPorcentaje: 0,
-      descuentoMonto: 0,
-      impuestoMonto: 0,
-      total: 0
-    });
-    this.showModal = true;
+    this.router.navigate(['/cotizaciones/nueva']);
   }
 
   abrirModalEditar(cotizacion: CotizacionResponse): void {
@@ -203,6 +193,7 @@ export class CotizacionComponent implements OnInit {
       descuentoMonto: cotizacion.descuentoMonto,
       impuestoMonto: cotizacion.impuestoMonto,
       total: cotizacion.total,
+      estado: cotizacion.estado,
       observaciones: cotizacion.observaciones,
       terminosCondiciones: cotizacion.terminosCondiciones,
       tiempoEntrega: cotizacion.tiempoEntrega
@@ -299,7 +290,20 @@ export class CotizacionComponent implements OnInit {
       return;
     }
 
-    this.cotizacionService.aprobar(cotizacion.id).subscribe({
+    const usuarioId = this.authService.userId;
+    console.log('[COTIZACION-DEBUG] aprobar desde listado', {
+      cotizacionId: cotizacion.id,
+      estado: cotizacion.estado,
+      usuarioId
+    });
+
+    if (!usuarioId) {
+      this.authService.debugAuthState('cotizacion-listado-aprobar-sin-usuarioId');
+      this.notificationService.error('No se pudo identificar el usuario autenticado. Cierra sesión e inicia nuevamente.');
+      return;
+    }
+
+    this.cotizacionService.aprobar(cotizacion.id, usuarioId).subscribe({
       next: () => {
         this.notificationService.success('Cotización aprobada exitosamente');
         this.cargarCotizaciones();
@@ -312,8 +316,7 @@ export class CotizacionComponent implements OnInit {
   }
 
   verDetalles(cotizacion: CotizacionResponse): void {
-    this.editingCotizacionId = cotizacion.id;
-    this.showDetalleModal = true;
+    this.router.navigate(['/cotizaciones', cotizacion.id]);
   }
 
   cerrarDetalleModal(): void {

@@ -31,13 +31,40 @@ export class DetalleOrdenCompraComponent implements OnInit {
 
   cargarProductos(): void {
     this.isLoadingProductos = true;
+    console.log('[DetalleOrdenCompra] Iniciando carga de productos...');
+
     this.productoService.findAll().subscribe({
       next: (data) => {
-        this.productos = data;
+        const total = data.length;
+        const activos = data.filter(producto => producto.activo).length;
+        const disponibles = data.filter(producto => producto.estado).length;
+
+        this.productos = data.filter(producto => producto.activo && producto.estado);
+
+        console.log('[DetalleOrdenCompra] Productos cargados:', {
+          total,
+          activos,
+          disponibles,
+          activosYDisponibles: this.productos.length,
+          muestra: this.productos.slice(0, 5).map(producto => ({
+            id: producto.id,
+            sku: producto.sku,
+            nombre: producto.productoNombre,
+            activo: producto.activo,
+            estado: producto.estado
+          }))
+        });
+
         this.isLoadingProductos = false;
       },
       error: (error) => {
-        console.error('Error al cargar productos:', error);
+        console.error('[DetalleOrdenCompra] Error al cargar productos:', error);
+        console.error('[DetalleOrdenCompra] Detalle del error:', {
+          status: error?.status,
+          statusText: error?.statusText,
+          url: error?.url,
+          body: error?.error
+        });
         this.isLoadingProductos = false;
       }
     });

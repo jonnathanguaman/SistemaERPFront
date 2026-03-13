@@ -211,7 +211,7 @@ export class DetalleCobroComponent implements OnInit {
   }
 
   async eliminarDetalleCobro(detalle: DetalleCobroResponse): Promise<void> {
-    const confirmed = confirm(`¿Eliminar el detalle de cobro de la factura ${detalle.facturaNumero}?`);
+    const confirmed = await this.notificationService.confirm(`¿Eliminar el detalle de cobro de la factura ${detalle.facturaNumero}?`);
     if (!confirmed) return;
 
     this.detalleCobroService.eliminar(detalle.id).subscribe({

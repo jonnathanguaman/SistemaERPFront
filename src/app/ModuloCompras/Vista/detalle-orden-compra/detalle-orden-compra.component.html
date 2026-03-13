@@ -15,7 +15,7 @@
       <thead>
         <tr>
           <th style="width: 50px;">#</th>
-          <th style="width: 180px;">Producto</th>
+          <th style="width: 280px;">Producto</th>
           <th style="width: 100px;">Cantidad</th>
           <th style="width: 120px;">Precio Unit.</th>
           <th style="width: 100px;">Desc. %</th>
@@ -44,8 +44,10 @@
               class="table-input table-select"
               *ngIf="!isViewMode"
             >
-              <option value="">Seleccione un producto</option>
-              <option *ngFor="let producto of productos" [value]="producto.id">
+              <option [ngValue]="null">
+                {{ isLoadingProductos ? 'Cargando productos...' : (productos.length === 0 ? 'No hay productos activos/disponibles' : 'Seleccione un producto') }}
+              </option>
+              <option *ngFor="let producto of productos" [ngValue]="producto.id">
                 {{ producto.productoNombre }} - {{ producto.sku }}
               </option>
             </select>

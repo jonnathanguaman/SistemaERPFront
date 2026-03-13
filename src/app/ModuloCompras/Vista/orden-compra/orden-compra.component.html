@@ -190,13 +190,16 @@
 
           <div class="form-group">
             <label for="bodegaId">Bodega <span class="required">*</span></label>
-            <input
-              type="number"
+            <select
               id="bodegaId"
               formControlName="bodegaId"
-              placeholder="ID de bodega"
               [class.invalid]="isFieldInvalid('bodegaId')"
-            />
+            >
+              <option [ngValue]="null">Seleccione una bodega</option>
+              <option *ngFor="let bodega of bodegas" [ngValue]="bodega.id">
+                {{ bodega.codigo }} - {{ bodega.nombre }}
+              </option>
+            </select>
             <span class="error-message" *ngIf="isFieldInvalid('bodegaId')">
               {{ getFieldError('bodegaId') }}
             </span>

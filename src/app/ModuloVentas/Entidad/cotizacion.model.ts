@@ -13,6 +13,7 @@ export interface CotizacionRequest {
   descuentoMonto?: number;
   impuestoMonto: number;
   total: number;
+  estado: string;
   observaciones?: string;
   terminosCondiciones?: string;
   tiempoEntrega?: string;

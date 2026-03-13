@@ -30,6 +30,7 @@
 .detalles-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 1150px;
 }
 
 .detalles-table thead {
@@ -65,6 +66,11 @@
   font-size: 14px;
   color: #111827;
   vertical-align: middle;
+}
+
+.detalles-table th:nth-child(2),
+.detalles-table td:nth-child(2) {
+  min-width: 280px;
 }
 
 .item-number {
