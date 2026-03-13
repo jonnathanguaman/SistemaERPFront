@@ -11,6 +11,7 @@
         <button class="btn btn-primary" *ngIf="mostrarBotonesGuardarDescartar()" (click)="guardarCotizacion()" [disabled]="guardando">
           {{ guardando ? 'Guardando...' : 'Guardar' }}
         </button>
+        <button class="btn btn-primary" *ngIf="mostrarBotonEnviar()" (click)="enviarDesdeToolbar()">Enviar</button>
         <button class="btn btn-danger" *ngIf="mostrarBotonesGuardarDescartar()" (click)="descartar()">Descartar</button>
         <button class="btn btn-success" *ngIf="mostrarAccionesEnviada()" (click)="aprobarDesdeToolbar()">Aprobar</button>
         <button class="btn btn-danger" *ngIf="mostrarAccionesEnviada()" (click)="cancelarDesdeToolbar()">Cancelar</button>
@@ -69,6 +70,15 @@
           </div>
 
           <div class="form-group">
+            <label for="bodegaId">Bodega <span class="required">*</span></label>
+            <select id="bodegaId" formControlName="bodegaId" [class.invalid]="isFieldInvalid('bodegaId')">
+              <option [ngValue]="null" disabled>Seleccione una bodega</option>
+              <option *ngFor="let bodega of bodegas" [ngValue]="bodega.id">{{ bodega.codigo }} - {{ bodega.nombre }}</option>
+            </select>
+            <span class="error-message" *ngIf="isFieldInvalid('bodegaId')">{{ getFieldError('bodegaId') }}</span>
+          </div>
+
+          <div class="form-group">
             <label for="listaPreciosId">Lista de Precios <span class="required">*</span></label>
             <select id="listaPreciosId" formControlName="listaPreciosId" [class.invalid]="isFieldInvalid('listaPreciosId')">
               <option [ngValue]="null" disabled>Seleccione una lista</option>
@@ -121,7 +131,7 @@
                 <td>
                   <select [(ngModel)]="linea.productoId" [ngModelOptions]="{standalone: true}" [disabled]="!puedeEditarCampos()" (change)="onProductoSeleccionado(i)">
                     <option [ngValue]="null" disabled>Seleccione producto</option>
-                    <option *ngFor="let producto of productos" [ngValue]="producto.id">{{ producto.productoNombre }}</option>
+                    <option *ngFor="let producto of getProductosOpciones(linea)" [ngValue]="producto.id">{{ producto.productoNombre }}</option>
                   </select>
                 </td>
                 <td>

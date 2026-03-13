@@ -61,6 +61,7 @@ import { DetalleDespachoComponent } from './ModuloVentas/Vista/detalle-despacho/
 import { NotaCreditoComponent } from './ModuloVentas/Vista/nota-credito/nota-credito.component';
 import { DetalleNotaCreditoComponent } from './ModuloVentas/Vista/detalle-nota-credito/detalle-nota-credito.component';
 import { OrdenVentaComponent } from './ModuloVentas/Vista/orden-venta/orden-venta.component';
+import { OrdenVentaFormComponent } from './ModuloVentas/Vista/orden-venta-form/orden-venta-form.component';
 import { DetalleOrdenVentaComponent } from './ModuloVentas/Vista/detalle-orden-venta/detalle-orden-venta.component';
 import { OrdenCompraComponent } from './ModuloCompras/Vista/orden-compra/orden-compra.component';
 import { DetalleOrdenCompraComponent } from './ModuloCompras/Vista/detalle-orden-compra/detalle-orden-compra.component';
@@ -128,6 +129,7 @@ import { PermisosRolComponent } from './ModuloEmpleados/Vista/permisos-rol/permi
     NotaCreditoComponent,
     DetalleNotaCreditoComponent,
     OrdenVentaComponent,
+    OrdenVentaFormComponent,
     DetalleOrdenVentaComponent,
     OrdenCompraComponent,
     DetalleOrdenCompraComponent,

@@ -59,6 +59,7 @@ import { DetalleDespachoComponent } from './ModuloVentas/Vista/detalle-despacho/
 import { NotaCreditoComponent } from './ModuloVentas/Vista/nota-credito/nota-credito.component';
 import { DetalleNotaCreditoComponent } from './ModuloVentas/Vista/detalle-nota-credito/detalle-nota-credito.component';
 import { OrdenVentaComponent } from './ModuloVentas/Vista/orden-venta/orden-venta.component';
+import { OrdenVentaFormComponent } from './ModuloVentas/Vista/orden-venta-form/orden-venta-form.component';
 import { DetalleOrdenVentaComponent } from './ModuloVentas/Vista/detalle-orden-venta/detalle-orden-venta.component';
 import { OrdenCompraComponent } from './ModuloCompras/Vista/orden-compra/orden-compra.component';
 import { DetalleOrdenCompraComponent } from './ModuloCompras/Vista/detalle-orden-compra/detalle-orden-compra.component';
@@ -137,6 +138,8 @@ const routes: Routes = [
   { path: 'cuentas-por-cobrar', component: CuentasCobrarComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'notas-credito', component: NotaCreditoComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'detalles-nota-credito', component: DetalleNotaCreditoComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
+  { path: 'ordenes-venta/nueva', component: OrdenVentaFormComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
+  { path: 'ordenes-venta/:id', component: OrdenVentaFormComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'ordenes-venta', component: OrdenVentaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'detalles-orden-venta', component: DetalleOrdenVentaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'detalles-orden-venta/:id', component: DetalleOrdenVentaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },

@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, of, switchMap } from 'rxjs';
+import { forkJoin, of, switchMap, map } from 'rxjs';
 import { NotificationService } from '../../../Compartido/services/notification.service';
 import { AuthService } from '../../../Compartido/services/auth.service';
 import { CotizacionRequest } from '../../Entidad/cotizacion.model';
@@ -16,10 +17,16 @@ import { CondicionPagoService } from '../../Service/condicion-pago.service';
 import { ListaPreciosService } from '../../Service/lista-precios.service';
 import { PrecioProductoService } from '../../Service/precio-producto.service';
 import { PrecioProductoResponse } from '../../Entidad/precio-producto.model';
+import { BodegaResponse } from '../../../ModuloEmpresa/Entidad/bodega.model';
+import { BodegaService } from '../../../ModuloEmpresa/Service/bodega.service';
 import { ProductoService } from '../../../ModuloInventario/Service/producto.service';
 import { ProductoResponse } from '../../../ModuloInventario/Entidad/producto.model';
 import { ProductoExistenciasService } from '../../../ModuloInventario/Service/producto-existencias.service';
 import { ProductoExistenciasResponse } from '../../../ModuloInventario/Entidad/producto-existencias.model';
+import { OrdenVentaService } from '../../Service/orden-venta.service';
+import { DetalleOrdenVentaService } from '../../Service/detalle-orden-venta.service';
+import { OrdenVentaRequest, OrdenVentaResponse } from '../../Entidad/orden-venta.model';
+import { DetalleOrdenVentaRequest } from '../../Entidad/detalle-orden-venta.model';
 
 interface DetalleLinea {
   productoId: number | null;
@@ -44,8 +51,10 @@ export class CotizacionFormComponent implements OnInit {
   private snapshotInicial = '';
   clientes: ClienteResponse[] = [];
   condicionesPago: CondicionPagoResponse[] = [];
+  bodegas: BodegaResponse[] = [];
   listasPrecios: ListaPreciosResponse[] = [];
   productos: ProductoResponse[] = [];
+  productosFiltrados: ProductoResponse[] = [];
   existencias: ProductoExistenciasResponse[] = [];
   preciosListaActual: PrecioProductoResponse[] = [];
   preciosPorProducto = new Map<number, number>();
@@ -54,6 +63,7 @@ export class CotizacionFormComponent implements OnInit {
 
   loading = false;
   guardando = false;
+  private catalogosCargados = false;
 
   estadosDisponibles = ['BORRADOR', 'ENVIADA', 'APROBADA', 'RECHAZADA', 'CONVERTIDA', 'VENCIDA', 'CANCELADA'];
 
@@ -61,6 +71,7 @@ export class CotizacionFormComponent implements OnInit {
 
   constructor(
     private readonly formBuilder: FormBuilder,
+    private readonly location: Location,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly notificationService: NotificationService,
@@ -69,10 +80,13 @@ export class CotizacionFormComponent implements OnInit {
     private readonly detalleCotizacionService: DetalleCotizacionService,
     private readonly clienteService: ClienteService,
     private readonly condicionPagoService: CondicionPagoService,
+    private readonly bodegaService: BodegaService,
     private readonly listaPreciosService: ListaPreciosService,
     private readonly productoService: ProductoService,
     private readonly precioProductoService: PrecioProductoService,
-    private readonly productoExistenciasService: ProductoExistenciasService
+    private readonly productoExistenciasService: ProductoExistenciasService,
+    private readonly ordenVentaService: OrdenVentaService,
+    private readonly detalleOrdenVentaService: DetalleOrdenVentaService
   ) {
     this.cotizacionForm = this.formBuilder.group({
       numeroCotizacion: ['', Validators.required],
@@ -99,25 +113,35 @@ export class CotizacionFormComponent implements OnInit {
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     this.cotizacionId = idParam ? Number(idParam) : null;
+    console.log('[COT-DEBUG] ngOnInit', { idParam, cotizacionId: this.cotizacionId });
 
     if (this.cotizacionId) {
       this.cargarCotizacionExistente(this.cotizacionId);
     } else {
       this.cotizacionForm.patchValue({ numeroCotizacion: `COT-${Date.now()}` });
+      this.agregarLinea();
     }
 
     this.cargarCatalogos();
     this.configurarAutocompletadoCliente();
     this.configurarCambioListaPrecios();
     this.configurarCambioFechaVencimiento();
-    this.agregarLinea();
+    this.configurarCambioBodega();
     this.aplicarRestriccionesPorEstado();
     this.actualizarSnapshotInicial();
   }
 
   cargarCotizacionExistente(id: number): void {
+    console.log('[COT-DEBUG] cargarCotizacionExistente:start', { id });
     this.cotizacionService.findById(id).subscribe({
       next: (cotizacion) => {
+        console.log('[COT-DEBUG] cargarCotizacionExistente:header', {
+          id: cotizacion.id,
+          estado: cotizacion.estado,
+          bodegaId: cotizacion.bodegaId,
+          clienteId: cotizacion.clienteId,
+          condicionPagoId: cotizacion.condicionPagoId
+        });
         this.cotizacionForm.patchValue({
           numeroCotizacion: cotizacion.numeroCotizacion,
           clienteId: cotizacion.clienteId,
@@ -137,19 +161,25 @@ export class CotizacionFormComponent implements OnInit {
           observaciones: cotizacion.observaciones || '',
           terminosCondiciones: cotizacion.terminosCondiciones || '',
           tiempoEntrega: cotizacion.tiempoEntrega || ''
-        });
+        }, { emitEvent: false });
 
         this.aplicarEstadoVencidaPorFecha();
         this.aplicarRestriccionesPorEstado();
       },
       error: (error) => {
         console.error('Error al cargar cotización:', error);
+        console.error('[COT-DEBUG] cargarCotizacionExistente:header:error', error);
         this.notificationService.error(error.message || 'No se pudo cargar la cotización');
       }
     });
 
     this.detalleCotizacionService.findByCotizacion(id).subscribe({
       next: (detalles) => {
+        console.log('[COT-DEBUG] cargarCotizacionExistente:detalles', {
+          cotizacionId: id,
+          totalDetalles: detalles.length,
+          detalles: detalles.map((d) => ({ id: d.id, productoId: d.productoId, cantidad: d.cantidad }))
+        });
         this.detallesCotizacion = detalles.map((detalle) => ({
           productoId: detalle.productoId,
           cantidad: detalle.cantidad,
@@ -168,7 +198,8 @@ export class CotizacionFormComponent implements OnInit {
         this.recalcularTotales();
         this.actualizarSnapshotInicial();
       },
-      error: () => {
+      error: (error) => {
+        console.error('[COT-DEBUG] cargarCotizacionExistente:detalles:error', error);
         this.detallesCotizacion = [];
         this.agregarLinea();
         this.actualizarSnapshotInicial();
@@ -221,19 +252,34 @@ export class CotizacionFormComponent implements OnInit {
 
   cargarCatalogos(): void {
     this.loading = true;
+    console.log('[COT-DEBUG] cargarCatalogos:start');
     forkJoin({
       clientes: this.clienteService.findActivos(),
       condiciones: this.condicionPagoService.findActivas(),
+      bodegas: this.bodegaService.findAll(),
       listas: this.listaPreciosService.findActivos(),
       productos: this.productoService.findAll(),
       existencias: this.productoExistenciasService.findAll()
     }).subscribe({
-      next: ({ clientes, condiciones, listas, productos, existencias }) => {
+      next: ({ clientes, condiciones, bodegas, listas, productos, existencias }) => {
         this.clientes = clientes;
         this.condicionesPago = condiciones;
+        this.bodegas = bodegas.filter((bodega) => bodega.activo);
         this.listasPrecios = listas;
         this.productos = productos.filter((producto) => producto.activo && producto.estado);
         this.existencias = existencias.filter((existencia) => existencia.activo);
+        this.actualizarProductosPorBodega(Number(this.cotizacionForm.get('bodegaId')?.value || 0));
+        this.catalogosCargados = true;
+        console.log('[COT-DEBUG] cargarCatalogos:done', {
+          clientes: this.clientes.length,
+          condiciones: this.condicionesPago.length,
+          bodegas: this.bodegas.length,
+          listas: this.listasPrecios.length,
+          productosActivos: this.productos.length,
+          existenciasActivas: this.existencias.length,
+          productosFiltrados: this.productosFiltrados.length,
+          bodegaActual: this.cotizacionForm.get('bodegaId')?.value
+        });
 
         const listaPreciosActual = this.cotizacionForm.get('listaPreciosId')?.value;
         if (listaPreciosActual) {
@@ -244,10 +290,121 @@ export class CotizacionFormComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar catálogos de cotización:', error);
+        console.error('[COT-DEBUG] cargarCatalogos:error', error);
+        this.catalogosCargados = false;
         this.notificationService.error('Error al cargar información inicial de la cotización');
         this.loading = false;
       }
     });
+  }
+
+  configurarCambioBodega(): void {
+    this.cotizacionForm.get('bodegaId')?.valueChanges.subscribe((bodegaId: number | null) => {
+      const id = Number(bodegaId || 0);
+      console.log('[COT-DEBUG] configurarCambioBodega:valueChanges', {
+        bodegaId: id,
+        detallesAntes: this.detallesCotizacion.map((l) => l.productoId)
+      });
+      this.actualizarProductosPorBodega(id);
+      this.limpiarLineasSinDisponibilidad(id);
+      this.detallesCotizacion.forEach((_, index) => this.validarExistenciasLinea(index, false));
+      this.recalcularTotales();
+      console.log('[COT-DEBUG] configurarCambioBodega:after', {
+        bodegaId: id,
+        productosFiltrados: this.productosFiltrados.length,
+        detallesDespues: this.detallesCotizacion.map((l) => l.productoId)
+      });
+    });
+  }
+
+  private actualizarProductosPorBodega(bodegaId: number): void {
+    if (!bodegaId) {
+      this.productosFiltrados = [...this.productos];
+      return;
+    }
+
+    const productosIds = new Set(
+      this.existencias
+        .filter((existencia) => existencia.bodegaId === bodegaId)
+        .map((existencia) => existencia.productoId)
+    );
+
+    this.productosFiltrados = this.productos.filter((producto) => productosIds.has(producto.id));
+    console.log('[COT-DEBUG] actualizarProductosPorBodega', {
+      bodegaId,
+      totalProductos: this.productos.length,
+      productosConExistencia: productosIds.size,
+      filtrados: this.productosFiltrados.length
+    });
+  }
+
+  private limpiarLineasSinDisponibilidad(bodegaId: number): void {
+    if (!bodegaId || !this.catalogosCargados || !this.puedeEditarCampos()) {
+      return;
+    }
+
+    const permitidos = new Set(this.productosFiltrados.map((producto) => producto.id));
+    if (permitidos.size === 0) {
+      console.warn('[COT-DEBUG] limpiarLineasSinDisponibilidad:omitido_sin_permitidos', {
+        bodegaId,
+        catalogosCargados: this.catalogosCargados,
+        productos: this.productos.length,
+        filtrados: this.productosFiltrados.length
+      });
+      return;
+    }
+    let limpiadas = 0;
+
+    this.detallesCotizacion.forEach((linea) => {
+      if (linea.productoId && !permitidos.has(Number(linea.productoId))) {
+        console.warn('[COT-DEBUG] limpiarLineasSinDisponibilidad:limpiando', {
+          bodegaId,
+          productoId: linea.productoId
+        });
+        linea.productoId = null;
+        linea.cantidad = 1;
+        linea.precioUnitario = 0;
+        linea.descuentoPorcentaje = 0;
+        linea.descuentoMonto = 0;
+        linea.impuestoPorcentaje = 0;
+        linea.stockDisponible = 0;
+        limpiadas += 1;
+      }
+    });
+
+    if (limpiadas > 0) {
+      console.warn('[COT-DEBUG] limpiarLineasSinDisponibilidad:resumen', {
+        bodegaId,
+        lineasLimpiadas: limpiadas
+      });
+    }
+  }
+
+  getProductosOpciones(linea: DetalleLinea): ProductoResponse[] {
+    const opcionesBase = this.puedeEditarCampos() ? this.productosFiltrados : this.productos;
+
+    if (!linea?.productoId) {
+      return opcionesBase;
+    }
+
+    const productoId = Number(linea.productoId);
+    const yaExiste = opcionesBase.some((producto) => producto.id === productoId);
+    if (yaExiste) {
+      return opcionesBase;
+    }
+
+    const productoSeleccionado = this.productos.find((producto) => producto.id === productoId);
+    if (!productoSeleccionado) {
+      console.warn('[COT-DEBUG] getProductosOpciones:productoNoEncontrado', {
+        productoId,
+        totalProductosCatalogo: this.productos.length,
+        totalFiltrados: this.productosFiltrados.length,
+        editable: this.puedeEditarCampos()
+      });
+      return opcionesBase;
+    }
+
+    return [productoSeleccionado, ...opcionesBase];
   }
 
   cargarPreciosPorLista(listaPreciosId: number | null): void {
@@ -426,6 +583,19 @@ export class CotizacionFormComponent implements OnInit {
       linea.stockDisponible = 0;
       delete this.mensajesStockPorLinea[index];
       this.lineasConStockInsuficiente.delete(index);
+      this.recalcularTotales();
+      return;
+    }
+
+    const esProductoPermitido = this.productosFiltrados.some((producto) => producto.id === Number(linea.productoId));
+    if (!esProductoPermitido) {
+      linea.productoId = null;
+      linea.precioUnitario = 0;
+      linea.descuentoMonto = 0;
+      linea.stockDisponible = 0;
+      if (mostrarNotificacion) {
+        this.notificationService.warning('El producto seleccionado no pertenece a la bodega elegida');
+      }
       this.recalcularTotales();
       return;
     }
@@ -613,6 +783,8 @@ export class CotizacionFormComponent implements OnInit {
 
     this.cotizacionService.save(cotizacionPayload).pipe(
       switchMap((cotizacionCreada) => {
+        this.cotizacionId = cotizacionCreada.id;
+
         const detallesParaGuardar: DetalleCotizacionRequest[] = detallesPayload.map((linea) => ({
           cotizacionId: cotizacionCreada.id,
           productoId: linea.productoId,
@@ -625,16 +797,19 @@ export class CotizacionFormComponent implements OnInit {
         }));
 
         if (detallesParaGuardar.length === 0) {
-          return of([]);
+          return of(cotizacionCreada);
         }
 
-        return forkJoin(detallesParaGuardar.map((detalle) => this.detalleCotizacionService.save(detalle)));
+        return forkJoin(detallesParaGuardar.map((detalle) => this.detalleCotizacionService.save(detalle))).pipe(
+          switchMap(() => of(cotizacionCreada))
+        );
       })
     ).subscribe({
-      next: () => {
+      next: (cotizacionCreada) => {
         this.notificationService.success('Cotización creada exitosamente');
+        this.location.replaceState(`/cotizaciones/${cotizacionCreada.id}`);
+        this.cargarCotizacionExistente(cotizacionCreada.id);
         this.guardando = false;
-        this.router.navigate(['/cotizaciones']);
       },
       error: (error) => {
         console.error('Error al guardar cotización completa:', error);
@@ -673,6 +848,10 @@ export class CotizacionFormComponent implements OnInit {
     return !!this.cotizacionId && this.obtenerEstadoActual() === 'ENVIADA';
   }
 
+  mostrarBotonEnviar(): boolean {
+    return !!this.cotizacionId && this.obtenerEstadoActual() === 'BORRADOR' && !this.tieneCambiosPendientes();
+  }
+
   mostrarBotonConvertir(): boolean {
     return !!this.cotizacionId && this.obtenerEstadoActual() === 'APROBADA';
   }
@@ -681,12 +860,26 @@ export class CotizacionFormComponent implements OnInit {
     this.seleccionarEstado('APROBADA');
   }
 
+  enviarDesdeToolbar(): void {
+    if (this.tieneCambiosPendientes()) {
+      this.notificationService.warning('Guarda los cambios antes de enviar la cotización');
+      return;
+    }
+
+    this.seleccionarEstado('ENVIADA');
+  }
+
   cancelarDesdeToolbar(): void {
     this.seleccionarEstado('RECHAZADA');
   }
 
   convertirAOrdenDesdeToolbar(): void {
     if (!this.cotizacionId) {
+      return;
+    }
+
+    if (this.puedeEditarCampos() && this.tieneCambiosPendientes()) {
+      this.notificationService.warning('Guarda los cambios antes de convertir la cotización');
       return;
     }
 
@@ -707,18 +900,87 @@ export class CotizacionFormComponent implements OnInit {
       return;
     }
 
-    this.cotizacionService.convertirAOrdenVenta(cotizacionId, usuarioId).subscribe({
-      next: () => {
+    this.guardando = true;
+
+    this.ordenVentaService.findByCotizacion(cotizacionId).pipe(
+      switchMap((ordenesExistentes) => {
+        if (ordenesExistentes.length > 0) {
+          return of(ordenesExistentes[0]);
+        }
+        return this.crearOrdenVentaDesdeCotizacion(cotizacionId, usuarioId);
+      }),
+      switchMap((ordenCreada) =>
+        this.cotizacionService.convertirAOrdenVenta(cotizacionId, ordenCreada.id).pipe(
+          map(() => ordenCreada)
+        )
+      )
+    ).subscribe({
+      next: (ordenCreada) => {
         this.cotizacionForm.patchValue({ estado: 'CONVERTIDA' });
         this.aplicarRestriccionesPorEstado();
         this.actualizarSnapshotInicial();
         this.notificationService.success('Cotización convertida a orden de venta exitosamente');
+        this.router.navigate(['/ordenes-venta', ordenCreada.id]);
+        this.guardando = false;
       },
       error: (error) => {
         console.error('Error al convertir cotización:', error);
         this.notificationService.error(error.message, 'No se pudo convertir la cotización');
+        this.guardando = false;
       }
     });
+  }
+
+  private crearOrdenVentaDesdeCotizacion(cotizacionId: number, usuarioId: number) {
+    const datos = this.cotizacionForm.getRawValue();
+    const fechaOrden = this.getFechaHoy();
+
+    const payloadOrden: OrdenVentaRequest = {
+      numeroOrden: `OV-${Date.now()}`,
+      cotizacionId,
+      clienteId: Number(datos.clienteId),
+      contactoClienteId: datos.contactoClienteId ? Number(datos.contactoClienteId) : undefined,
+      fechaOrden,
+      fechaEntregaEstimada: datos.fechaVencimiento || undefined,
+      vendedorId: Number(datos.vendedorId),
+      bodegaId: Number(datos.bodegaId),
+      condicionPagoId: Number(datos.condicionPagoId),
+      tiempoEntrega: datos.tiempoEntrega || undefined,
+      subtotal: Number(datos.subtotal || 0),
+      descuentoPorcentaje: Number(datos.descuentoPorcentaje || 0),
+      descuentoMonto: Number(datos.descuentoMonto || 0),
+      impuestoMonto: Number(datos.impuestoMonto || 0),
+      total: Number(datos.total || 0),
+      observaciones: datos.observaciones || undefined,
+      usuarioCreacionId: usuarioId
+    };
+
+    return this.ordenVentaService.save(payloadOrden).pipe(
+      switchMap((ordenCreada: OrdenVentaResponse) =>
+        this.detalleCotizacionService.findByCotizacion(cotizacionId).pipe(
+          switchMap((detallesCotizacion) => {
+            if (!detallesCotizacion.length) {
+              return of(ordenCreada);
+            }
+
+            const detallesOrden: DetalleOrdenVentaRequest[] = detallesCotizacion.map((detalle) => ({
+              ordenVentaId: ordenCreada.id,
+              productoId: detalle.productoId,
+              cantidad: Number(detalle.cantidad),
+              precioUnitario: Number(detalle.precioUnitario),
+              descuentoPorcentaje: Number(detalle.descuentoPorcentaje || 0),
+              descuentoMonto: Number(detalle.descuentoMonto || 0),
+              impuestoPorcentaje: Number(detalle.impuestoPorcentaje || 0),
+              observaciones: detalle.observaciones || ''
+            }));
+
+            return forkJoin(detallesOrden.map((detalle) => this.detalleOrdenVentaService.save(detalle))).pipe(
+              map(() => ordenCreada)
+            );
+          })
+        )
+      )
+    );
   }
 
   puedeSeleccionarEstado(estado: string): boolean {

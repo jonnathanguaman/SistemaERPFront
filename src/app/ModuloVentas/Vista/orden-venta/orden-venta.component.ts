@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { OrdenVentaService } from '../../Service/orden-venta.service';
 import { ClienteService } from '../../Service/cliente.service';
 import { CondicionPagoService } from '../../Service/condicion-pago.service';
@@ -37,7 +38,8 @@ export class OrdenVentaComponent implements OnInit {
     private readonly clienteService: ClienteService,
     private readonly condicionPagoService: CondicionPagoService,
     private readonly formBuilder: FormBuilder,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly router: Router
   ) {
     this.ordenVentaForm = this.formBuilder.group({
       numeroOrden: ['', Validators.required],
@@ -131,23 +133,7 @@ export class OrdenVentaComponent implements OnInit {
   }
 
   abrirModalCrear(): void {
-    this.isEditing = false;
-    this.editingOrdenVentaId = null;
-    this.ordenVentaForm.reset({
-      numeroOrden: `OV-${Date.now()}`,
-      fechaOrden: this.getFechaHoy(),
-      bodegaId: 1,
-      requiereFactura: true,
-      requiereGuiaRemision: true,
-      descuentoPorcentaje: 0,
-      descuentoMonto: 0,
-      diasCredito: 0,
-      subtotal: 0,
-      impuestoMonto: 0,
-      total: 0,
-      usuarioCreacionId: 1
-    });
-    this.showModal = true;
+    this.router.navigate(['/ordenes-venta/nueva']);
   }
 
   abrirModalEditar(orden: OrdenVentaResponse): void {
@@ -156,32 +142,7 @@ export class OrdenVentaComponent implements OnInit {
       return;
     }
 
-    this.isEditing = true;
-    this.editingOrdenVentaId = orden.id;
-    this.ordenVentaForm.patchValue({
-      numeroOrden: orden.numeroOrden,
-      cotizacionId: orden.cotizacionId,
-      clienteId: orden.clienteId,
-      contactoClienteId: orden.contactoClienteId,
-      fechaOrden: orden.fechaOrden,
-      fechaEntregaEstimada: orden.fechaEntregaEstimada,
-      vendedorId: orden.vendedorId,
-      bodegaId: orden.bodegaId,
-      condicionPagoId: orden.condicionPagoId,
-      diasCredito: orden.diasCredito,
-      direccionEntregaId: orden.direccionEntregaId,
-      direccionEntregaTexto: orden.direccionEntregaTexto,
-      tiempoEntrega: orden.tiempoEntrega,
-      subtotal: orden.subtotal,
-      descuentoPorcentaje: orden.descuentoPorcentaje,
-      descuentoMonto: orden.descuentoMonto,
-      impuestoMonto: orden.impuestoMonto,
-      total: orden.total,
-      requiereFactura: orden.requiereFactura,
-      requiereGuiaRemision: orden.requiereGuiaRemision,
-      observaciones: orden.observaciones
-    });
-    this.showModal = true;
+    this.router.navigate(['/ordenes-venta', orden.id]);
   }
 
   cerrarModal(): void {
@@ -344,8 +305,7 @@ export class OrdenVentaComponent implements OnInit {
   }
 
   verDetalles(orden: OrdenVentaResponse): void {
-    this.ordenSeleccionada = orden;
-    this.showDetallesModal = true;
+    this.router.navigate(['/ordenes-venta', orden.id]);
   }
 
   cerrarModalDetalles(): void {

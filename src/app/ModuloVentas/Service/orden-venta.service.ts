@@ -115,8 +115,20 @@ export class OrdenVentaService {
     );
   }
 
+  facturar(id: number): Observable<OrdenVentaResponse> {
+    return this.http.patch<OrdenVentaResponse>(`${this.apiUrl}/${id}/facturar`, null).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   cancelar(id: number): Observable<OrdenVentaResponse> {
     return this.http.patch<OrdenVentaResponse>(`${this.apiUrl}/${id}/cancelar`, null).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  restablecerABorrador(id: number): Observable<OrdenVentaResponse> {
+    return this.http.patch<OrdenVentaResponse>(`${this.apiUrl}/${id}/restablecer-borrador`, null).pipe(
       catchError(this.handleError)
     );
   }
