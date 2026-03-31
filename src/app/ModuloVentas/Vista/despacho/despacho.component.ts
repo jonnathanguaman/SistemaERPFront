@@ -22,12 +22,14 @@ export class DespachoComponent implements OnInit {
   despachoForm: FormGroup;
   showModal: boolean = false;
   showDetalleModal: boolean = false;
+  showDocumentosModal: boolean = false;
   isEditing: boolean = false;
   editingDespachoId: number | null = null;
   loading: boolean = false;
   busqueda: string = '';
   detallesDespacho: DetalleDespachoResponse[] = [];
   despachoSeleccionado: DespachoResponse | null = null;
+  despachoDocumentos: DespachoResponse | null = null;
   ordenesVenta: OrdenVentaResponse[] = [];
   bodegas: BodegaResponse[] = [];
 
@@ -109,7 +111,11 @@ export class DespachoComponent implements OnInit {
   cargarBodegas(): void {
     this.bodegaService.findAll().subscribe({
       next: (data) => {
-        this.bodegas = data.filter(bodega => bodega.activo);
+        this.bodegas = data.filter(
+          (bodega) => bodega.activo
+            && bodega.bodegaTipo === 'VENTA'
+            && bodega.permiteBodegaOrigen === true
+        );
       },
       error: (error) => {
         console.error('Error al cargar bodegas:', error);
@@ -290,8 +296,9 @@ export class DespachoComponent implements OnInit {
 
   despachar(despacho: DespachoResponse): void {
     this.despachoService.despachar(despacho.id, 1).subscribe({
-      next: () => {
+      next: (despachoActualizado) => {
         this.notificationService.success('Despacho realizado exitosamente');
+        this.abrirModalDocumentos(despachoActualizado || despacho);
         this.cargarDespachos();
       },
       error: (error) => {
@@ -299,6 +306,116 @@ export class DespachoComponent implements OnInit {
         this.notificationService.error(error.message, 'Error al despachar');
       }
     });
+  }
+
+  abrirModalDocumentos(despacho: DespachoResponse): void {
+    this.despachoDocumentos = despacho;
+    this.showDocumentosModal = true;
+  }
+
+  cerrarModalDocumentos(): void {
+    this.showDocumentosModal = false;
+    this.despachoDocumentos = null;
+  }
+
+  async descargarGuiaRemisionPdf(despacho: DespachoResponse | null): Promise<void> {
+    if (!despacho) {
+      this.notificationService.warning('No hay información del despacho para generar la guía.');
+      return;
+    }
+
+    const jsPdfModule = await import('jspdf');
+    const doc = this.crearDocumentoBase(jsPdfModule.jsPDF, 'GUIA DE REMISION', despacho);
+    const yFinal = this.agregarDatosDespacho(doc, despacho, 68);
+    this.agregarPieDocumento(doc, yFinal + 18, 'Documento de traslado de mercaderia');
+    doc.save(`Guia_Remision_${despacho.numeroDespacho}.pdf`);
+  }
+
+  async descargarNotaDespachoPdf(despacho: DespachoResponse | null): Promise<void> {
+    if (!despacho) {
+      this.notificationService.warning('No hay información del despacho para generar la nota.');
+      return;
+    }
+
+    const jsPdfModule = await import('jspdf');
+    const doc = this.crearDocumentoBase(jsPdfModule.jsPDF, 'NOTA DE DESPACHO', despacho);
+    const yFinal = this.agregarDatosDespacho(doc, despacho, 68);
+    this.agregarPieDocumento(doc, yFinal + 18, 'Documento interno de salida y control de entrega');
+    doc.save(`Nota_Despacho_${despacho.numeroDespacho}.pdf`);
+  }
+
+  private crearDocumentoBase(JsPdfCtor: any, titulo: string, despacho: DespachoResponse): any {
+    const doc = new JsPdfCtor();
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('SISTEMA DE GESTION', 14, 18);
+
+    doc.setFontSize(14);
+    doc.text(titulo, 14, 28);
+
+    doc.setDrawColor(31, 41, 55);
+    doc.line(14, 32, 196, 32);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Numero despacho: ${despacho.numeroDespacho}`, 14, 40);
+    doc.text(`Fecha emision: ${this.formatDate(despacho.fechaDespacho)}`, 14, 46);
+    doc.text(`Estado: ${despacho.estado || '-'}`, 14, 52);
+
+    return doc;
+  }
+
+  private agregarDatosDespacho(doc: any, despacho: DespachoResponse, yInicial: number): number {
+    const datos: Array<[string, string]> = [
+      ['Numero guia remision', despacho.numeroGuiaRemision || '-'],
+      ['Orden de venta', despacho.ordenVentaNumero || `${despacho.ordenVentaId}`],
+      ['Bodega', despacho.bodegaId ? `Bodega #${despacho.bodegaId}` : '-'],
+      ['Fecha entrega estimada', this.formatDate(despacho.fechaEntregaEstimada)],
+      ['Transportista', despacho.transportista || '-'],
+      ['Placa vehiculo', despacho.placaVehiculo || '-'],
+      ['Conductor', despacho.conductor || '-'],
+      ['Cedula conductor', despacho.cedulaConductor || '-'],
+      ['Direccion entrega', despacho.direccionEntregaTexto || '-'],
+      ['Recibido por', despacho.nombreQuienRecibe || '-'],
+      ['Cedula quien recibe', despacho.cedulaQuienRecibe || '-'],
+      ['Observaciones', despacho.observaciones || '-']
+    ];
+
+    let y = yInicial;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+
+    for (const [etiqueta, valor] of datos) {
+      const lineas = doc.splitTextToSize(valor, 130);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${etiqueta}:`, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lineas, 66, y);
+      y += Math.max(8, lineas.length * 6);
+
+      if (y > 260) {
+        doc.addPage();
+        y = 20;
+      }
+    }
+
+    return y;
+  }
+
+  private agregarPieDocumento(doc: any, y: number, descripcion: string): void {
+    if (y > 255) {
+      doc.addPage();
+      y = 30;
+    }
+
+    doc.setDrawColor(209, 213, 219);
+    doc.line(14, y, 196, y);
+    doc.setFontSize(10);
+    doc.setTextColor(75, 85, 99);
+    doc.text(descripcion, 14, y + 8);
+    doc.text(`Generado: ${new Date().toLocaleString('es-EC')}`, 14, y + 14);
+    doc.setTextColor(0, 0, 0);
   }
 
   confirmarEntrega(despacho: DespachoResponse): void {

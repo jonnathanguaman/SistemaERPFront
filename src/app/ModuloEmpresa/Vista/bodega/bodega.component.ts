@@ -16,6 +16,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class BodegaComponent implements OnInit {
   bodegas: BodegaResponse[] = [];
   bodegasFiltradas: BodegaResponse[] = [];
+  bodegasContable: BodegaResponse[] = [];
   empresas: EmpresaResponse[] = [];
   bodegaForm: FormGroup;
   showModal = false;
@@ -34,7 +35,11 @@ export class BodegaComponent implements OnInit {
       codigo: ['', [Validators.required, Validators.maxLength(20)]],
       nombre: ['', [Validators.required, Validators.maxLength(100)]],
       direccion: ['', [Validators.required, Validators.maxLength(200)]],
-      empresaId: ['', [Validators.required]]
+      empresaId: ['', [Validators.required]],
+      bodegaTipo: ['VENTA', [Validators.required]],
+      bodegaPadreId: [null],
+      permiteBodegaOrigen: [true],
+      permiteBodegaDestino: [true]
     });
   }
 
@@ -51,6 +56,7 @@ export class BodegaComponent implements OnInit {
       next: (data) => {
         this.bodegas = data.bodegas;
         this.bodegasFiltradas = data.bodegas;
+        this.bodegasContable = data.bodegas.filter(b => b.activo && b.bodegaTipo === 'CONTABLE');
         this.empresas = data.empresas;
         this.loading = false;
       },
@@ -83,7 +89,11 @@ export class BodegaComponent implements OnInit {
       codigo: bodega.codigo,
       nombre: bodega.nombre,
       direccion: bodega.direccion,
-      empresaId: bodega.empresaId
+      empresaId: bodega.empresaId,
+      bodegaTipo: bodega.bodegaTipo || 'VENTA',
+      bodegaPadreId: bodega.bodegaPadreId || null,
+      permiteBodegaOrigen: bodega.permiteBodegaOrigen ?? true,
+      permiteBodegaDestino: bodega.permiteBodegaDestino ?? true
     });
     this.showModal = true;
   }

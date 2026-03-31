@@ -1,12 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { Router } from '@angular/router';
 import { OrdenCompraService } from '../../Service/orden-compra.service';
-import { ProveedorService } from '../../Service/proveedor.service';
-import { BodegaService } from '../../../ModuloEmpresa/Service/bodega.service';
-import { OrdenCompraRequest, OrdenCompraResponse } from '../../Entidades/orden-compra.model';
-import { ProveedorResponse } from '../../Entidades/proveedor.model';
-import { BodegaResponse } from '../../../ModuloEmpresa/Entidad/bodega.model';
+import { OrdenCompraResponse } from '../../Entidades/orden-compra.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
+import { AuthService } from '../../../Compartido/services/auth.service';
 
 @Component({
   selector: 'app-orden-compra',
@@ -15,21 +12,12 @@ import { NotificationService } from '../../../Compartido/services/notification.s
   styleUrl: './orden-compra.component.css'
 })
 export class OrdenCompraComponent implements OnInit {
-  
   ordenes: OrdenCompraResponse[] = [];
-  proveedores: ProveedorResponse[] = [];
-  bodegas: BodegaResponse[] = [];
-  ordenSeleccionada: OrdenCompraResponse | null = null;
-  ordenForm: FormGroup;
-  
   isLoading: boolean = false;
-  showModal: boolean = false;
-  isEditMode: boolean = false;
-  isViewMode: boolean = false;
-  
+
   searchTerm: string = '';
   selectedEstado: string = '';
-  
+
   // Estados disponibles
   estados = [
     { value: '', label: 'Todos' },
@@ -44,40 +32,13 @@ export class OrdenCompraComponent implements OnInit {
   
   constructor(
     private readonly ordenCompraService: OrdenCompraService,
-    private readonly proveedorService: ProveedorService,
-    private readonly bodegaService: BodegaService,
-    private readonly formBuilder: FormBuilder,
-    private readonly notificationService: NotificationService
-  ) {
-    this.ordenForm = this.formBuilder.group({
-      numeroOrden: ['', [Validators.required, Validators.maxLength(20)]],
-      proveedorId: ['', [Validators.required]],
-      fechaOrden: ['', [Validators.required]],
-      fechaEntregaEsperada: [''],
-      bodegaId: [null, [Validators.required]],
-      direccionEntrega: [''],
-      compradorId: [''],
-      aprobadorId: [''],
-      condicionPagoId: [''],
-      diasCredito: [''],
-      formaPagoId: [''],
-      descuentoPorcentaje: [0],
-      descuentoMonto: [0],
-      estado: ['BORRADOR'],
-      observaciones: [''],
-      terminosCondiciones: [''],
-      detalles: this.formBuilder.array([])
-    });
-  }
+    private readonly notificationService: NotificationService,
+    private readonly router: Router,
+    private readonly authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.cargarOrdenes();
-    this.cargarProveedores();
-    this.cargarBodegas();
-  }
-
-  get detalles(): FormArray {
-    return this.ordenForm.get('detalles') as FormArray;
   }
 
   cargarOrdenes(): void {
@@ -96,240 +57,16 @@ export class OrdenCompraComponent implements OnInit {
     });
   }
 
-  cargarProveedores(): void {
-    this.proveedorService.findActive().subscribe({
-      next: (data) => {
-        this.proveedores = data;
-      },
-      error: (error) => {
-        this.notificationService.error(error.message, 'Error al cargar proveedores');
-        console.error('Error al cargar proveedores:', error);
-      }
-    });
-  }
-
-  cargarBodegas(): void {
-    this.bodegaService.findAll().subscribe({
-      next: (data) => {
-        this.bodegas = data.filter(bodega => bodega.activo);
-      },
-      error: (error) => {
-        this.notificationService.error(error.message, 'Error al cargar bodegas');
-        console.error('Error al cargar bodegas:', error);
-      }
-    });
-  }
-
-  abrirModalCrear(): void {
-    this.isEditMode = false;
-    this.isViewMode = false;
-    this.ordenSeleccionada = null;
-    this.ordenForm.enable();
-    this.ordenForm.reset({
-      estado: 'BORRADOR',
-      descuentoPorcentaje: 0,
-      descuentoMonto: 0,
-      fechaOrden: new Date().toISOString().split('T')[0]
-    });
-    this.detalles.clear();
-    this.agregarDetalle();
-    this.detalles.enable({ emitEvent: false });
-    this.showModal = true;
+  nuevaOrden(): void {
+    this.router.navigate(['/compras/ordenes/nueva']);
   }
 
   verDetalle(orden: OrdenCompraResponse): void {
-    this.isEditMode = false;
-    this.isViewMode = true;
-    this.ordenSeleccionada = orden;
-    
-    this.ordenForm.patchValue({
-      numeroOrden: orden.numeroOrden,
-      proveedorId: orden.proveedorId,
-      fechaOrden: orden.fechaOrden,
-      fechaEntregaEsperada: orden.fechaEntregaEsperada,
-      bodegaId: orden.bodegaId,
-      direccionEntrega: orden.direccionEntrega,
-      compradorId: orden.compradorId,
-      aprobadorId: orden.aprobadorId,
-      condicionPagoId: orden.condicionPagoId,
-      diasCredito: orden.diasCredito,
-      formaPagoId: orden.formaPagoId,
-      descuentoPorcentaje: orden.descuentoPorcentaje,
-      descuentoMonto: orden.descuentoMonto,
-      estado: orden.estado,
-      observaciones: orden.observaciones,
-      terminosCondiciones: orden.terminosCondiciones
-    });
-
-    this.detalles.clear();
-    if (orden.detalles && orden.detalles.length > 0) {
-      orden.detalles.forEach(detalle => {
-        this.detalles.push(this.formBuilder.group({
-          productoId: [detalle.productoId],
-          cantidadOrdenada: [detalle.cantidadOrdenada],
-          precioUnitario: [detalle.precioUnitario],
-          descuentoPorcentaje: [detalle.descuentoPorcentaje || 0],
-          descuentoMonto: [detalle.descuentoMonto || 0],
-          impuestoPorcentaje: [detalle.impuestoPorcentaje],
-          observaciones: [detalle.observaciones || '']
-        }));
-      });
-    }
-
-    // Deshabilitar el formulario completo en modo solo lectura
-    this.ordenForm.disable();
-    
-    this.showModal = true;
+    this.router.navigate(['/compras/ordenes', orden.id], { queryParams: { modo: 'ver' } });
   }
 
-  abrirModalEditar(orden: OrdenCompraResponse): void {
-    this.isEditMode = true;
-    this.isViewMode = false;
-    this.ordenSeleccionada = orden;
-    this.ordenForm.enable();
-    
-    this.ordenForm.patchValue({
-      numeroOrden: orden.numeroOrden,
-      proveedorId: orden.proveedorId,
-      fechaOrden: orden.fechaOrden,
-      fechaEntregaEsperada: orden.fechaEntregaEsperada,
-      bodegaId: orden.bodegaId,
-      direccionEntrega: orden.direccionEntrega,
-      compradorId: orden.compradorId,
-      aprobadorId: orden.aprobadorId,
-      condicionPagoId: orden.condicionPagoId,
-      diasCredito: orden.diasCredito,
-      formaPagoId: orden.formaPagoId,
-      descuentoPorcentaje: orden.descuentoPorcentaje,
-      descuentoMonto: orden.descuentoMonto,
-      estado: orden.estado,
-      observaciones: orden.observaciones,
-      terminosCondiciones: orden.terminosCondiciones
-    });
-
-    this.detalles.clear();
-    if (orden.detalles && orden.detalles.length > 0) {
-      orden.detalles.forEach(detalle => {
-        this.detalles.push(this.formBuilder.group({
-          productoId: [detalle.productoId, [Validators.required]],
-          cantidadOrdenada: [detalle.cantidadOrdenada, [Validators.required, Validators.min(0.0001)]],
-          precioUnitario: [detalle.precioUnitario, [Validators.required, Validators.min(0)]],
-          descuentoPorcentaje: [detalle.descuentoPorcentaje || 0],
-          descuentoMonto: [detalle.descuentoMonto || 0],
-          impuestoPorcentaje: [detalle.impuestoPorcentaje, [Validators.required, Validators.min(0)]],
-          observaciones: [detalle.observaciones || '']
-        }));
-      });
-    } else {
-      this.agregarDetalle();
-    }
-
-    this.detalles.enable({ emitEvent: false });
-    
-    this.showModal = true;
-  }
-
-  cerrarModal(): void {
-    this.showModal = false;
-    this.ordenForm.reset();
-    this.ordenForm.enable();
-    this.detalles.clear();
-    this.ordenSeleccionada = null;
-    this.isViewMode = false;
-  }
-
-  agregarDetalle(): void {
-    const detalleGroup = this.formBuilder.group({
-      productoId: [null, [Validators.required]],
-      cantidadOrdenada: [1, [Validators.required, Validators.min(0.0001)]],
-      precioUnitario: [0, [Validators.required, Validators.min(0)]],
-      descuentoPorcentaje: [0],
-      descuentoMonto: [0],
-      impuestoPorcentaje: [0, [Validators.required, Validators.min(0)]],
-      observaciones: ['']
-    });
-
-    this.detalles.push(detalleGroup);
-
-    if (!this.isViewMode) {
-      detalleGroup.enable({ emitEvent: false });
-    }
-  }
-
-  eliminarDetalle(index: number): void {
-    if (this.detalles.length > 1) {
-      this.detalles.removeAt(index);
-    } else {
-      this.notificationService.warning('Debe haber al menos un detalle en la orden');
-    }
-  }
-
-  calcularTotalDetalle(index: number): number {
-    const detalle = this.detalles.at(index).value;
-    const cantidad = detalle.cantidadOrdenada || 0;
-    const precio = detalle.precioUnitario || 0;
-    const descuento = detalle.descuentoMonto || 0;
-    const impuesto = detalle.impuestoPorcentaje || 0;
-    
-    const subtotal = (cantidad * precio) - descuento;
-    const montoImpuesto = subtotal * (impuesto / 100);
-    return subtotal + montoImpuesto;
-  }
-
-  calcularTotalOrden(): number {
-    let total = 0;
-    for (let i = 0; i < this.detalles.length; i++) {
-      total += this.calcularTotalDetalle(i);
-    }
-    return total;
-  }
-
-  guardarOrden(): void {
-    if (this.ordenForm.invalid) {
-      this.ordenForm.markAllAsTouched();
-      this.notificationService.warning('Por favor, completa todos los campos correctamente.');
-      return;
-    }
-
-    if (this.detalles.length === 0) {
-      this.notificationService.warning('Debe agregar al menos un detalle a la orden.');
-      return;
-    }
-
-    this.isLoading = true;
-    
-    const ordenData: OrdenCompraRequest = {
-      ...this.ordenForm.value,
-      detalles: this.detalles.value
-    };
-
-    if (this.isEditMode && this.ordenSeleccionada) {
-      this.ordenCompraService.update(this.ordenSeleccionada.id, ordenData).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          this.notificationService.success('Orden de compra actualizada exitosamente');
-          this.cargarOrdenes();
-          this.cerrarModal();
-        },
-        error: (error) => {
-          this.isLoading = false;
-          this.notificationService.error(error.message, 'Error al actualizar');
-        }
-      });
-    } else {
-      this.ordenCompraService.save(ordenData).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          this.notificationService.success('Orden de compra creada exitosamente');
-          this.cargarOrdenes();
-          this.cerrarModal();
-        },
-        error: (error) => {
-          this.isLoading = false;
-          this.notificationService.error(error.message, 'Error al crear');
-        }
-      });
-    }
+  editarOrden(orden: OrdenCompraResponse): void {
+    this.router.navigate(['/compras/ordenes', orden.id]);
   }
 
   async eliminarOrden(orden: OrdenCompraResponse): Promise<void> {
@@ -354,6 +91,12 @@ export class OrdenCompraComponent implements OnInit {
   }
 
   async aprobarOrden(orden: OrdenCompraResponse): Promise<void> {
+    const usuarioId = this.authService.userId;
+    if (!usuarioId) {
+      this.notificationService.warning('No se pudo identificar el usuario autenticado. Vuelve a iniciar sesión.');
+      return;
+    }
+
     const confirmed = await this.notificationService.confirm(
       '¿Deseas aprobar esta orden de compra?',
       `Orden: ${orden.numeroOrden}`,
@@ -366,7 +109,7 @@ export class OrdenCompraComponent implements OnInit {
 
     this.isLoading = true;
 
-    this.ordenCompraService.aprobar(orden.id).subscribe({
+    this.ordenCompraService.aprobar(orden.id, usuarioId).subscribe({
       next: () => {
         this.notificationService.toast('Orden aprobada exitosamente', 'success');
         this.cargarOrdenes();
@@ -412,37 +155,4 @@ export class OrdenCompraComponent implements OnInit {
     return clases[estado] || 'badge-secondary';
   }
 
-  getNombreProveedor(proveedorId: number): string {
-    const proveedor = this.proveedores.find(p => p.id === proveedorId);
-    return proveedor ? proveedor.razonSocial : '';
-  }
-
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.ordenForm.get(fieldName);
-    return !!(field && field.invalid && (field.dirty || field.touched));
-  }
-
-  isDetalleFieldInvalid(index: number, fieldName: string): boolean {
-    const field = this.detalles.at(index).get(fieldName);
-    return !!(field && field.invalid && (field.dirty || field.touched));
-  }
-
-  getFieldError(fieldName: string): string {
-    const field = this.ordenForm.get(fieldName);
-    
-    if (field?.hasError('required')) {
-      return 'Este campo es requerido';
-    }
-    
-    if (field?.hasError('maxlength')) {
-      const maxLength = field.errors?.['maxlength'].requiredLength;
-      return `Máximo ${maxLength} caracteres`;
-    }
-    
-    if (field?.hasError('min')) {
-      return 'El valor debe ser mayor a 0';
-    }
-    
-    return '';
-  }
 }

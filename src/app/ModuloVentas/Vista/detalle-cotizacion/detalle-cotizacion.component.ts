@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DetalleCotizacionService } from '../../Service/detalle-cotizacion.service';
 import { DetalleCotizacionResponse, DetalleCotizacionRequest } from '../../Entidad/detalle-cotizacion.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
+import { IvaProductoService } from '../../Service/iva-producto.service';
 
 @Component({
   selector: 'app-detalle-cotizacion',
@@ -19,11 +20,13 @@ export class DetalleCotizacionComponent implements OnInit {
   editingDetalleId: number | null = null;
   loading: boolean = false;
   busqueda: string = '';
+  private readonly ivaPorProducto = new Map<number, number>();
 
   constructor(
     private readonly detalleService: DetalleCotizacionService,
     private readonly formBuilder: FormBuilder,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly ivaProductoService: IvaProductoService
   ) {
     this.detalleForm = this.formBuilder.group({
       cotizacionId: [null, Validators.required],
@@ -38,7 +41,35 @@ export class DetalleCotizacionComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.detalleForm.get('productoId')?.valueChanges.subscribe((value) => {
+      this.aplicarIvaPorProducto(Number(value || 0));
+    });
     this.cargarDetalles();
+  }
+
+  private aplicarIvaPorProducto(productoId: number): void {
+    if (!productoId) {
+      this.detalleForm.patchValue({ impuestoPorcentaje: 0 }, { emitEvent: false });
+      return;
+    }
+
+    const ivaCacheado = this.ivaPorProducto.get(productoId);
+    if (ivaCacheado !== undefined) {
+      this.detalleForm.patchValue({ impuestoPorcentaje: ivaCacheado }, { emitEvent: false });
+      return;
+    }
+
+    this.ivaProductoService.findVigenteByProducto(productoId).subscribe({
+      next: (iva) => {
+        const porcentaje = Number(iva.impuestoPorcentaje || 0);
+        this.ivaPorProducto.set(productoId, porcentaje);
+        this.detalleForm.patchValue({ impuestoPorcentaje: porcentaje }, { emitEvent: false });
+      },
+      error: () => {
+        this.ivaPorProducto.set(productoId, 0);
+        this.detalleForm.patchValue({ impuestoPorcentaje: 0 }, { emitEvent: false });
+      }
+    });
   }
 
   cargarDetalles(): void {

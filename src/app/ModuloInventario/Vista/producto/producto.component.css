@@ -257,6 +257,14 @@
   background: #EFF6FF;
 }
 
+.btn-view {
+  color: #0F766E;
+}
+
+.btn-view:hover {
+  background: #F0FDFA;
+}
+
 .btn-delete {
   color: #DC2626;
 }

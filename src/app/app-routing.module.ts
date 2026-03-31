@@ -22,6 +22,7 @@ import { RolProcesoPermisoComponent } from './ModuloEmpresa/Vista/rol-proceso-pe
 import { ReporteJerarquicoComponent } from './ModuloEmpresa/Vista/reporte-jerarquico/reporte-jerarquico.component';
 import { UnidadOrganizacionalComponent } from './ModuloEmpresa/Vista/unidad-organizacional/unidad-organizacional.component';
 import { ProductoComponent } from './ModuloInventario/Vista/producto/producto.component';
+import { ProductoDetalleComponent } from './ModuloInventario/Vista/producto-detalle/producto-detalle.component';
 import { ProductoLoteComponent } from './ModuloInventario/Vista/producto-lote/producto-lote.component';
 import { ProductoTipoComponent } from './ModuloInventario/Vista/producto-tipo/producto-tipo.component';
 import { ProductoExistenciasComponent } from './ModuloInventario/Vista/producto-existencias/producto-existencias.component';
@@ -47,6 +48,8 @@ import { ZonaVentaComponent } from './ModuloVentas/Vista/zona-venta/zona-venta.c
 import { TipoClienteComponent } from './ModuloVentas/Vista/tipo-cliente/tipo-cliente.component';
 import { ListaPreciosComponent } from './ModuloVentas/Vista/lista-precios/lista-precios.component';
 import { PrecioProductoComponent } from './ModuloVentas/Vista/precio-producto/precio-producto.component';
+import { IvaProductoComponent } from './ModuloVentas/Vista/iva-producto/iva-producto.component';
+import { ListaIvaComponent } from './ModuloVentas/Vista/lista-iva/lista-iva.component';
 import { CobroComponent } from './ModuloVentas/Vista/cobro/cobro.component';
 import { CondicionPagoComponent } from './ModuloVentas/Vista/condicion-pago/condicion-pago.component';
 import { FormaPagoComponent } from './ModuloVentas/Vista/forma-pago/forma-pago.component';
@@ -62,9 +65,12 @@ import { OrdenVentaComponent } from './ModuloVentas/Vista/orden-venta/orden-vent
 import { OrdenVentaFormComponent } from './ModuloVentas/Vista/orden-venta-form/orden-venta-form.component';
 import { DetalleOrdenVentaComponent } from './ModuloVentas/Vista/detalle-orden-venta/detalle-orden-venta.component';
 import { OrdenCompraComponent } from './ModuloCompras/Vista/orden-compra/orden-compra.component';
+import { OrdenCompraFormComponent } from './ModuloCompras/Vista/orden-compra-form/orden-compra-form.component';
 import { DetalleOrdenCompraComponent } from './ModuloCompras/Vista/detalle-orden-compra/detalle-orden-compra.component';
 import { RecepcionInventarioComponent } from './ModuloCompras/Vista/recepcion-inventario/recepcion-inventario.component';
 import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepcion/detalle-recepcion.component';
+import { RecepcionFormComponent } from './ModuloCompras/Vista/recepcion-form/recepcion-form.component';
+import { SolicitudTransferenciaComponent } from './ModuloInventario/Vista/solicitud-transferencia/solicitud-transferencia.component';
 
 const routes: Routes = [
   // Ruta de login (pública)
@@ -99,6 +105,7 @@ const routes: Routes = [
   { path: 'reportes-jerarquicos', component: ReporteJerarquicoComponent, canActivate: [RoleGuard], data: { module: 'empresa' } },
   { path: 'unidades-organizacionales', component: UnidadOrganizacionalComponent, canActivate: [RoleGuard], data: { module: 'empresa' } },
   // Rutas del módulo de inventario
+  { path: 'productos/:id', component: ProductoDetalleComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
   { path: 'productos', component: ProductoComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
   { path: 'producto-lotes', component: ProductoLoteComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
   { path: 'producto-tipos', component: ProductoTipoComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
@@ -122,6 +129,8 @@ const routes: Routes = [
   { path: 'tipos-cliente', component: TipoClienteComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'listas-precios', component: ListaPreciosComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'precios-producto', component: PrecioProductoComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
+  { path: 'ivas-producto', component: IvaProductoComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
+  { path: 'listas-iva', component: ListaIvaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'detalles-factura', component: DetalleFacturaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'clientes', component: ClienteComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'contactos-cliente', component: ContactoClienteComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
@@ -144,11 +153,17 @@ const routes: Routes = [
   { path: 'detalles-orden-venta', component: DetalleOrdenVentaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'detalles-orden-venta/:id', component: DetalleOrdenVentaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   // Rutas del módulo de compras
+  { path: 'compras/ordenes/nueva', component: OrdenCompraFormComponent, canActivate: [RoleGuard], data: { module: 'compras' } },
+  { path: 'compras/ordenes/:id', component: OrdenCompraFormComponent, canActivate: [RoleGuard], data: { module: 'compras' } },
   { path: 'compras/ordenes', component: OrdenCompraComponent, canActivate: [RoleGuard], data: { module: 'compras' } },
   { path: 'compras/detalles-orden', component: DetalleOrdenCompraComponent, canActivate: [RoleGuard], data: { module: 'compras' } },
   { path: 'compras/proveedores', component: ProveedorComponent, canActivate: [RoleGuard], data: { module: 'compras' } },
+  { path: 'compras/recepciones/nueva', component: RecepcionFormComponent, canActivate: [RoleGuard], data: { module: 'compras' } },
+  { path: 'compras/recepciones/:id/editar', component: RecepcionFormComponent, canActivate: [RoleGuard], data: { module: 'compras' } },
   { path: 'compras/recepciones', component: RecepcionInventarioComponent, canActivate: [RoleGuard], data: { module: 'compras' } },
   { path: 'compras/detalles-recepcion', component: DetalleRecepcionComponent, canActivate: [RoleGuard], data: { module: 'compras' } },
+  // Solicitudes de transferencia entre bodegas
+  { path: 'solicitudes-transferencia', component: SolicitudTransferenciaComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
   // Ruta por defecto (404)
   { path: '**', redirectTo: '/login' }
 ];

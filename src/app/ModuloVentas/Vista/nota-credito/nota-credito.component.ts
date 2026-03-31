@@ -294,8 +294,11 @@ export class NotaCreditoComponent implements OnInit {
 
     if (confirmed) {
       this.notaCreditoService.aplicar(notaCredito.id).subscribe({
-        next: () => {
-          this.notificationService.success('Nota de crédito aplicada', 'La nota de crédito se aplicó correctamente');
+        next: (respuesta: NotaCreditoResponse) => {
+          const mensajeExito = respuesta.movimientoInventarioId
+            ? `La nota de crédito se aplicó correctamente. Movimiento de inventario #${respuesta.movimientoInventarioId}`
+            : 'La nota de crédito se aplicó correctamente';
+          this.notificationService.success('Nota de crédito aplicada', mensajeExito);
           this.cargarNotasCredito();
         },
         error: (error) => {

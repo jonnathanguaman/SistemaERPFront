@@ -5,7 +5,7 @@
       <h1>Órdenes de Compra</h1>
       <p class="subtitle">Gestiona las órdenes de compra a proveedores</p>
     </div>
-    <button class="btn btn-primary" (click)="abrirModalCrear()">
+    <button class="btn btn-primary" (click)="nuevaOrden()">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
         <polyline points="14 2 14 8 20 8"></polyline>
@@ -89,7 +89,7 @@
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </button>
-            <button class="btn-icon btn-edit" (click)="abrirModalEditar(orden)" title="Editar" *ngIf="orden.estado === 'BORRADOR'">
+            <button class="btn-icon btn-edit" (click)="editarOrden(orden)" title="Editar" *ngIf="orden.estado === 'BORRADOR'">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -112,175 +112,5 @@
         </tr>
       </tbody>
     </table>
-  </div>
-</div>
-
-<!-- Modal -->
-<div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
-  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>{{ isViewMode ? 'Detalle de Orden de Compra' : (isEditMode ? 'Editar Orden de Compra' : 'Nueva Orden de Compra') }}</h2>
-      <button class="btn-close" (click)="cerrarModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-
-    <form [formGroup]="ordenForm" (ngSubmit)="guardarOrden()" class="modal-form">
-      <!-- Información General -->
-      <div class="form-section">
-        <h3>Información General</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="numeroOrden">Número de Orden <span class="required">*</span></label>
-            <input
-              type="text"
-              id="numeroOrden"
-              formControlName="numeroOrden"
-              placeholder="Ej: OC-001"
-              [class.invalid]="isFieldInvalid('numeroOrden')"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('numeroOrden')">
-              {{ getFieldError('numeroOrden') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="proveedorId">Proveedor <span class="required">*</span></label>
-            <select
-              id="proveedorId"
-              formControlName="proveedorId"
-              [class.invalid]="isFieldInvalid('proveedorId')"
-            >
-              <option value="">Seleccione un proveedor</option>
-              <option *ngFor="let proveedor of proveedores" [value]="proveedor.id">
-                {{ proveedor.razonSocial }}
-              </option>
-            </select>
-            <span class="error-message" *ngIf="isFieldInvalid('proveedorId')">
-              {{ getFieldError('proveedorId') }}
-            </span>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="fechaOrden">Fecha de Orden <span class="required">*</span></label>
-            <input
-              type="date"
-              id="fechaOrden"
-              formControlName="fechaOrden"
-              [class.invalid]="isFieldInvalid('fechaOrden')"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('fechaOrden')">
-              {{ getFieldError('fechaOrden') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="fechaEntregaEsperada">Fecha Entrega Esperada</label>
-            <input
-              type="date"
-              id="fechaEntregaEsperada"
-              formControlName="fechaEntregaEsperada"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="bodegaId">Bodega <span class="required">*</span></label>
-            <select
-              id="bodegaId"
-              formControlName="bodegaId"
-              [class.invalid]="isFieldInvalid('bodegaId')"
-            >
-              <option [ngValue]="null">Seleccione una bodega</option>
-              <option *ngFor="let bodega of bodegas" [ngValue]="bodega.id">
-                {{ bodega.codigo }} - {{ bodega.nombre }}
-              </option>
-            </select>
-            <span class="error-message" *ngIf="isFieldInvalid('bodegaId')">
-              {{ getFieldError('bodegaId') }}
-            </span>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="direccionEntrega">Dirección de Entrega</label>
-          <textarea
-            id="direccionEntrega"
-            formControlName="direccionEntrega"
-            rows="2"
-            placeholder="Dirección donde se entregará la orden"
-          ></textarea>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="estado">Estado <span class="required">*</span></label>
-            <select id="estado" formControlName="estado">
-              <option value="BORRADOR">Borrador</option>
-              <option value="APROBADA">Aprobada</option>
-              <option value="ENVIADA">Enviada</option>
-              <option value="CONFIRMADA">Confirmada</option>
-              <option value="RECIBIDA">Recibida</option>
-              <option value="FACTURADA">Facturada</option>
-              <option value="CANCELADA">Cancelada</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="descuentoPorcentaje">Descuento (%)</label>
-            <input
-              type="number"
-              id="descuentoPorcentaje"
-              formControlName="descuentoPorcentaje"
-              placeholder="0"
-              step="0.01"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="descuentoMonto">Descuento (Monto)</label>
-            <input
-              type="number"
-              id="descuentoMonto"
-              formControlName="descuentoMonto"
-              placeholder="0.00"
-              step="0.01"
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="observaciones">Observaciones</label>
-          <textarea
-            id="observaciones"
-            formControlName="observaciones"
-            rows="3"
-            placeholder="Notas adicionales sobre la orden"
-          ></textarea>
-        </div>
-      </div>
-
-      <!-- Detalles de la Orden -->
-      <app-detalle-orden-compra
-        [detalles]="detalles"
-        [isViewMode]="isViewMode"
-        (agregarDetalle)="agregarDetalle()"
-        (eliminarDetalle)="eliminarDetalle($event)"
-      ></app-detalle-orden-compra>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
-          {{ isViewMode ? 'Cerrar' : 'Cancelar' }}
-        </button>
-        <button type="submit" class="btn btn-primary" [disabled]="isLoading || ordenForm.invalid" *ngIf="!isViewMode">
-          <span *ngIf="!isLoading">{{ isEditMode ? 'Actualizar' : 'Guardar' }}</span>
-          <span *ngIf="isLoading">Procesando...</span>
-        </button>
-      </div>
-    </form>
   </div>
 </div>

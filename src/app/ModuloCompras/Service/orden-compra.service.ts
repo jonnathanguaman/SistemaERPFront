@@ -148,9 +148,41 @@ export class OrdenCompraService {
    * @param id ID de la orden
    * @returns Observable con la orden aprobada
    */
-  aprobar(id: number): Observable<OrdenCompraResponse> {
-    const url = `${this.apiUrl}/${id}/aprobar`;
+  aprobar(id: number, usuarioId: number): Observable<OrdenCompraResponse> {
+    const url = `${this.apiUrl}/${id}/aprobar?usuarioId=${usuarioId}`;
     return this.http.post<OrdenCompraResponse>(url, null, this.httpOptions)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  enviar(id: number): Observable<OrdenCompraResponse> {
+    const url = `${this.apiUrl}/${id}/enviar`;
+    return this.http.post<OrdenCompraResponse>(url, null, this.httpOptions)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  confirmar(id: number): Observable<OrdenCompraResponse> {
+    const url = `${this.apiUrl}/${id}/confirmar`;
+    return this.http.post<OrdenCompraResponse>(url, null, this.httpOptions)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  recibir(id: number, usuarioId: number): Observable<OrdenCompraResponse> {
+    const url = `${this.apiUrl}/${id}/recibir?usuarioId=${usuarioId}`;
+    return this.http.patch<OrdenCompraResponse>(url, null, this.httpOptions)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  facturar(id: number): Observable<OrdenCompraResponse> {
+    const url = `${this.apiUrl}/${id}/facturar`;
+    return this.http.patch<OrdenCompraResponse>(url, null, this.httpOptions)
       .pipe(
         catchError(this.handleError)
       );
@@ -180,21 +212,18 @@ export class OrdenCompraService {
     if (error.error instanceof ErrorEvent) {
       // Error del lado del cliente
       errorMessage = `Error: ${error.error.message}`;
+    } else if (error.status === 0) {
+      errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión.';
+    } else if (error.status === 404) {
+      errorMessage = 'Orden de compra no encontrada.';
+    } else if (error.status === 400) {
+      errorMessage = error.error?.message || 'Datos inválidos en la solicitud.';
+    } else if (error.status === 409) {
+      errorMessage = error.error?.message || 'Conflicto con los datos existentes.';
+    } else if (error.status === 500) {
+      errorMessage = 'Error interno del servidor. Intenta nuevamente más tarde.';
     } else {
-      // Error del lado del servidor
-      if (error.status === 0) {
-        errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión.';
-      } else if (error.status === 404) {
-        errorMessage = 'Orden de compra no encontrada.';
-      } else if (error.status === 400) {
-        errorMessage = error.error?.message || 'Datos inválidos en la solicitud.';
-      } else if (error.status === 409) {
-        errorMessage = error.error?.message || 'Conflicto con los datos existentes.';
-      } else if (error.status === 500) {
-        errorMessage = 'Error interno del servidor. Intenta nuevamente más tarde.';
-      } else {
-        errorMessage = error.error?.message || `Error del servidor: ${error.status}`;
-      }
+      errorMessage = error.error?.message || `Error del servidor: ${error.status}`;
     }
 
     console.error('Error en OrdenCompraService:', error);

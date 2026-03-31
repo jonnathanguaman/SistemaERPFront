@@ -1,0 +1,360 @@
+<div class="form-page-container">
+
+  <!-- Loading -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Cargando recepción...</p>
+  </div>
+
+  <!-- Header de la página -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="volver()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Volver
+      </button>
+      <div class="header-title">
+        <h1>{{ isEditMode ? 'Editar Recepción' : 'Nueva Recepción de Inventario' }}</h1>
+        <p class="subtitle" *ngIf="isEditMode && recepcion">
+          {{ recepcion.numeroRecepcion }}
+          <span class="badge ml-8" [ngClass]="getEstadoBadgeClass(recepcion.estado)">{{ recepcion.estado }}</span>
+        </p>
+        <p class="subtitle" *ngIf="!isEditMode">Registra la entrada de mercancía de tus proveedores</p>
+      </div>
+    </div>
+    <div class="header-actions" *ngIf="isEditMode && recepcion?.estado === 'PENDIENTE'">
+      <button class="btn btn-success" (click)="confirmarRecepcion()" [disabled]="filas.length === 0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Confirmar Recepción
+      </button>
+    </div>
+  </div>
+
+  <!-- Advertencia de cantidades excedidas -->
+  <div class="alert alert-warning" *ngIf="tieneAdvertencias">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+      <line x1="12" y1="9" x2="12" y2="13"></line>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+    <span>Algunos productos tienen una cantidad recibida mayor a la ordenada. Verifica antes de confirmar.</span>
+  </div>
+
+  <form [formGroup]="headerForm" (ngSubmit)="guardarRecepcion()">
+
+    <!-- Sección 1: Encabezado -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Información de la Recepción</h2>
+      </div>
+      <div class="card-body">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Número de Recepción <span class="required">*</span></label>
+            <input type="text" formControlName="numeroRecepcion"
+              [class.invalid]="isHeaderFieldInvalid('numeroRecepcion')"
+              placeholder="REC-202603-0001" />
+            <span class="error-msg" *ngIf="isHeaderFieldInvalid('numeroRecepcion')">{{ getHeaderFieldError('numeroRecepcion') }}</span>
+          </div>
+          <div class="form-group">
+            <label>Fecha de Recepción <span class="required">*</span></label>
+            <input type="date" formControlName="fechaRecepcion"
+              [class.invalid]="isHeaderFieldInvalid('fechaRecepcion')" />
+            <span class="error-msg" *ngIf="isHeaderFieldInvalid('fechaRecepcion')">{{ getHeaderFieldError('fechaRecepcion') }}</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Orden de Compra <span class="required">*</span></label>
+            <select formControlName="ordenCompraId"
+              [class.invalid]="isHeaderFieldInvalid('ordenCompraId')"
+              (change)="onOrdenChange()">
+              <option [ngValue]="null">Seleccione una orden de compra</option>
+              <option *ngFor="let orden of ordenes" [ngValue]="orden.id">
+                {{ orden.numeroOrden }} — {{ orden.proveedorRazonSocial }}
+              </option>
+            </select>
+            <span class="error-msg" *ngIf="isHeaderFieldInvalid('ordenCompraId')">{{ getHeaderFieldError('ordenCompraId') }}</span>
+            <span class="field-hint" *ngIf="!isEditMode">Al seleccionar la OC, se pre-cargan automáticamente los productos</span>
+          </div>
+          <div class="form-group">
+            <label>Proveedor <span class="required">*</span></label>
+            <select formControlName="proveedorId" [class.invalid]="isHeaderFieldInvalid('proveedorId')">
+              <option [ngValue]="null">Seleccione un proveedor</option>
+              <option *ngFor="let p of proveedores" [ngValue]="p.id">
+                {{ p.razonSocial }} — {{ p.numeroIdentificacion }}
+              </option>
+            </select>
+            <span class="error-msg" *ngIf="isHeaderFieldInvalid('proveedorId')">{{ getHeaderFieldError('proveedorId') }}</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Bodega Destino <span class="required">*</span></label>
+            <select formControlName="bodegaId" [class.invalid]="isHeaderFieldInvalid('bodegaId')">
+              <option [ngValue]="null">Seleccione una bodega</option>
+              <option *ngFor="let b of bodegas" [ngValue]="b.id">
+                {{ b.nombre }} — {{ b.codigo }}
+              </option>
+            </select>
+            <span class="error-msg" *ngIf="isHeaderFieldInvalid('bodegaId')">{{ getHeaderFieldError('bodegaId') }}</span>
+          </div>
+          <div class="form-group">
+            <label>Responsable de Recepción</label>
+            <select formControlName="responsableRecepcionId">
+              <option [ngValue]="null">Sin asignar (opcional)</option>
+              <option *ngFor="let r of responsables" [ngValue]="r.id">
+                {{ r.nombre }} — {{ r.cedula }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Número de Factura del Proveedor</label>
+            <input type="text" formControlName="numeroFacturaProveedor" placeholder="Factura del proveedor" />
+          </div>
+          <div class="form-group">
+            <label>Número de Guía de Remisión</label>
+            <input type="text" formControlName="numeroGuiaRemision" placeholder="Guía de remisión" />
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Observaciones</label>
+          <textarea formControlName="observaciones" rows="2" placeholder="Observaciones adicionales..."></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Sección 2: Productos a Recibir -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-content">
+          <h2>Productos a Recibir</h2>
+          <div class="productos-meta" *ngIf="filas.length > 0">
+            <span class="meta-item">
+              <strong>{{ filas.length }}</strong> producto(s)
+            </span>
+            <span class="meta-separator">·</span>
+            <span class="meta-item">
+              <strong>{{ totalUnidades | number:'1.0-2' }}</strong> unidades
+            </span>
+            <span class="meta-separator">·</span>
+            <span class="meta-item">
+              Total: <strong>{{ totalCosto | currency:'USD':'symbol':'1.2-2' }}</strong>
+            </span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline" (click)="abrirModalAgregarDetalle()" *ngIf="esPendiente">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Agregar Producto
+        </button>
+      </div>
+
+      <!-- Tabla de productos -->
+      <div class="table-container" *ngIf="filas.length > 0">
+        <table class="productos-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>SKU</th>
+              <th class="num-col">Cant. Ordenada</th>
+              <th class="num-col">Cant. Recibida</th>
+              <th class="num-col">Cant. Rechazada</th>
+              <th class="num-col">Costo Unit.</th>
+              <th class="num-col">Total</th>
+              <th>Calidad</th>
+              <th>Lote</th>
+              <th *ngIf="esPendiente">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let fila of filas; let i = index" [class.fila-advertencia]="fila.excedeCantidad">
+              <td>
+                <div class="producto-cell">
+                  <span class="producto-nombre">{{ fila.productoNombre }}</span>
+                  <span class="warning-tag" *ngIf="fila.excedeCantidad">⚠ Excede OC</span>
+                </div>
+              </td>
+              <td class="sku-cell">{{ fila.productoSku || '-' }}</td>
+              <td class="num-col">{{ fila.cantidadOrdenada | number:'1.0-4' }}</td>
+              <td class="num-col"><strong>{{ fila.cantidadRecibida | number:'1.0-4' }}</strong></td>
+              <td class="num-col">{{ fila.cantidadRechazada | number:'1.0-4' }}</td>
+              <td class="num-col">{{ fila.costoUnitario | currency:'USD':'symbol':'1.2-2' }}</td>
+              <td class="num-col"><strong>{{ calcularCostoFila(fila) | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+              <td>
+                <span class="badge" [ngClass]="getCalidadBadgeClass(fila.estadoCalidad)">
+                  {{ fila.estadoCalidad }}
+                </span>
+              </td>
+              <td>{{ fila.numeroLote || '-' }}</td>
+              <td *ngIf="esPendiente" class="actions-cell">
+                <button type="button" class="btn-icon btn-edit" (click)="abrirModalEditarDetalle(fila, i)" title="Editar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button type="button" class="btn-icon btn-delete" (click)="eliminarFila(fila, i)" title="Eliminar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="totals-row">
+              <td colspan="3"><strong>TOTALES</strong></td>
+              <td class="num-col"><strong>{{ totalUnidades | number:'1.0-2' }}</strong></td>
+              <td></td>
+              <td></td>
+              <td class="num-col"><strong>{{ totalCosto | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+              <td colspan="3" *ngIf="esPendiente"></td>
+              <td colspan="2" *ngIf="!esPendiente"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Estado vacío -->
+      <div class="empty-productos" *ngIf="filas.length === 0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+        </svg>
+        <p *ngIf="!isEditMode">Selecciona una Orden de Compra para cargar los productos automáticamente, o agrega productos manualmente.</p>
+        <p *ngIf="isEditMode">No hay productos registrados en esta recepción.</p>
+        <button type="button" class="btn btn-outline" (click)="abrirModalAgregarDetalle()" *ngIf="esPendiente">Agregar Producto</button>
+      </div>
+
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="form-actions" *ngIf="esPendiente">
+      <button type="button" class="btn btn-secondary" (click)="volver()">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+        <svg *ngIf="isSaving" class="spinner-sm" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="63" stroke-dashoffset="40"/>
+        </svg>
+        {{ isSaving ? 'Guardando...' : (isEditMode ? 'Guardar Cambios' : 'Crear Recepción') }}
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<!-- Modal de Detalle -->
+<div class="modal-overlay" *ngIf="showDetalleModal" (click)="cerrarModalDetalle()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ filaEditando ? 'Editar Producto' : 'Agregar Producto' }}</h3>
+      <button type="button" class="btn-close" (click)="cerrarModalDetalle()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body" [formGroup]="detalleForm">
+
+      <!-- Advertencia cantidad -->
+      <div class="alert alert-warning alert-sm" *ngIf="cantidadRecibidaExcede">
+        ⚠ La cantidad recibida supera la cantidad ordenada
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>ID Producto <span class="required">*</span></label>
+          <input type="number" formControlName="productoId" placeholder="ID del producto" />
+        </div>
+        <div class="form-group">
+          <label>Nombre del Producto</label>
+          <input type="text" formControlName="productoNombre" placeholder="Nombre (referencia)" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cantidad Ordenada</label>
+          <input type="number" formControlName="cantidadOrdenada" min="0" step="0.0001" />
+        </div>
+        <div class="form-group">
+          <label>Cantidad Recibida <span class="required">*</span></label>
+          <input type="number" formControlName="cantidadRecibida" min="0" step="0.0001"
+            (input)="onCantidadChange()"
+            [class.field-warning]="cantidadRecibidaExcede" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cantidad Rechazada</label>
+          <input type="number" formControlName="cantidadRechazada" min="0" step="0.0001" />
+        </div>
+        <div class="form-group">
+          <label>Costo Unitario <span class="required">*</span></label>
+          <input type="number" formControlName="costoUnitario" min="0.0001" step="0.01" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Estado de Calidad</label>
+          <select formControlName="estadoCalidad">
+            <option *ngFor="let ec of estadosCalidad" [value]="ec">{{ ec }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Número de Lote</label>
+          <input type="text" formControlName="numeroLote" placeholder="N° de lote" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha de Fabricación</label>
+          <input type="date" formControlName="fechaFabricacion" />
+        </div>
+        <div class="form-group">
+          <label>Fecha de Vencimiento</label>
+          <input type="date" formControlName="fechaVencimiento" />
+        </div>
+      </div>
+
+      <div class="form-group full-width" *ngIf="detalleForm.get('estadoCalidad')?.value === 'RECHAZADO'">
+        <label>Motivo de Rechazo</label>
+        <textarea formControlName="motivoRechazo" rows="2" placeholder="Describe el motivo del rechazo..."></textarea>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Observaciones</label>
+        <textarea formControlName="observaciones" rows="2" placeholder="Observaciones adicionales..."></textarea>
+      </div>
+
+      <!-- Resumen costo -->
+      <div class="costo-resumen" *ngIf="detalleForm.get('cantidadRecibida')?.value > 0 && detalleForm.get('costoUnitario')?.value > 0">
+        Costo total estimado:
+        <strong>{{ (detalleForm.get('cantidadRecibida')?.value * detalleForm.get('costoUnitario')?.value) | currency:'USD':'symbol':'1.2-2' }}</strong>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="cerrarModalDetalle()">Cancelar</button>
+      <button type="button" class="btn btn-primary" (click)="guardarDetalle()">
+        {{ filaEditando ? 'Actualizar' : 'Agregar' }}
+      </button>
+    </div>
+  </div>
+</div>

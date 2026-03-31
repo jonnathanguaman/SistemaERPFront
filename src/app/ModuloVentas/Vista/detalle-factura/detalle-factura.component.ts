@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { DetalleFacturaService } from '../../Service/detalle-factura.service';
 import { DetalleFacturaRequest, DetalleFacturaResponse } from '../../Entidad/detalle-factura.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
+import { IvaProductoService } from '../../Service/iva-producto.service';
 
 @Component({
   selector: 'app-detalle-factura',
@@ -20,6 +21,7 @@ export class DetalleFacturaComponent implements OnInit {
   selectedDetalleId?: number;
   loading = false;
   searchTerm = '';
+  private readonly ivaPorProducto = new Map<number, { porcentaje: number; codigo?: string }>();
   
   // Filtro por factura
   filtroFacturaId?: number;
@@ -27,26 +29,66 @@ export class DetalleFacturaComponent implements OnInit {
   constructor(
     private readonly detalleFacturaService: DetalleFacturaService,
     private readonly fb: FormBuilder,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly ivaProductoService: IvaProductoService
   ) {
     this.detalleForm = this.fb.group({
       facturaId: ['', [Validators.required]],
       productoId: ['', [Validators.required]],
-      descripcion: ['', [Validators.required]],
+      productoCodigo: [''],
+      productoNombre: [''],
       cantidad: [1, [Validators.required, Validators.min(0.01)]],
       precioUnitario: [0, [Validators.required, Validators.min(0)]],
       descuentoPorcentaje: [0, [Validators.min(0)]],
       descuentoMonto: [0, [Validators.min(0)]],
       impuestoPorcentaje: [0, [Validators.min(0)]],
+      impuestoCodigo: [''],
       impuestoMonto: [0, [Validators.min(0)]],
       subtotal: [0, [Validators.required, Validators.min(0)]],
       total: [0, [Validators.required, Validators.min(0)]],
+      costoUnitario: [0, [Validators.min(0)]],
       observaciones: ['']
     });
   }
 
   ngOnInit(): void {
+    this.detalleForm.get('productoId')?.valueChanges.subscribe((value) => {
+      this.aplicarIvaPorProducto(Number(value || 0));
+    });
     this.cargarDetalles();
+  }
+
+  private aplicarIvaPorProducto(productoId: number): void {
+    if (!productoId) {
+      this.detalleForm.patchValue({ impuestoPorcentaje: 0, impuestoCodigo: '' }, { emitEvent: false });
+      this.calcularTotal();
+      return;
+    }
+
+    const ivaCacheado = this.ivaPorProducto.get(productoId);
+    if (ivaCacheado) {
+      this.detalleForm.patchValue(
+        { impuestoPorcentaje: ivaCacheado.porcentaje, impuestoCodigo: ivaCacheado.codigo || '' },
+        { emitEvent: false }
+      );
+      this.calcularTotal();
+      return;
+    }
+
+    this.ivaProductoService.findVigenteByProducto(productoId).subscribe({
+      next: (iva) => {
+        const porcentaje = Number(iva.impuestoPorcentaje || 0);
+        const codigo = iva.impuestoCodigo || '';
+        this.ivaPorProducto.set(productoId, { porcentaje, codigo });
+        this.detalleForm.patchValue({ impuestoPorcentaje: porcentaje, impuestoCodigo: codigo }, { emitEvent: false });
+        this.calcularTotal();
+      },
+      error: () => {
+        this.ivaPorProducto.set(productoId, { porcentaje: 0, codigo: '' });
+        this.detalleForm.patchValue({ impuestoPorcentaje: 0, impuestoCodigo: '' }, { emitEvent: false });
+        this.calcularTotal();
+      }
+    });
   }
 
   cargarDetalles(): void {

@@ -44,7 +44,8 @@
         <tr>
           <th>Código</th>
           <th>Nombre</th>
-          <th>Dirección</th>
+          <th>Tipo</th>
+          <th>Bodega Padre</th>
           <th>Empresa</th>
           <th>Estado</th>
           <th>Acciones</th>
@@ -58,7 +59,12 @@
               <span class="bodega-name">{{ bodega.nombre }}</span>
             </div>
           </td>
-          <td class="direccion-cell">{{ bodega.direccion }}</td>
+          <td>
+            <span class="badge" [ngClass]="bodega.bodegaTipo === 'CONTABLE' ? 'badge-contable' : 'badge-venta'">
+              {{ bodega.bodegaTipo === 'CONTABLE' ? 'Contable' : 'Almacén' }}
+            </span>
+          </td>
+          <td>{{ bodega.bodegaPadreNombre || '-' }}</td>
           <td>
             <span class="badge-empresa">{{ bodega.empresaNombre }}</span>
           </td>
@@ -96,7 +102,7 @@
         </tr>
         <!-- Sin datos -->
         <tr *ngIf="bodegasFiltradas.length === 0">
-          <td colspan="6" class="no-data">
+          <td colspan="8" class="no-data">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"></circle>
               <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -178,7 +184,7 @@
           <label for="empresaId">
             Empresa <span class="required">*</span>
           </label>
-          <select 
+          <select
             id="empresaId"
             formControlName="empresaId"
             [class.invalid]="isFieldInvalid('empresaId')"
@@ -191,6 +197,33 @@
           <span class="error-message" *ngIf="isFieldInvalid('empresaId')">
             {{ getFieldError('empresaId') }}
           </span>
+        </div>
+
+        <div class="form-group">
+          <label for="bodegaTipo">
+            Tipo de Bodega <span class="required">*</span>
+          </label>
+          <select id="bodegaTipo" formControlName="bodegaTipo">
+            <option value="CONTABLE">CONTABLE – Bodega padre (solo compras)</option>
+            <option value="VENTA">VENTA – Almacén (solo ventas)</option>
+          </select>
+        </div>
+
+        <div class="form-group" *ngIf="bodegaForm.get('bodegaTipo')?.value === 'VENTA'">
+          <label for="bodegaPadreId">Bodega Contable (Padre)</label>
+          <select id="bodegaPadreId" formControlName="bodegaPadreId">
+            <option [ngValue]="null">Sin bodega padre</option>
+            <option *ngFor="let b of bodegasContable" [value]="b.id">{{ b.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="form-row-checks">
+          <label class="check-label">
+            <input type="checkbox" formControlName="permiteBodegaOrigen"> Permite como bodega origen
+          </label>
+          <label class="check-label">
+            <input type="checkbox" formControlName="permiteBodegaDestino"> Permite como bodega destino
+          </label>
         </div>
 
         <!-- Footer del modal -->

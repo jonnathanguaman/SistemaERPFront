@@ -150,7 +150,11 @@ export class OrdenVentaFormComponent implements OnInit {
 
     this.bodegaService.findAll().subscribe({
       next: (bodegas) => {
-        this.bodegas = bodegas.filter((bodega) => bodega.activo);
+        this.bodegas = bodegas.filter(
+          (bodega) => bodega.activo
+            && bodega.bodegaTipo === 'VENTA'
+            && bodega.permiteBodegaOrigen === true
+        );
       },
       error: () => {
         void this.notificationService.error('Error al cargar bodegas');

@@ -5,6 +5,7 @@ import { NotaCreditoService } from '../../Service/nota-credito.service';
 import { DetalleNotaCreditoRequest, DetalleNotaCreditoResponse } from '../../Entidad/detalle-nota-credito.model';
 import { NotaCreditoResponse } from '../../Entidad/nota-credito.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
+import { IvaProductoService } from '../../Service/iva-producto.service';
 
 @Component({
   selector: 'app-detalle-nota-credito',
@@ -22,6 +23,7 @@ export class DetalleNotaCreditoComponent implements OnInit {
   selectedDetalleId?: number;
   loading = false;
   searchTerm = '';
+  private readonly ivaPorProducto = new Map<number, number>();
   
   // Filtro por nota de crédito
   filtroNotaCreditoId?: number;
@@ -30,7 +32,8 @@ export class DetalleNotaCreditoComponent implements OnInit {
     private readonly detalleNotaCreditoService: DetalleNotaCreditoService,
     private readonly notaCreditoService: NotaCreditoService,
     private readonly fb: FormBuilder,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly ivaProductoService: IvaProductoService
   ) {
     this.detalleForm = this.fb.group({
       notaCreditoId: ['', [Validators.required]],
@@ -49,7 +52,39 @@ export class DetalleNotaCreditoComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.detalleForm.get('productoId')?.valueChanges.subscribe((value) => {
+      this.aplicarIvaPorProducto(Number(value || 0));
+    });
     this.cargarNotasCredito();
+  }
+
+  private aplicarIvaPorProducto(productoId: number): void {
+    if (!productoId) {
+      this.detalleForm.patchValue({ impuestoPorcentaje: 0 }, { emitEvent: false });
+      this.calcularImpuesto();
+      return;
+    }
+
+    const ivaCacheado = this.ivaPorProducto.get(productoId);
+    if (ivaCacheado !== undefined) {
+      this.detalleForm.patchValue({ impuestoPorcentaje: ivaCacheado }, { emitEvent: false });
+      this.calcularImpuesto();
+      return;
+    }
+
+    this.ivaProductoService.findVigenteByProducto(productoId).subscribe({
+      next: (iva) => {
+        const porcentaje = Number(iva.impuestoPorcentaje || 0);
+        this.ivaPorProducto.set(productoId, porcentaje);
+        this.detalleForm.patchValue({ impuestoPorcentaje: porcentaje }, { emitEvent: false });
+        this.calcularImpuesto();
+      },
+      error: () => {
+        this.ivaPorProducto.set(productoId, 0);
+        this.detalleForm.patchValue({ impuestoPorcentaje: 0 }, { emitEvent: false });
+        this.calcularImpuesto();
+      }
+    });
   }
 
   cargarNotasCredito(): void {

@@ -16,6 +16,7 @@ import { ClienteService } from '../../Service/cliente.service';
 import { CondicionPagoService } from '../../Service/condicion-pago.service';
 import { ListaPreciosService } from '../../Service/lista-precios.service';
 import { PrecioProductoService } from '../../Service/precio-producto.service';
+import { IvaProductoService } from '../../Service/iva-producto.service';
 import { PrecioProductoResponse } from '../../Entidad/precio-producto.model';
 import { BodegaResponse } from '../../../ModuloEmpresa/Entidad/bodega.model';
 import { BodegaService } from '../../../ModuloEmpresa/Service/bodega.service';
@@ -58,6 +59,7 @@ export class CotizacionFormComponent implements OnInit {
   existencias: ProductoExistenciasResponse[] = [];
   preciosListaActual: PrecioProductoResponse[] = [];
   preciosPorProducto = new Map<number, number>();
+  ivaPorProducto = new Map<number, number>();
   mensajesStockPorLinea: Record<number, string> = {};
   lineasConStockInsuficiente = new Set<number>();
 
@@ -84,6 +86,7 @@ export class CotizacionFormComponent implements OnInit {
     private readonly listaPreciosService: ListaPreciosService,
     private readonly productoService: ProductoService,
     private readonly precioProductoService: PrecioProductoService,
+    private readonly ivaProductoService: IvaProductoService,
     private readonly productoExistenciasService: ProductoExistenciasService,
     private readonly ordenVentaService: OrdenVentaService,
     private readonly detalleOrdenVentaService: DetalleOrdenVentaService
@@ -580,6 +583,7 @@ export class CotizacionFormComponent implements OnInit {
     if (!linea.productoId) {
       linea.precioUnitario = 0;
       linea.descuentoMonto = 0;
+      linea.impuestoPorcentaje = 0;
       linea.stockDisponible = 0;
       delete this.mensajesStockPorLinea[index];
       this.lineasConStockInsuficiente.delete(index);
@@ -592,6 +596,7 @@ export class CotizacionFormComponent implements OnInit {
       linea.productoId = null;
       linea.precioUnitario = 0;
       linea.descuentoMonto = 0;
+      linea.impuestoPorcentaje = 0;
       linea.stockDisponible = 0;
       if (mostrarNotificacion) {
         this.notificationService.warning('El producto seleccionado no pertenece a la bodega elegida');
@@ -618,8 +623,43 @@ export class CotizacionFormComponent implements OnInit {
       linea.precioUnitario = Number(precio.toFixed(2));
     }
 
+    this.aplicarIvaPorProducto(index);
+
     this.validarExistenciasLinea(index, mostrarNotificacion);
     this.recalcularTotales();
+  }
+
+  private aplicarIvaPorProducto(index: number): void {
+    const linea = this.detallesCotizacion[index];
+    if (!linea) {
+      return;
+    }
+
+    const productoId = Number(linea.productoId || 0);
+    if (!productoId) {
+      linea.impuestoPorcentaje = 0;
+      return;
+    }
+
+    const ivaCacheado = this.ivaPorProducto.get(productoId);
+    if (ivaCacheado !== undefined) {
+      linea.impuestoPorcentaje = ivaCacheado;
+      return;
+    }
+
+    this.ivaProductoService.findVigenteByProducto(productoId).subscribe({
+      next: (iva) => {
+        const porcentaje = Number(iva.impuestoPorcentaje || 0);
+        this.ivaPorProducto.set(productoId, porcentaje);
+        linea.impuestoPorcentaje = porcentaje;
+        this.recalcularTotales();
+      },
+      error: () => {
+        this.ivaPorProducto.set(productoId, 0);
+        linea.impuestoPorcentaje = 0;
+        this.recalcularTotales();
+      }
+    });
   }
 
   validarExistenciasLinea(index: number, mostrarNotificacion: boolean): void {

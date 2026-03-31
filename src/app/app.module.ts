@@ -64,12 +64,17 @@ import { OrdenVentaComponent } from './ModuloVentas/Vista/orden-venta/orden-vent
 import { OrdenVentaFormComponent } from './ModuloVentas/Vista/orden-venta-form/orden-venta-form.component';
 import { DetalleOrdenVentaComponent } from './ModuloVentas/Vista/detalle-orden-venta/detalle-orden-venta.component';
 import { OrdenCompraComponent } from './ModuloCompras/Vista/orden-compra/orden-compra.component';
+import { OrdenCompraFormComponent } from './ModuloCompras/Vista/orden-compra-form/orden-compra-form.component';
 import { DetalleOrdenCompraComponent } from './ModuloCompras/Vista/detalle-orden-compra/detalle-orden-compra.component';
 import { ProveedorComponent } from './ModuloCompras/Vista/proveedor/proveedor.component';
 import { RecepcionInventarioComponent } from './ModuloCompras/Vista/recepcion-inventario/recepcion-inventario.component';
 import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepcion/detalle-recepcion.component';
+import { RecepcionFormComponent } from './ModuloCompras/Vista/recepcion-form/recepcion-form.component';
 import { SinAccesoComponent } from './Compartido/sin-acceso/sin-acceso.component';
 import { PermisosRolComponent } from './ModuloEmpleados/Vista/permisos-rol/permisos-rol.component';
+import { IvaProductoComponent } from './ModuloVentas/Vista/iva-producto/iva-producto.component';
+import { ListaIvaComponent } from './ModuloVentas/Vista/lista-iva/lista-iva.component';
+import { SolicitudTransferenciaComponent } from './ModuloInventario/Vista/solicitud-transferencia/solicitud-transferencia.component';
 
 @NgModule({
   declarations: [
@@ -116,6 +121,8 @@ import { PermisosRolComponent } from './ModuloEmpleados/Vista/permisos-rol/permi
     ListaPreciosComponent,
     TipoClienteComponent,
     PrecioProductoComponent,
+    IvaProductoComponent,
+    ListaIvaComponent,
     CobroComponent,
     CondicionPagoComponent,
     FormaPagoComponent,
@@ -132,12 +139,15 @@ import { PermisosRolComponent } from './ModuloEmpleados/Vista/permisos-rol/permi
     OrdenVentaFormComponent,
     DetalleOrdenVentaComponent,
     OrdenCompraComponent,
+    OrdenCompraFormComponent,
     DetalleOrdenCompraComponent,
     ProveedorComponent,
     RecepcionInventarioComponent,
     DetalleRecepcionComponent,
+    RecepcionFormComponent,
     SinAccesoComponent,
     PermisosRolComponent,
+    SolicitudTransferenciaComponent,
   ],
   imports: [
     BrowserModule,

@@ -178,8 +178,8 @@ export class RecepcionInventarioService {
    * @param id ID de la recepción
    * @returns Observable con la recepción confirmada
    */
-  confirmar(id: number): Observable<RecepcionInventarioResponse> {
-    const url = `${this.apiUrl}/${id}/confirmar`;
+  confirmar(id: number, usuarioId: number): Observable<RecepcionInventarioResponse> {
+    const url = `${this.apiUrl}/${id}/confirmar?usuarioId=${usuarioId}`;
     return this.http.post<RecepcionInventarioResponse>(url, {}, this.httpOptions)
       .pipe(
         catchError(this.handleError)

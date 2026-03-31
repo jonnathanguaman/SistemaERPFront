@@ -1,0 +1,194 @@
+<div class="producto-detalle-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Detalle de Producto</h1>
+      <p class="subtitle">Información completa, relacionadas y kardex del producto</p>
+    </div>
+    <button class="btn btn-secondary" (click)="volver()">Volver al listado</button>
+  </div>
+
+  <div class="loading-container" *ngIf="loadingGeneral">
+    <div class="spinner"></div>
+    <p>Cargando detalle del producto...</p>
+  </div>
+
+  <ng-container *ngIf="!loadingGeneral && producto">
+    <div class="card">
+      <h2>Información Básica y Clasificación</h2>
+      <div class="info-grid">
+        <div class="info-item"><span class="label">SKU</span><strong>{{ producto.sku }}</strong></div>
+        <div class="info-item"><span class="label">Nombre</span><strong>{{ producto.productoNombre }}</strong></div>
+        <div class="info-item"><span class="label">Tipo</span><strong>{{ producto.productoTipoNombre }}</strong></div>
+        <div class="info-item"><span class="label">Línea de Negocio</span><strong>{{ producto.lineaNegocioNombre }}</strong></div>
+        <div class="info-item"><span class="label">Subgrupo</span><strong>{{ producto.subgrupoNombre }}</strong></div>
+        <div class="info-item"><span class="label">Presentación</span><strong>{{ producto.presentacion || 'N/A' }}</strong></div>
+        <div class="info-item"><span class="label">Código Barras</span><strong>{{ producto.codigoBarras || 'N/A' }}</strong></div>
+        <div class="info-item"><span class="label">Código Interno</span><strong>{{ producto.codigoInterno || 'N/A' }}</strong></div>
+        <div class="info-item"><span class="label">Temperatura</span><strong>{{ getTemperaturaLabel(producto.temperatura) }}</strong></div>
+        <div class="info-item"><span class="label">Unidad Medida</span><strong>{{ producto.unidadMedida || 'N/A' }}</strong></div>
+        <div class="info-item"><span class="label">Peso</span><strong>{{ producto.peso | number:'1.2-2' }}</strong></div>
+        <div class="info-item"><span class="label">Volumen</span><strong>{{ producto.volumen | number:'1.2-2' }}</strong></div>
+        <div class="info-item"><span class="label">Cantidad por Caja</span><strong>{{ producto.cantidadPorCaja | number:'1.0-2' }}</strong></div>
+        <div class="info-item"><span class="label">Cantidad Mínima</span><strong>{{ producto.cantidadMinimo | number:'1.2-2' }}</strong></div>
+        <div class="info-item"><span class="label">Cantidad Máxima</span><strong>{{ producto.cantidadMaxima | number:'1.2-2' }}</strong></div>
+        <div class="info-item"><span class="label">Estado</span><strong>{{ producto.estado ? 'Activo' : 'Inactivo' }}</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Configuración Contable</h2>
+      <div class="info-grid" *ngIf="configuracionContable; else sinConfiguracionContable">
+        <div class="info-item"><span class="label">Cuenta Contable</span><strong>{{ configuracionContable.cuentaContableNombre }}</strong></div>
+        <div class="info-item"><span class="label">Centro de Costos</span><strong>{{ configuracionContable.centroCostosNombre }}</strong></div>
+        <div class="info-item"><span class="label">Método de Valuación</span><strong>{{ configuracionContable.metodoValuacionNombre }}</strong></div>
+        <div class="info-item"><span class="label">Estado</span><strong>{{ configuracionContable.activo ? 'Activo' : 'Inactivo' }}</strong></div>
+      </div>
+      <ng-template #sinConfiguracionContable>
+        <p class="empty-message">Este producto no tiene configuración contable registrada.</p>
+      </ng-template>
+    </div>
+
+    <div class="card">
+      <h2>Existencias por Bodega y Lote</h2>
+      <div class="table-container" *ngIf="existencias.length > 0; else sinExistencias">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Bodega</th>
+              <th>Lote</th>
+              <th class="numeric">Cantidad Física</th>
+              <th class="numeric">Disponible</th>
+              <th class="numeric">Reservada</th>
+              <th class="numeric">Costo Promedio</th>
+              <th>Ubicación</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of existencias">
+              <td>{{ item.bodegaNombre }}</td>
+              <td>{{ item.loteNumero || 'Sin lote' }}</td>
+              <td class="numeric">{{ item.cantidadFisica | number:'1.2-2' }}</td>
+              <td class="numeric">{{ item.cantidadDisponible | number:'1.2-2' }}</td>
+              <td class="numeric">{{ item.cantidadReservada | number:'1.2-2' }}</td>
+              <td class="numeric">{{ item.costoPromedio | number:'1.2-4' }}</td>
+              <td>{{ item.ubicacion || 'N/A' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #sinExistencias>
+        <p class="empty-message">No hay existencias registradas para este producto.</p>
+      </ng-template>
+    </div>
+
+    <div class="card">
+      <div class="card-header-row">
+        <h2>Kardex del Producto</h2>
+        <div class="kardex-actions" *ngIf="bodegas.length > 0">
+          <label for="bodegaSelect">Bodega</label>
+          <select id="bodegaSelect" [(ngModel)]="bodegaSeleccionadaId" (change)="onBodegaChange()">
+            <option *ngFor="let bodega of bodegas" [ngValue]="bodega.id">{{ bodega.nombre }}</option>
+          </select>
+          <button class="btn btn-primary" (click)="cargarKardex()">Recargar</button>
+        </div>
+      </div>
+
+      <p class="empty-message" *ngIf="bodegas.length === 0">
+        No existen bodegas disponibles para consultar kardex.
+      </p>
+
+      <div class="loading-container compact" *ngIf="loadingKardex">
+        <div class="spinner"></div>
+        <p>Cargando kardex...</p>
+      </div>
+
+      <ng-container *ngIf="!loadingKardex && bodegaSeleccionadaId">
+        <div class="summary-grid" *ngIf="bodegaSeleccionada">
+          <div class="summary-card">
+            <span>Bodega seleccionada</span>
+            <strong>{{ bodegaSeleccionada.nombre }}</strong>
+          </div>
+          <div class="summary-card">
+            <span>Costo actual</span>
+            <strong>{{ costoActual ?? 0 | number:'1.2-4' }}</strong>
+          </div>
+          <div class="summary-card">
+            <span>Saldo actual</span>
+            <strong>{{ saldoActual | number:'1.2-4' }}</strong>
+          </div>
+          <div class="summary-card">
+            <span>Valor saldo</span>
+            <strong>{{ valorSaldoActual | number:'1.2-4' }}</strong>
+          </div>
+        </div>
+
+        <div class="table-container" *ngIf="registrosKardex.length > 0; else sinKardex">
+          <table class="data-table kardex-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Operación</th>
+                <th>Documento</th>
+                <th class="numeric">Entrada</th>
+                <th class="numeric">Salida</th>
+                <th class="numeric">Saldo</th>
+                <th class="numeric">V/U Saldo</th>
+                <th class="numeric">Valor Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let registro of registrosKardex">
+                <td>{{ registro.fechaMovimiento | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ registro.tipoMovimientoCodigo }}</td>
+                <td>{{ registro.numeroOperacion }}</td>
+                <td>{{ registro.documentoReferencia || 'N/A' }}</td>
+                <td class="numeric">{{ (registro.entradaCantidad ?? 0) | number:'1.2-4' }}</td>
+                <td class="numeric">{{ (registro.salidaCantidad ?? 0) | number:'1.2-4' }}</td>
+                <td class="numeric">{{ (registro.saldoCantidad ?? 0) | number:'1.2-4' }}</td>
+                <td class="numeric">{{ (registro.saldoValorUnitario ?? 0) | number:'1.2-4' }}</td>
+                <td class="numeric">{{ (registro.saldoValorTotal ?? 0) | number:'1.2-4' }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4"><strong>Totales</strong></td>
+                <td class="numeric"><strong>{{ totalEntradas | number:'1.2-4' }}</strong></td>
+                <td class="numeric"><strong>{{ totalSalidas | number:'1.2-4' }}</strong></td>
+                <td class="numeric"><strong>{{ saldoActual | number:'1.2-4' }}</strong></td>
+                <td class="numeric"><strong>{{ costoActual ?? 0 | number:'1.2-4' }}</strong></td>
+                <td class="numeric"><strong>{{ valorSaldoActual | number:'1.2-4' }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <ng-template #sinKardex>
+          <p class="empty-message">No hay registros de kardex para la bodega seleccionada.</p>
+        </ng-template>
+
+        <div class="table-container" *ngIf="capasFifo.length > 0">
+          <h3 class="sub-title">Capas FIFO</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha Ingreso</th>
+                <th class="numeric">Costo Unitario</th>
+                <th class="numeric">Cantidad Original</th>
+                <th class="numeric">Cantidad Disponible</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let capa of capasFifo">
+                <td>{{ capa.fechaIngreso | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="numeric">{{ capa.costoUnitario | number:'1.2-4' }}</td>
+                <td class="numeric">{{ capa.cantidadOriginal | number:'1.2-4' }}</td>
+                <td class="numeric">{{ capa.cantidadDisponible | number:'1.2-4' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
+</div>

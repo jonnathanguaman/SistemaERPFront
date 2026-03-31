@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ProductoService } from '../../Service/producto.service';
 import { ProductoTipoService } from '../../Service/producto-tipo.service';
 import { LineaNegocioService } from '../../Service/linea-negocio.service';
@@ -40,7 +41,8 @@ export class ProductoComponent implements OnInit {
     private readonly lineaNegocioService: LineaNegocioService,
     private readonly subgrupoService: SubgrupoService,
     private readonly fb: FormBuilder,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly router: Router
   ) {
     this.productoForm = this.fb.group({
       sku: ['', [Validators.required, Validators.maxLength(50)]],
@@ -202,6 +204,10 @@ export class ProductoComponent implements OnInit {
         }
       });
     }
+  }
+
+  verDetalle(producto: ProductoResponse): void {
+    this.router.navigate(['/productos', producto.id]);
   }
 
   isFieldInvalid(fieldName: string): boolean {

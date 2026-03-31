@@ -101,7 +101,7 @@ export interface DetalleRecepcion {
  */
 export interface DetalleRecepcionRequest {
   recepcionId?: number;
-  detalleOrdenCompraId: number;
+  detalleOrdenCompraId?: number;
   productoId: number;
   loteId?: number;
   numeroLote?: string;

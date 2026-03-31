@@ -21,8 +21,8 @@
 /* Tabla de detalles */
 .table-container {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  border: 1px solid #E5E7EB;
   overflow: hidden;
   overflow-x: auto;
 }
@@ -34,8 +34,8 @@
 }
 
 .detalles-table thead {
-  background: #1F2937;
-  color: #F5F7FA;
+  background: #F9FAFB;
+  color: #6B7280;
 }
 
 .detalles-table th {
@@ -54,7 +54,7 @@
 }
 
 .detalles-table tbody tr:hover {
-  background: #F9FAFB;
+  background: #F8FAFC;
 }
 
 .detalles-table tbody tr:last-child {
@@ -82,7 +82,7 @@
 .total-cell {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: #059669;
+  color: #065F46;
 }
 
 /* Inputs dentro de la tabla */
@@ -100,14 +100,13 @@
 .table-input:focus {
   outline: none;
   border-color: #2563EB;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
 .table-input:read-only {
-  background-color: #F3F4F6;
-  color: #6B7280;
-  cursor: not-allowed;
-  border-color: #E5E7EB;
+  background: #F3F4F6;
+  color: #374151;
+  font-weight: 600;
 }
 
 .table-input.invalid {
@@ -156,8 +155,8 @@
 
 /* Footer de totales */
 .detalles-table tfoot {
-  background: #F9FAFB;
-  border-top: 2px solid #E5E7EB;
+  background: #FFFFFF;
+  border-top: 1px solid #E5E7EB;
 }
 
 .detalles-table tfoot tr.total-row td {
@@ -172,9 +171,9 @@
 }
 
 .total-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  color: #2563EB;
+  color: #1E40AF;
   font-variant-numeric: tabular-nums;
 }
 
@@ -204,7 +203,7 @@
 
 .btn-secondary {
   background: #F3F4F6;
-  color: #111827;
+  color: #374151;
   border: 1px solid #D1D5DB;
 }
 
