@@ -181,19 +181,6 @@
   background: white;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #2563EB;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.form-group input.invalid,
-.form-group select.invalid {
-  border-color: #DC2626;
-}
-
 .form-group input.field-warning {
   border-color: #F59E0B;
   background: #FFFBEB;
@@ -420,28 +407,6 @@
 .badge-error   { background: #FEE2E2; color: #DC2626; }
 .badge-default { background: #E5E7EB; color: #6B7280; }
 
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 700px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
-
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -455,17 +420,6 @@
   font-size: 17px;
   font-weight: 600;
   color: #111827;
-}
-
-.btn-close {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #6B7280;
-  padding: 4px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
 }
 
 .btn-close:hover {

@@ -72,6 +72,10 @@ export class NotaCreditoComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.notaCreditoForm.get('subtotal')?.valueChanges.subscribe(() => this.calcularTotal());
+    this.notaCreditoForm.get('descuentoMonto')?.valueChanges.subscribe(() => this.calcularTotal());
+    this.notaCreditoForm.get('impuestoMonto')?.valueChanges.subscribe(() => this.calcularTotal());
+
     this.cargarNotasCredito();
     this.cargarFacturas();
   }
@@ -154,6 +158,7 @@ export class NotaCreditoComponent implements OnInit {
       fechaEmision: new Date().toISOString().split('T')[0]
     });
     this.showModal = true;
+    this.calcularTotal();
   }
 
   abrirModalEditar(notaCredito: NotaCreditoResponse): void {
@@ -187,6 +192,7 @@ export class NotaCreditoComponent implements OnInit {
     }
     
     this.showModal = true;
+    this.calcularTotal();
   }
 
   cerrarModal(): void {
@@ -377,11 +383,11 @@ export class NotaCreditoComponent implements OnInit {
   }
 
   calcularTotal(): void {
-    const subtotal = this.notaCreditoForm.get('subtotal')?.value || 0;
-    const descuento = this.notaCreditoForm.get('descuentoMonto')?.value || 0;
-    const impuesto = this.notaCreditoForm.get('impuestoMonto')?.value || 0;
-    
-    const total = subtotal - descuento + impuesto;
+    const subtotal = Number(this.notaCreditoForm.get('subtotal')?.value || 0);
+    const descuento = Number(this.notaCreditoForm.get('descuentoMonto')?.value || 0);
+    const impuesto = Number(this.notaCreditoForm.get('impuestoMonto')?.value || 0);
+
+    const total = Number((subtotal - descuento + impuesto).toFixed(2));
     this.notaCreditoForm.patchValue({ total }, { emitEvent: false });
   }
 }

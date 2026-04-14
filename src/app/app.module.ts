@@ -75,10 +75,12 @@ import { PermisosRolComponent } from './ModuloEmpleados/Vista/permisos-rol/permi
 import { IvaProductoComponent } from './ModuloVentas/Vista/iva-producto/iva-producto.component';
 import { ListaIvaComponent } from './ModuloVentas/Vista/lista-iva/lista-iva.component';
 import { SolicitudTransferenciaComponent } from './ModuloInventario/Vista/solicitud-transferencia/solicitud-transferencia.component';
+import { DashboardComponent } from './ModuloDashboard/Vista/dashboard/dashboard.component';
 
 @NgModule({
   declarations: [
     AppComponent,
+    DashboardComponent,
     LoginComponent,
     EmpleadosComponent,
     RolesComponent,

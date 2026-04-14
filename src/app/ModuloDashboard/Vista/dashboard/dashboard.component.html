@@ -1,0 +1,391 @@
+<!-- ══════════════════════════════════════════
+     DASHBOARD PRINCIPAL
+     ══════════════════════════════════════════ -->
+
+<!-- Loader -->
+<div class="dash-loader" *ngIf="loading">
+  <div class="loader-spinner"></div>
+  <span>Cargando datos...</span>
+</div>
+
+<div class="dashboard" *ngIf="!loading">
+
+  <!-- ── Cabecera ───────────────────────────────────────────────────────── -->
+  <div class="dash-header">
+    <div class="dash-header__left">
+      <h1 class="dash-title">{{ saludo }}, <span>{{ userName }}</span></h1>
+      <p class="dash-subtitle">{{ fechaHoy }}</p>
+    </div>
+    <button class="btn-refresh" (click)="cargarDatos()" title="Actualizar datos">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+        <path d="M16 21h5v-5"/>
+      </svg>
+      Actualizar
+    </button>
+  </div>
+
+  <!-- ── Fila 1: Tarjetas KPI principales ──────────────────────────────── -->
+  <div class="kpi-grid">
+
+    <!-- Clientes -->
+    <div class="kpi-card kpi-card--blue" (click)="irA('/clientes')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Clientes Activos</span>
+        <span class="kpi-card__value">{{ clientesActivos }}</span>
+        <div class="kpi-card__sub">
+          <span *ngIf="clientesMorosos > 0" class="badge badge--warn">{{ clientesMorosos }} morosos</span>
+          <span *ngIf="clientesBloqueados > 0" class="badge badge--danger">{{ clientesBloqueados }} bloqueados</span>
+          <span *ngIf="clientesMorosos === 0 && clientesBloqueados === 0" class="badge badge--ok">Todo en orden</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Órdenes de Venta activas -->
+    <div class="kpi-card kpi-card--indigo" (click)="irA('/ordenes-venta')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+          <path d="M14 2v6h6"/>
+          <path d="M8 13h2"/><path d="M8 17h8"/><path d="M10 9H8"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Órdenes de Venta</span>
+        <span class="kpi-card__value">{{ totalOvActivas }}</span>
+        <div class="kpi-card__sub">
+          <span class="kpi-card__amount">{{ formatMoneda(montoOvActivas) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CxC Pendiente -->
+    <div class="kpi-card" [class.kpi-card--danger]="cxcVencidas > 0" [class.kpi-card--green]="cxcVencidas === 0"
+         (click)="irA('/cuentas-por-cobrar')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="5" width="20" height="14" rx="2"/>
+          <line x1="2" y1="10" x2="22" y2="10"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">CxC por Cobrar</span>
+        <span class="kpi-card__value">{{ formatMoneda(montoCxcPendiente) }}</span>
+        <div class="kpi-card__sub">
+          <span *ngIf="cxcVencidas > 0" class="badge badge--danger">{{ cxcVencidas }} vencidas</span>
+          <span *ngIf="cxcVencidas === 0" class="badge badge--ok">Sin vencidas</span>
+          <span class="badge badge--neutral">{{ cxcPendientes + cxcPagadaParcial }} pendientes</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Órdenes de Compra activas -->
+    <div class="kpi-card kpi-card--purple" (click)="irA('/compras/ordenes')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Órdenes de Compra</span>
+        <span class="kpi-card__value">{{ totalOcActivas }}</span>
+        <div class="kpi-card__sub">
+          <span class="kpi-card__amount">{{ formatMoneda(montoOcActivas) }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /kpi-grid -->
+
+
+  <!-- ── Fila 2: Pipeline de Ventas ─────────────────────────────────────── -->
+  <div class="section-card">
+    <div class="section-card__header">
+      <h2 class="section-card__title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Pipeline de Ventas
+      </h2>
+      <button class="link-btn" (click)="irA('/ordenes-venta')">Ver todas</button>
+    </div>
+    <div class="pipeline">
+      <div class="pipeline-stage" (click)="irA('/ordenes-venta')">
+        <div class="pipeline-stage__count">{{ ovBorrador }}</div>
+        <div class="pipeline-stage__bar pipeline-stage__bar--gray"></div>
+        <div class="pipeline-stage__label">Borrador</div>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-stage" (click)="irA('/ordenes-venta')">
+        <div class="pipeline-stage__count pipeline-stage__count--blue">{{ ovConfirmada }}</div>
+        <div class="pipeline-stage__bar pipeline-stage__bar--blue"></div>
+        <div class="pipeline-stage__label">Confirmada</div>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-stage" (click)="irA('/ordenes-venta')">
+        <div class="pipeline-stage__count pipeline-stage__count--indigo">{{ ovEnPreparacion }}</div>
+        <div class="pipeline-stage__bar pipeline-stage__bar--indigo"></div>
+        <div class="pipeline-stage__label">En Preparación</div>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-stage" (click)="irA('/ordenes-venta')">
+        <div class="pipeline-stage__count pipeline-stage__count--purple">{{ ovDespachada }}</div>
+        <div class="pipeline-stage__bar pipeline-stage__bar--purple"></div>
+        <div class="pipeline-stage__label">Despachada</div>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-stage" (click)="irA('/ordenes-venta')">
+        <div class="pipeline-stage__count pipeline-stage__count--teal">{{ ovEntregada }}</div>
+        <div class="pipeline-stage__bar pipeline-stage__bar--teal"></div>
+        <div class="pipeline-stage__label">Entregada</div>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-stage" (click)="irA('/facturas')">
+        <div class="pipeline-stage__count pipeline-stage__count--green">{{ ovFacturada }}</div>
+        <div class="pipeline-stage__bar pipeline-stage__bar--green"></div>
+        <div class="pipeline-stage__label">Facturada</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── Fila 3: Facturas + CxC Vencidas ───────────────────────────────── -->
+  <div class="two-col">
+
+    <!-- Estado de Facturas -->
+    <div class="section-card">
+      <div class="section-card__header">
+        <h2 class="section-card__title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+            <path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>
+          </svg>
+          Estado de Facturas
+        </h2>
+        <button class="link-btn" (click)="irA('/facturas')">Ver todas</button>
+      </div>
+      <div class="status-list">
+        <div class="status-row">
+          <span class="status-dot status-dot--blue"></span>
+          <span class="status-label">Emitidas</span>
+          <span class="status-count">{{ facturasEmitidas }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot status-dot--yellow"></span>
+          <span class="status-label">Pago Parcial</span>
+          <span class="status-count">{{ facturasPagadaParcial }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot status-dot--green"></span>
+          <span class="status-label">Pagadas</span>
+          <span class="status-count">{{ facturasPagadas }}</span>
+        </div>
+        <div class="status-row" [class.status-row--alert]="facturasVencidas > 0">
+          <span class="status-dot status-dot--red"></span>
+          <span class="status-label">Vencidas</span>
+          <span class="status-count">{{ facturasVencidas }}</span>
+        </div>
+        <div class="status-divider"></div>
+        <div class="status-row status-row--total">
+          <span class="status-label">Total facturado</span>
+          <span class="status-count">{{ formatMoneda(montoFacturadoTotal) }}</span>
+        </div>
+        <div class="status-row status-row--pending">
+          <span class="status-label">Pendiente de cobro</span>
+          <span class="status-count status-count--warn">{{ formatMoneda(montoFacturasPendiente) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CxC Vencidas -->
+    <div class="section-card" [class.section-card--alert]="cxcVencidas > 0">
+      <div class="section-card__header">
+        <h2 class="section-card__title" [class.section-card__title--alert]="cxcVencidas > 0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          CxC Vencidas
+          <span class="title-badge title-badge--danger" *ngIf="cxcVencidas > 0">{{ cxcVencidas }}</span>
+        </h2>
+        <button class="link-btn" (click)="irA('/cuentas-por-cobrar')">Ver todas</button>
+      </div>
+
+      <div *ngIf="cxcVencidasTop.length === 0" class="empty-state empty-state--sm">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <p>No hay cuentas vencidas</p>
+      </div>
+
+      <div *ngIf="cxcVencidasTop.length > 0" class="vencidas-list">
+        <div class="vencida-item" *ngFor="let cxc of cxcVencidasTop">
+          <div class="vencida-item__info">
+            <span class="vencida-item__cliente">{{ cxc.clienteNombre }}</span>
+            <span class="vencida-item__numero">{{ cxc.numeroCuenta }}</span>
+          </div>
+          <div class="vencida-item__data">
+            <span class="vencida-item__monto">{{ formatMoneda(cxc.montoPendiente) }}</span>
+            <span class="vencida-item__dias">{{ cxc.diasVencidos }} días</span>
+          </div>
+        </div>
+        <div class="vencidas-total" *ngIf="montoCxcVencido > 0">
+          Total vencido: <strong>{{ formatMoneda(montoCxcVencido) }}</strong>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /two-col -->
+
+
+  <!-- ── Fila 4: Actividad reciente ────────────────────────────────────── -->
+  <div class="two-col">
+
+    <!-- Últimas Órdenes de Venta -->
+    <div class="section-card">
+      <div class="section-card__header">
+        <h2 class="section-card__title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Últimas Órdenes de Venta
+        </h2>
+        <button class="link-btn" (click)="irA('/ordenes-venta')">Ver todas</button>
+      </div>
+
+      <div *ngIf="ultimasOV.length === 0" class="empty-state empty-state--sm">
+        <p>Sin órdenes registradas</p>
+      </div>
+
+      <table class="mini-table" *ngIf="ultimasOV.length > 0">
+        <thead>
+          <tr>
+            <th>N° Orden</th>
+            <th>Cliente</th>
+            <th>Total</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ov of ultimasOV" (click)="irA('/ordenes-venta/' + ov.id)" class="mini-table__row">
+            <td class="mini-table__mono">{{ ov.numeroOrden }}</td>
+            <td class="mini-table__truncate">{{ ov.clienteNombre }}</td>
+            <td class="mini-table__amount">{{ formatMoneda(ov.total) }}</td>
+            <td><span class="estado-chip" [ngClass]="'estado-chip--ov-' + ov.estado.toLowerCase()">{{ ov.estado }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Últimas Órdenes de Compra -->
+    <div class="section-card">
+      <div class="section-card__header">
+        <h2 class="section-card__title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Últimas Órdenes de Compra
+        </h2>
+        <button class="link-btn" (click)="irA('/compras/ordenes')">Ver todas</button>
+      </div>
+
+      <div *ngIf="ultimasOC.length === 0" class="empty-state empty-state--sm">
+        <p>Sin órdenes registradas</p>
+      </div>
+
+      <table class="mini-table" *ngIf="ultimasOC.length > 0">
+        <thead>
+          <tr>
+            <th>N° Orden</th>
+            <th>Proveedor</th>
+            <th>Total</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let oc of ultimasOC" (click)="irA('/compras/ordenes/' + oc.id)" class="mini-table__row">
+            <td class="mini-table__mono">{{ oc.numeroOrden }}</td>
+            <td class="mini-table__truncate">{{ oc.proveedorRazonSocial }}</td>
+            <td class="mini-table__amount">{{ formatMoneda(oc.total) }}</td>
+            <td><span class="estado-chip" [ngClass]="'estado-chip--oc-' + oc.estado.toLowerCase()">{{ oc.estado }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- /two-col -->
+
+  <!-- ── Fila 5: Accesos rápidos ────────────────────────────────────────── -->
+  <div class="section-card">
+    <div class="section-card__header">
+      <h2 class="section-card__title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        Accesos Rápidos
+      </h2>
+    </div>
+    <div class="quick-grid">
+      <button class="quick-btn" (click)="irA('/ordenes-venta/nueva')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Nueva Orden Venta
+      </button>
+      <button class="quick-btn" (click)="irA('/cotizaciones/nueva')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Nueva Cotización
+      </button>
+      <button class="quick-btn" (click)="irA('/compras/ordenes/nueva')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        Nueva Orden Compra
+      </button>
+      <button class="quick-btn" (click)="irA('/clientes')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Clientes
+      </button>
+      <button class="quick-btn" (click)="irA('/facturas')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Facturas
+      </button>
+      <button class="quick-btn" (click)="irA('/cobros')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Cobros
+      </button>
+      <button class="quick-btn" (click)="irA('/productos')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+        Inventario
+      </button>
+      <button class="quick-btn" (click)="irA('/despachos')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Despachos
+      </button>
+    </div>
+  </div>
+
+</div><!-- /dashboard -->

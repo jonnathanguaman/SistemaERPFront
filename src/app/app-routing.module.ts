@@ -71,13 +71,17 @@ import { RecepcionInventarioComponent } from './ModuloCompras/Vista/recepcion-in
 import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepcion/detalle-recepcion.component';
 import { RecepcionFormComponent } from './ModuloCompras/Vista/recepcion-form/recepcion-form.component';
 import { SolicitudTransferenciaComponent } from './ModuloInventario/Vista/solicitud-transferencia/solicitud-transferencia.component';
+import { DashboardComponent } from './ModuloDashboard/Vista/dashboard/dashboard.component';
 
 const routes: Routes = [
   // Ruta de login (pública)
   { path: 'login', component: LoginComponent },
-  
-  // Ruta raíz redirige a login
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+
+  // Ruta raíz redirige al dashboard
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+
+  // Dashboard principal
+  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
   
   // Página de acceso denegado
   { path: 'sin-acceso', component: SinAccesoComponent, canActivate: [AuthGuard] },

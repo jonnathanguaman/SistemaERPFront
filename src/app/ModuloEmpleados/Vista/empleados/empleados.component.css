@@ -31,45 +31,15 @@
 /* =========================================
    MODAL
    ========================================= */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  padding: 20px;
-  animation: fadeIn 0.15s ease-out;
-}
 
+/* Variante más ancha para el formulario de empleados */
 .modal-content {
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
   max-width: 680px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  animation: slideUp 0.25s ease-out;
-  border: 1px solid var(--color-border);
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Header del modal */
 .modal-header {
-  display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-alt);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .modal-title-group {
@@ -108,23 +78,6 @@
   margin: 0;
 }
 
-.btn-close {
-  background: transparent;
-  border: none;
-  padding: 6px;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-  display: flex;
-  align-items: center;
-  margin-top: 2px;
-}
-
-.btn-close:hover {
-  color: var(--color-danger);
-  background: var(--color-danger-light);
-}
 
 /* Formulario */
 .modal-form {
@@ -144,16 +97,7 @@
   margin-bottom: 14px;
 }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
-  width: 100%;
-  min-width: unset;
-  height: 42px;
-}
-
 .form-group textarea {
-  height: auto;
   min-height: 76px;
 }
 

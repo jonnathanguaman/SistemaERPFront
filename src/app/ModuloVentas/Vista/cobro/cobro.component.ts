@@ -9,6 +9,7 @@ import { ClienteResponse } from '../../Entidad/cliente.model';
 import { FormaPagoResponse } from '../../Entidad/forma-pago.model';
 import { DetalleCobroResponse } from '../../Entidad/detalle-cobro.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
+import { AuthService } from '../../../Compartido/services/auth.service';
 
 @Component({
   selector: 'app-cobro',
@@ -40,6 +41,7 @@ export class CobroComponent implements OnInit {
     private readonly formaPagoService: FormaPagoService,
     private readonly detalleCobroService: DetalleCobroService,
     private readonly formBuilder: FormBuilder,
+    private readonly authService: AuthService,
     private readonly notificationService: NotificationService
   ) {
     this.cobroForm = this.formBuilder.group({
@@ -63,6 +65,22 @@ export class CobroComponent implements OnInit {
     this.cargarCobros();
     this.cargarClientes();
     this.cargarFormasPago();
+  }
+
+  private getAuthenticatedUserId(): number | null {
+    const userId = this.authService.userId;
+    return typeof userId === 'number' && userId > 0 ? userId : null;
+  }
+
+  private syncAuthenticatedUserToForm(): boolean {
+    const userId = this.getAuthenticatedUserId();
+    if (!userId) {
+      this.notificationService.warning('La sesión actual no tiene un usuario válido. Vuelve a iniciar sesión.');
+      return false;
+    }
+
+    this.cobroForm.patchValue({ cajeroId: userId });
+    return true;
   }
 
   get cobrosFiltrados(): CobroResponse[] {
@@ -129,8 +147,14 @@ export class CobroComponent implements OnInit {
       fechaCobro: today,
       montoTotal: 0,
       tipoCambio: 1,
-      moneda: 'USD'
+      moneda: 'USD',
+      cajeroId: this.getAuthenticatedUserId()
     });
+
+    if (!this.cobroForm.get('cajeroId')?.value) {
+      this.syncAuthenticatedUserToForm();
+    }
+
     this.showModal = true;
   }
 
@@ -174,7 +198,11 @@ export class CobroComponent implements OnInit {
       return;
     }
 
-    const cobroData: CobroRequest = this.cobroForm.value;
+    if (!this.syncAuthenticatedUserToForm()) {
+      return;
+    }
+
+    const cobroData: CobroRequest = this.cobroForm.getRawValue();
 
     if (this.isEditing && this.editingCobroId !== null) {
       this.cobroService.update(this.editingCobroId, cobroData).subscribe({
@@ -209,13 +237,11 @@ export class CobroComponent implements OnInit {
       return;
     }
 
-    // TODO: Cuando se implemente autenticación, obtener automáticamente del usuario logueado
-    const usuarioId = await this.notificationService.confirmWithUserId(
-      `¿Confirmar el cobro <strong>${cobro.numeroCobro}</strong>?`,
-      'Confirmar Cobro'
-    );
-    
-    if (!usuarioId) return;
+    const usuarioId = this.getAuthenticatedUserId();
+    if (!usuarioId) {
+      this.notificationService.warning('No se pudo confirmar el cobro porque la sesión no tiene un usuario válido.');
+      return;
+    }
 
     this.cobroService.confirmar(cobro.id, usuarioId).subscribe({
       next: () => {
@@ -235,15 +261,21 @@ export class CobroComponent implements OnInit {
       return;
     }
 
-    // TODO: Cuando se implemente autenticación, obtener automáticamente del usuario logueado
-    const formValues = await this.notificationService.anularWithUserIdAndReason(
-      `Anular el cobro <strong>${cobro.numeroCobro}</strong>`,
-      'Anular Cobro'
+    const usuarioId = this.getAuthenticatedUserId();
+    if (!usuarioId) {
+      this.notificationService.warning('No se pudo anular el cobro porque la sesión no tiene un usuario válido.');
+      return;
+    }
+
+    const motivo = await this.notificationService.inputText(
+      `Anular el cobro ${cobro.numeroCobro}`,
+      'Motivo de anulación',
+      'Ingrese el motivo de anulación'
     );
 
-    if (!formValues) return;
+    if (!motivo) return;
 
-    this.cobroService.anular(cobro.id, formValues.usuarioId, formValues.motivo).subscribe({
+    this.cobroService.anular(cobro.id, usuarioId, motivo).subscribe({
       next: () => {
         this.notificationService.toast('Cobro anulado exitosamente', 'success');
         this.cargarCobros();

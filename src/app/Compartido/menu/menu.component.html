@@ -27,6 +27,21 @@
   <div class="menu-container">
     <ul class="menu-list">
 
+      <!-- ── Dashboard ── -->
+      <li class="menu-item" [class.active]="activeModule === 'dashboard'" [attr.data-tooltip]="isCollapsed ? 'Dashboard' : null">
+        <button class="menu-link" (click)="setActiveModule('dashboard')" [routerLink]="['/dashboard']">
+          <span class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </span>
+          <span class="menu-text" *ngIf="!isCollapsed">Dashboard</span>
+        </button>
+      </li>
+
       <!-- ── Módulo Ventas ── -->
       <li class="menu-item" *ngIf="hasAccess('ventas')" [class.active]="activeModule === 'ventas'" [attr.data-tooltip]="isCollapsed ? 'Ventas' : null">
         <button class="menu-link" (click)="setActiveModule('ventas')" [routerLink]="['/facturas']">

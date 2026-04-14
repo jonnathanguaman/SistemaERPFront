@@ -51,12 +51,16 @@ export class LoginComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    const credentials: LoginRequest = this.loginForm.value;
+    const empresaIdSesion = Number(sessionStorage.getItem('empresaId') || 0);
+    const credentials: LoginRequest = {
+      ...this.loginForm.value,
+      ...(empresaIdSesion > 0 ? { empresaId: empresaIdSesion } : {})
+    };
 
     this.authService.login(credentials).subscribe({
       next: () => {
         console.log('Login exitoso');
-        this.router.navigate(['/empleados']); // Redirigir al empleados o página principal
+        this.router.navigate(['/dashboard']);
       },
       error: (err: Error) => {
         console.error('Error en login:', err);

@@ -14,6 +14,7 @@ export class JwtInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token: string = this.authService.userToken;
+    const empresaId = this.authService.empresaId;
 
     // Si no hay token, enviar la petición sin modificar
     if (!token || token === '') {
@@ -27,7 +28,8 @@ export class JwtInterceptor implements HttpInterceptor {
     if (req.body instanceof FormData) {
       clonedRequest = req.clone({
         setHeaders: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          ...(empresaId ? { 'X-Empresa-Id': String(empresaId) } : {})
         }
       });
     } else {
@@ -35,7 +37,8 @@ export class JwtInterceptor implements HttpInterceptor {
         setHeaders: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          ...(empresaId ? { 'X-Empresa-Id': String(empresaId) } : {})
         }
       });
     }

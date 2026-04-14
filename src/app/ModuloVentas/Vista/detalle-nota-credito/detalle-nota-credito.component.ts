@@ -55,6 +55,19 @@ export class DetalleNotaCreditoComponent implements OnInit {
     this.detalleForm.get('productoId')?.valueChanges.subscribe((value) => {
       this.aplicarIvaPorProducto(Number(value || 0));
     });
+
+    this.detalleForm.get('cantidad')?.valueChanges.subscribe(() => {
+      this.recalcularLinea();
+    });
+
+    this.detalleForm.get('precioUnitario')?.valueChanges.subscribe(() => {
+      this.recalcularLinea();
+    });
+
+    this.detalleForm.get('impuestoPorcentaje')?.valueChanges.subscribe(() => {
+      this.recalcularLinea();
+    });
+
     this.cargarNotasCredito();
   }
 
@@ -192,7 +205,14 @@ export class DetalleNotaCreditoComponent implements OnInit {
       return;
     }
 
+    this.recalcularLinea();
+
     const detalleData: DetalleNotaCreditoRequest = this.detalleForm.value;
+
+    if (detalleData.total <= 0) {
+      this.notificationService.warning('Total inválido', 'El total del detalle debe ser mayor a 0');
+      return;
+    }
 
     if (this.isEditMode && this.selectedDetalleId) {
       this.detalleNotaCreditoService.actualizar(this.selectedDetalleId, detalleData).subscribe({
@@ -250,28 +270,33 @@ export class DetalleNotaCreditoComponent implements OnInit {
   }
 
   calcularSubtotal(): void {
-    const cantidad = this.detalleForm.get('cantidad')?.value || 0;
-    const precioUnitario = this.detalleForm.get('precioUnitario')?.value || 0;
-    const subtotal = cantidad * precioUnitario;
-    
-    this.detalleForm.patchValue({ subtotal }, { emitEvent: false });
-    this.calcularTotal();
+    this.recalcularLinea();
   }
 
   calcularImpuesto(): void {
-    const subtotal = this.detalleForm.get('subtotal')?.value || 0;
-    const impuestoPorcentaje = this.detalleForm.get('impuestoPorcentaje')?.value || 0;
-    const impuestoMonto = subtotal * (impuestoPorcentaje / 100);
-    
-    this.detalleForm.patchValue({ impuestoMonto }, { emitEvent: false });
-    this.calcularTotal();
+    this.recalcularLinea();
   }
 
   calcularTotal(): void {
-    const subtotal = this.detalleForm.get('subtotal')?.value || 0;
-    const impuestoMonto = this.detalleForm.get('impuestoMonto')?.value || 0;
-    const total = subtotal + impuestoMonto;
-    
-    this.detalleForm.patchValue({ total }, { emitEvent: false });
+    this.recalcularLinea();
+  }
+
+  private recalcularLinea(): void {
+    const cantidad = Number(this.detalleForm.get('cantidad')?.value || 0);
+    const precioUnitario = Number(this.detalleForm.get('precioUnitario')?.value || 0);
+    const impuestoPorcentaje = Number(this.detalleForm.get('impuestoPorcentaje')?.value || 0);
+
+    const subtotal = this.redondear(cantidad * precioUnitario);
+    const impuestoMonto = this.redondear(subtotal * (impuestoPorcentaje / 100));
+    const total = this.redondear(subtotal + impuestoMonto);
+
+    this.detalleForm.patchValue(
+      { subtotal, impuestoMonto, total },
+      { emitEvent: false }
+    );
+  }
+
+  private redondear(valor: number): number {
+    return Number((valor || 0).toFixed(2));
   }
 }

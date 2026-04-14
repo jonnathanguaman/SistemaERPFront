@@ -55,7 +55,9 @@ export class MenuComponent implements OnInit {
 
   detectActiveModule(): void {
     const currentPath = globalThis.location.pathname;
-    if (currentPath.includes('clientes') || currentPath.includes('contactos-cliente') || 
+    if (currentPath === '/dashboard' || currentPath === '/') {
+      this.activeModule = 'dashboard';
+    } else if (currentPath.includes('clientes') || currentPath.includes('contactos-cliente') ||
         currentPath.includes('direcciones-cliente') || currentPath.includes('facturas') || 
         currentPath.includes('ventas') || currentPath.includes('cobros') || 
         currentPath.includes('condiciones-pago') || currentPath.includes('formas-pago') || 

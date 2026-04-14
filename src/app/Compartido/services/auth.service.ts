@@ -19,8 +19,10 @@ export class AuthService {
   private readonly currentUserName: BehaviorSubject<string>;
   private readonly currentUsername: BehaviorSubject<string>;
   private readonly currentUserId: BehaviorSubject<number | null>;
+  private readonly currentEmpresaId: BehaviorSubject<number | null>;
 
   private readonly meEndpoint = `${environment.urlhost}/api/auth/me`;
+  private readonly cambiarEmpresaEndpoint = `${environment.urlhost}/api/auth/cambiar-empresa`;
 
   constructor(
     private readonly http: HttpClient,
@@ -29,6 +31,7 @@ export class AuthService {
     const token = sessionStorage.getItem('token') || '';
     const rolesFromToken = token ? this.extractRolesFromToken(token) : [];
     const userIdFromSession = sessionStorage.getItem('usuarioId');
+    const empresaIdFromSession = sessionStorage.getItem('empresaId');
 
     let userId: number | null = null;
     if (userIdFromSession) {
@@ -49,6 +52,12 @@ export class AuthService {
     );
     this.currentUserId = new BehaviorSubject<number | null>(
       Number.isFinite(userId as number) ? userId : null
+    );
+    const empresaId = empresaIdFromSession
+      ? Number(empresaIdFromSession)
+      : this.extractEmpresaIdFromToken(token);
+    this.currentEmpresaId = new BehaviorSubject<number | null>(
+      Number.isFinite(empresaId as number) && (empresaId as number) > 0 ? (empresaId as number) : null
     );
 
     this.logAuthState('constructor-init');
@@ -106,7 +115,9 @@ export class AuthService {
       tokenUserId: decoded?.['userId'] ?? null,
       tokenId: decoded?.['id'] ?? null,
       tokenIdAuth: decoded?.['idAuth'] ?? null,
+      tokenEmpresaId: decoded?.['empresaId'] ?? null,
       behaviorUserId: this.currentUserId?.value ?? null,
+      behaviorEmpresaId: this.currentEmpresaId?.value ?? null,
       behaviorRoles: this.currentUserRoles?.value ?? []
     });
   }
@@ -156,6 +167,17 @@ export class AuthService {
     return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
   }
 
+  private extractEmpresaIdFromToken(token: string): number | null {
+    const decoded = this.decodeTokenPayload(token);
+    if (!decoded) {
+      return null;
+    }
+
+    const candidato = decoded['empresaId'] ?? null;
+    const numeric = Number(candidato);
+    return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
+  }
+
   login(credentials: LoginRequest): Observable<string> {
     console.log(this.authDebugPrefix, 'login-request', {
       apiHost: environment.urlhost,
@@ -179,10 +201,17 @@ export class AuthService {
         sessionStorage.setItem('username', response.username || '');
 
         const userId = response.usuarioId ?? this.extractUserIdFromToken(response.token);
+        const empresaId = response.empresaId ?? this.extractEmpresaIdFromToken(response.token);
         if (userId) {
           sessionStorage.setItem('usuarioId', String(userId));
         } else {
           sessionStorage.removeItem('usuarioId');
+        }
+
+        if (empresaId) {
+          sessionStorage.setItem('empresaId', String(empresaId));
+        } else {
+          sessionStorage.removeItem('empresaId');
         }
 
         const roles = this.extractRolesFromToken(response.token);
@@ -192,6 +221,7 @@ export class AuthService {
         this.currentUserName.next(response.nombre || '');
         this.currentUsername.next(response.username || '');
         this.currentUserId.next(userId || null);
+        this.currentEmpresaId.next(empresaId || null);
         this.currentUserLoginOn.next(true);
         this.logAuthState('login-success');
 
@@ -209,12 +239,14 @@ export class AuthService {
     sessionStorage.removeItem('nombre');
     sessionStorage.removeItem('username');
     sessionStorage.removeItem('usuarioId');
+    sessionStorage.removeItem('empresaId');
     this.currentUserLoginOn.next(false);
     this.currentUserData.next('');
     this.currentUserRoles.next([]);
     this.currentUserName.next('');
     this.currentUsername.next('');
     this.currentUserId.next(null);
+    this.currentEmpresaId.next(null);
     this.logAuthState('logout');
     this.router.navigateByUrl('/login');
   }
@@ -257,6 +289,31 @@ export class AuthService {
 
   get userId(): number | null {
     return this.currentUserId.value;
+  }
+
+  get empresaId(): number | null {
+    return this.currentEmpresaId.value;
+  }
+
+  cambiarEmpresaActiva(empresaId: number): Observable<string> {
+    return this.http.post<AuthResponse>(this.cambiarEmpresaEndpoint, { empresaId }).pipe(
+      tap((response) => {
+        sessionStorage.setItem('token', response.token);
+
+        const empresaActiva = response.empresaId ?? this.extractEmpresaIdFromToken(response.token);
+        if (empresaActiva) {
+          sessionStorage.setItem('empresaId', String(empresaActiva));
+        }
+
+        const roles = this.extractRolesFromToken(response.token);
+        this.currentUserData.next(response.token);
+        this.currentUserRoles.next(roles);
+        this.currentEmpresaId.next(empresaActiva || null);
+        this.logAuthState('cambiar-empresa-success');
+      }),
+      map((response) => response.token),
+      catchError(this.handleError)
+    );
   }
 
   hasAnyRole(roles: string[]): boolean {
