@@ -27,7 +27,7 @@ export class PersonaEmpresaRolComponent implements OnInit {
   personas: PersonaResponse[] = [];
   empresas: EmpresaResponse[] = [];
   personaEmpresaRolForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   personaEmpresaRolIdEditar: number | null = null;
   busqueda = '';
@@ -120,27 +120,30 @@ export class PersonaEmpresaRolComponent implements OnInit {
     );
   }
 
-  abrirModal(personaEmpresaRol?: PersonaEmpresaRol): void {
-    if (personaEmpresaRol) {
-      this.modoEdicion = true;
-      this.personaEmpresaRolIdEditar = personaEmpresaRol.id || null;
-      this.personaEmpresaRolForm.patchValue({
-        personaEmpresaId: personaEmpresaRol.personaEmpresaId,
-        rolEmpresaId: personaEmpresaRol.rolEmpresaId,
-        fechaAsignacion: personaEmpresaRol.fechaAsignacion,
-        fechaFin: personaEmpresaRol.fechaFin,
-        activo: personaEmpresaRol.activo
-      });
-    } else {
-      this.modoEdicion = false;
-      this.personaEmpresaRolIdEditar = null;
-      this.personaEmpresaRolForm.reset({ activo: true });
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.personaEmpresaRolIdEditar = null;
+    this.personaEmpresaRolForm.reset({ activo: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(personaEmpresaRol: PersonaEmpresaRol): void {
+    this.modoEdicion = true;
+    this.personaEmpresaRolIdEditar = personaEmpresaRol.id || null;
+    this.personaEmpresaRolForm.patchValue({
+      personaEmpresaId: personaEmpresaRol.personaEmpresaId,
+      rolEmpresaId: personaEmpresaRol.rolEmpresaId,
+      fechaAsignacion: personaEmpresaRol.fechaAsignacion,
+      fechaFin: personaEmpresaRol.fechaFin,
+      activo: personaEmpresaRol.activo
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.personaEmpresaRolForm.reset({ activo: true });
     this.modoEdicion = false;
     this.personaEmpresaRolIdEditar = null;
@@ -163,7 +166,7 @@ export class PersonaEmpresaRolComponent implements OnInit {
         this.notificationService.showSuccess('Asignación de rol creada correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Error desconocido';
       console.error('Error al guardar:', message);

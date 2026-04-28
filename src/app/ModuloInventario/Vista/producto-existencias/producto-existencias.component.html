@@ -1,191 +1,167 @@
-<div class="container">
-  <div class="header">
-    <h2>Gestión de Existencias de Productos</h2>
-    <button class="btn-primary" (click)="openModal()">
-      + Nuevo Registro
+<div class="producto-existencias-container">
+
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-breadcrumb">
+          <span>Inventario</span><span class="separator">/</span><span>Existencias de Producto</span>
+        </div>
+        <h1>Existencias de Producto</h1>
+        <p class="page-subtitle">Gestiona el stock disponible, reservado y físico por bodega</p>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nueva Existencia
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Buscar por producto, bodega o lote…" [(ngModel)]="searchTerm">
+      </div>
+      <span class="result-count">{{ existenciasFiltradas.length }} existencia(s)</span>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Bodega</th>
+            <th>Lote</th>
+            <th>Física</th>
+            <th>Disponible</th>
+            <th>Reservada</th>
+            <th>Costo Promedio</th>
+            <th>Estado</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ex of existenciasFiltradas">
+            <td><strong>{{ ex.productoNombre }}</strong></td>
+            <td class="text-muted">{{ ex.bodegaNombre }}</td>
+            <td class="text-muted">{{ ex.loteNumero || '—' }}</td>
+            <td class="td-mono">{{ ex.cantidadFisica | number:'1.2-2' }}</td>
+            <td class="td-mono">{{ ex.cantidadDisponible | number:'1.2-2' }}</td>
+            <td class="td-mono text-muted">{{ ex.cantidadReservada | number:'1.2-2' }}</td>
+            <td class="td-mono text-muted">{{ ex.costoPromedio | number:'1.2-2' }}</td>
+            <td>
+              <span class="badge" [class.badge-success]="ex.activo" [class.badge-danger]="!ex.activo">
+                {{ ex.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td style="text-align:right">
+              <div style="display:flex;gap:6px;justify-content:flex-end">
+                <button class="btn-icon btn-edit" (click)="abrirFormEditar(ex)" title="Editar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="delete(ex.id)" title="Eliminar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="existenciasFiltradas.length === 0">
+            <td colspan="9">
+              <div class="list-empty">
+                <h3>Sin existencias registradas</h3>
+                <p>{{ searchTerm ? 'Sin resultados para "' + searchTerm + '"' : 'Agrega el primer registro.' }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="form-view" *ngIf="showForm">
+    <button class="btn-back" (click)="cerrarForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver a Existencias
     </button>
-  </div>
 
-  <!-- Barra de búsqueda -->
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input 
-        type="text" 
-        class="search-input" 
-        placeholder="Buscar por producto, bodega o lote..."
-        [(ngModel)]="searchTerm"
-      >
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <div class="page-breadcrumb">
+          <span>Inventario</span><span class="separator">/</span><span>Existencias</span><span class="separator">/</span>
+          <span>{{ isEditing ? 'Editar' : 'Nueva' }}</span>
+        </div>
+        <h1>{{ isEditing ? 'Editar Existencias' : 'Nueva Existencia' }}</h1>
+        <p class="form-page-subtitle">{{ isEditing ? 'Actualiza el registro de existencias' : 'Registra existencias de un producto en bodega' }}</p>
+      </div>
     </div>
-  </div>
 
-  <div class="table-container">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Bodega</th>
-          <th>Lote</th>
-          <th>Cantidad Física</th>
-          <th>Cantidad Disponible</th>
-          <th>Cantidad Reservada</th>
-          <th>Costo Promedio</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let existencias of existenciasFiltradas">
-          <td>{{ existencias.productoNombre }}</td>
-          <td>{{ existencias.bodegaNombre }}</td>
-          <td>{{ existencias.loteNumero || 'Sin lote' }}</td>
-          <td class="text-right">{{ existencias.cantidadFisica }}</td>
-          <td class="text-right">{{ existencias.cantidadDisponible }}</td>
-          <td class="text-right">{{ existencias.cantidadReservada }}</td>
-          <td class="text-right">${{ existencias.costoPromedio.toFixed(2) }}</td>
-          <td>
-            <span [class]="existencias.activo ? 'badge-active' : 'badge-inactive'">
-              {{ existencias.activo ? 'Activo' : 'Inactivo' }}
-            </span>
-          </td>
-          <td>
-            <div class="actions-cell">
-              <button class="btn-icon btn-edit" (click)="edit(existencias)" title="Editar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
-              <button class="btn-icon btn-delete" (click)="delete(existencias.id)" title="Eliminar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                  <line x1="10" y1="11" x2="10" y2="17"></line>
-                  <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="existenciasFiltradas.length === 0">
-          <td colspan="10" class="empty-message">No hay registros de existencias</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Modal -->
-<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>{{ isEditing ? 'Editar Existencias' : 'Nueva Existencias' }}</h3>
-      <button class="btn-close" (click)="closeModal()">×</button>
-    </div>
-    
     <form [formGroup]="existenciasForm" (ngSubmit)="save()">
-      <div class="form-grid">
-        <div class="form-group full-width">
-          <label>Producto <span class="required">*</span></label>
-          <select formControlName="productoId" required>
-            <option value="">Seleccione un producto</option>
-            <option *ngFor="let producto of productos" [value]="producto.id">
-              {{ producto.productoNombre }}
-            </option>
-          </select>
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          <h3>Datos de Existencias</h3>
         </div>
-
-        <div class="form-group full-width">
-          <label>Bodega <span class="required">*</span></label>
-          <select formControlName="bodegaId" required>
-            <option value="">Seleccione una bodega</option>
-            <option *ngFor="let bodega of bodegas" [value]="bodega.id">
-              {{ bodega.nombre }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group full-width">
-          <label>Lote (Opcional)</label>
-          <select formControlName="productoLoteId">
-            <option value="">Sin lote</option>
-            <option *ngFor="let lote of lotes" [value]="lote.id">
-              {{ lote.numeroLote }} - Vence: {{ lote.fechaVencimiento }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Cantidad Física <span class="required">*</span></label>
-          <input 
-            type="number" 
-            formControlName="cantidadFisica" 
-            step="0.01" 
-            min="0" 
-            placeholder="0.00"
-            required>
-        </div>
-
-        <div class="form-group">
-          <label>Cantidad Disponible <span class="required">*</span></label>
-          <input 
-            type="number" 
-            formControlName="cantidadDisponible" 
-            step="0.01" 
-            min="0" 
-            placeholder="0.00"
-            required>
-        </div>
-
-        <div class="form-group">
-          <label>Cantidad Reservada <span class="required">*</span></label>
-          <input 
-            type="number" 
-            formControlName="cantidadReservada" 
-            step="0.01" 
-            min="0" 
-            placeholder="0.00"
-            required>
-        </div>
-
-        <div class="form-group">
-          <label>Costo Promedio <span class="required">*</span></label>
-          <input 
-            type="number" 
-            formControlName="costoPromedio" 
-            step="0.01" 
-            min="0" 
-            placeholder="0.00"
-            required>
-        </div>
-
-        <div class="form-group full-width">
-          <label>Ubicación</label>
-          <input 
-            type="text" 
-            formControlName="ubicacion" 
-            placeholder="Ej: Pasillo A, Estante 3">
-        </div>
-
-        <div class="form-group full-width">
-          <label class="checkbox-label">
-            <input type="checkbox" formControlName="activo">
-            <span>Activo</span>
-          </label>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="productoId">Producto <span class="required">*</span></label>
+              <select id="productoId" formControlName="productoId">
+                <option value="">Selecciona un producto</option>
+                <option *ngFor="let p of productos" [value]="p.id">{{ p.productoNombre }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bodegaId">Bodega <span class="required">*</span></label>
+              <select id="bodegaId" formControlName="bodegaId">
+                <option value="">Selecciona una bodega</option>
+                <option *ngFor="let b of bodegas" [value]="b.id">{{ b.nombre }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="productoLoteId">Lote</label>
+              <select id="productoLoteId" formControlName="productoLoteId">
+                <option value="">Sin lote</option>
+                <option *ngFor="let l of lotes" [value]="l.id">{{ l.numeroLote }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ubicacion">Ubicación</label>
+              <input type="text" id="ubicacion" formControlName="ubicacion" placeholder="Ej. Pasillo A, Estante 3">
+            </div>
+            <div class="form-group">
+              <label for="cantidadFisica">Cantidad Física <span class="required">*</span></label>
+              <input type="number" id="cantidadFisica" formControlName="cantidadFisica" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label for="cantidadDisponible">Cantidad Disponible <span class="required">*</span></label>
+              <input type="number" id="cantidadDisponible" formControlName="cantidadDisponible" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label for="cantidadReservada">Cantidad Reservada <span class="required">*</span></label>
+              <input type="number" id="cantidadReservada" formControlName="cantidadReservada" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label for="costoPromedio">Costo Promedio <span class="required">*</span></label>
+              <input type="number" id="costoPromedio" formControlName="costoPromedio" min="0" step="0.01">
+            </div>
+          </div>
+          <div class="toggle-group" style="margin-top:16px">
+            <label for="activo">Activo</label>
+            <input type="checkbox" id="activo" formControlName="activo">
+          </div>
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" (click)="closeModal()">
-          Cancelar
-        </button>
-        <button type="submit" class="btn-primary" [disabled]="existenciasForm.invalid">
+      <div class="form-page-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="existenciasForm.invalid">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           {{ isEditing ? 'Actualizar' : 'Guardar' }}
         </button>
       </div>
     </form>
   </div>
+
 </div>

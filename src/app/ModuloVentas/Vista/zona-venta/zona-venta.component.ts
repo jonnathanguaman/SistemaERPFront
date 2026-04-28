@@ -15,7 +15,7 @@ export class ZonaVentaComponent implements OnInit {
   zonasVenta: ZonaVentaResponse[] = [];
   zonasVentaFiltradas: ZonaVentaResponse[] = [];
   zonaVentaForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   zonaVentaIdEditar: number | null = null;
   busqueda = '';
@@ -58,26 +58,29 @@ export class ZonaVentaComponent implements OnInit {
     );
   }
 
-  abrirModal(zonaVenta?: ZonaVentaResponse): void {
-    if (zonaVenta) {
-      this.modoEdicion = true;
-      this.zonaVentaIdEditar = zonaVenta.id;
-      this.zonaVentaForm.patchValue({
-        codigo: zonaVenta.codigo,
-        nombre: zonaVenta.nombre,
-        descripcion: zonaVenta.descripcion,
-        activo: zonaVenta.activo
-      });
-    } else {
-      this.modoEdicion = false;
-      this.zonaVentaIdEditar = null;
-      this.zonaVentaForm.reset({ activo: true });
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.zonaVentaIdEditar = null;
+    this.zonaVentaForm.reset({ activo: true });
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(zonaVenta: ZonaVentaResponse): void {
+    this.modoEdicion = true;
+    this.zonaVentaIdEditar = zonaVenta.id;
+    this.zonaVentaForm.patchValue({
+      codigo: zonaVenta.codigo,
+      nombre: zonaVenta.nombre,
+      descripcion: zonaVenta.descripcion,
+      activo: zonaVenta.activo
+    });
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.zonaVentaForm.reset({ activo: true });
     this.modoEdicion = false;
     this.zonaVentaIdEditar = null;
@@ -100,7 +103,7 @@ export class ZonaVentaComponent implements OnInit {
         this.notificationService.showSuccess('Zona de venta creada correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       console.error('Error al guardar la zona de venta:', error);
       this.notificationService.showError('Error al guardar la zona de venta');

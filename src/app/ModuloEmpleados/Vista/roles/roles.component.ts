@@ -13,7 +13,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class RolesComponent implements OnInit {
   roles: RolAccesoResponse[] = [];
   rolForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingRolId: number | null = null;
   loading: boolean = false;
@@ -69,30 +69,32 @@ export class RolesComponent implements OnInit {
   /**
    * Abre el modal para crear un nuevo rol
    */
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingRolId = null;
     this.rolForm.reset();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
-   * Abre el modal para editar un rol existente
+   * Abre el formulario para editar un rol existente
    */
-  abrirModalEditar(rol: RolAccesoResponse): void {
+  abrirFormEditar(rol: RolAccesoResponse): void {
     this.isEditing = true;
     this.editingRolId = rol.id;
     this.rolForm.patchValue({
       nombre: rol.nombre
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
-   * Cierra el modal y resetea el formulario
+   * Cierra el formulario y resetea el estado
    */
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.rolForm.reset();
     this.isEditing = false;
     this.editingRolId = null;
@@ -118,7 +120,7 @@ export class RolesComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Rol actualizado exitosamente');
           this.cargarRoles();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar rol:', error);
@@ -131,7 +133,7 @@ export class RolesComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Rol creado exitosamente');
           this.cargarRoles();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear rol:', error);

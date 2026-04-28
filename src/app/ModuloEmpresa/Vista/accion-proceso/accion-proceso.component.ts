@@ -18,7 +18,7 @@ export class AccionProcesoComponent implements OnInit {
   accionesProcesoFiltradas: AccionProcesoDetalle[] = [];
   procesos: Proceso[] = [];
   accionProcesoForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   accionProcesoIdEditar: number | null = null;
   busqueda = '';
@@ -75,24 +75,27 @@ export class AccionProcesoComponent implements OnInit {
     );
   }
 
-  abrirModal(accionProceso?: AccionProceso): void {
-    if (accionProceso) {
-      this.modoEdicion = true;
-      this.accionProcesoIdEditar = accionProceso.id || null;
-      this.accionProcesoForm.patchValue({
-        codigo: accionProceso.codigo,
-        procesoId: accionProceso.procesoId
-      });
-    } else {
-      this.modoEdicion = false;
-      this.accionProcesoIdEditar = null;
-      this.accionProcesoForm.reset();
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.accionProcesoIdEditar = null;
+    this.accionProcesoForm.reset();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(accionProceso: AccionProceso): void {
+    this.modoEdicion = true;
+    this.accionProcesoIdEditar = accionProceso.id || null;
+    this.accionProcesoForm.patchValue({
+      codigo: accionProceso.codigo,
+      procesoId: accionProceso.procesoId
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.accionProcesoForm.reset();
     this.modoEdicion = false;
     this.accionProcesoIdEditar = null;
@@ -115,7 +118,7 @@ export class AccionProcesoComponent implements OnInit {
         this.notificationService.showSuccess('Acción de proceso creada correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       this.notificationService.showError('Error al guardar la acción de proceso');
     }

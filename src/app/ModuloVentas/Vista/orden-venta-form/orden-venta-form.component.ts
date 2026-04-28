@@ -80,7 +80,7 @@ export class OrdenVentaFormComponent implements OnInit {
     private readonly productoExistenciasService: ProductoExistenciasService
   ) {
     this.ordenVentaForm = this.formBuilder.group({
-      numeroOrden: ['', Validators.required],
+      numeroOrden: [{ value: '', disabled: true }, Validators.required],
       cotizacionId: [null],
       clienteId: [null, Validators.required],
       contactoClienteId: [null],
@@ -118,7 +118,7 @@ export class OrdenVentaFormComponent implements OnInit {
     if (this.ordenVentaId) {
       this.cargarOrdenExistente(this.ordenVentaId);
     } else {
-      this.ordenVentaForm.patchValue({ numeroOrden: `OV-${Date.now()}` });
+      this.ordenVentaForm.patchValue({ numeroOrden: 'AUTOGENERADO' });
       this.agregarLinea();
     }
 

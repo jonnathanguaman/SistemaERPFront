@@ -27,7 +27,7 @@ export class RolProcesoPermisoComponent implements OnInit {
   empresas: EmpresaResponse[] = [];
   procesos: Proceso[] = [];
   rolProcesoPermisoForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   rolProcesoPermisoIdEditar: number | null = null;
   busqueda = '';
@@ -104,24 +104,27 @@ export class RolProcesoPermisoComponent implements OnInit {
     );
   }
 
-  abrirModal(rolProcesoPermiso?: RolProcesoPermiso): void {
-    if (rolProcesoPermiso) {
-      this.modoEdicion = true;
-      this.rolProcesoPermisoIdEditar = rolProcesoPermiso.id || null;
-      this.rolProcesoPermisoForm.patchValue({
-        rolEmpresaId: rolProcesoPermiso.rolEmpresaId,
-        accionProcesoId: rolProcesoPermiso.accionProcesoId
-      });
-    } else {
-      this.modoEdicion = false;
-      this.rolProcesoPermisoIdEditar = null;
-      this.rolProcesoPermisoForm.reset();
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.rolProcesoPermisoIdEditar = null;
+    this.rolProcesoPermisoForm.reset();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(rolProcesoPermiso: RolProcesoPermiso): void {
+    this.modoEdicion = true;
+    this.rolProcesoPermisoIdEditar = rolProcesoPermiso.id || null;
+    this.rolProcesoPermisoForm.patchValue({
+      rolEmpresaId: rolProcesoPermiso.rolEmpresaId,
+      accionProcesoId: rolProcesoPermiso.accionProcesoId
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.rolProcesoPermisoForm.reset();
     this.modoEdicion = false;
     this.rolProcesoPermisoIdEditar = null;
@@ -144,7 +147,7 @@ export class RolProcesoPermisoComponent implements OnInit {
         this.notificationService.showSuccess('Permiso creado correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       this.notificationService.showError('Error al guardar el permiso');
     }

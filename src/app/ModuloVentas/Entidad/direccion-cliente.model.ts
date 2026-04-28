@@ -5,6 +5,9 @@ export interface DireccionClienteRequest {
   direccion: string;
   ciudad?: string;
   provincia?: string;
+  paisId?: number;
+  provinciaId?: number;
+  ciudadId?: number;
   codigoPostal?: string;
   referencia?: string;
   contacto?: string;
@@ -22,6 +25,9 @@ export interface DireccionClienteResponse {
   direccion: string;
   ciudad?: string;
   provincia?: string;
+  paisId?: number;
+  provinciaId?: number;
+  ciudadId?: number;
   codigoPostal?: string;
   referencia?: string;
   contacto?: string;

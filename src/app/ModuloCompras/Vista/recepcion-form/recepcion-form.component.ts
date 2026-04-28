@@ -78,7 +78,7 @@ export class RecepcionFormComponent implements OnInit {
     private readonly authService: AuthService
   ) {
     this.headerForm = this.fb.group({
-      numeroRecepcion: ['', [Validators.required, Validators.minLength(3)]],
+      numeroRecepcion: [{ value: '', disabled: true }, [Validators.required, Validators.minLength(3)]],
       ordenCompraId: [null, [Validators.required]],
       proveedorId: [null, [Validators.required]],
       fechaRecepcion: ['', [Validators.required]],
@@ -565,11 +565,7 @@ export class RecepcionFormComponent implements OnInit {
   }
 
   private generarNumeroRecepcion(): string {
-    const fecha = new Date();
-    const year = fecha.getFullYear();
-    const month = String(fecha.getMonth() + 1).padStart(2, '0');
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    return `REC-${year}${month}-${random}`;
+    return 'AUTOGENERADO';
   }
 
   formatearFecha(fecha: string | undefined): string {

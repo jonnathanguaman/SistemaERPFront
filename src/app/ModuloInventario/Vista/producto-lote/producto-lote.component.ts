@@ -14,7 +14,7 @@ export class ProductoLoteComponent implements OnInit {
   productoLotes: ProductoLoteResponse[] = [];
   productoLotesFiltrados: ProductoLoteResponse[] = [];
   productoLoteForm: FormGroup;
-  showModal = false;
+  showForm = false;
   isEditMode = false;
   selectedProductoLoteId?: number;
   loading = false;
@@ -58,13 +58,14 @@ export class ProductoLoteComponent implements OnInit {
     );
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.productoLoteForm.reset();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(productoLote: ProductoLoteResponse): void {
+  abrirFormEditar(productoLote: ProductoLoteResponse): void {
     this.isEditMode = true;
     this.selectedProductoLoteId = productoLote.id;
     
@@ -77,11 +78,12 @@ export class ProductoLoteComponent implements OnInit {
       fechaFabricacion: this.formatDateForInput(fechaFabricacion),
       fechaVencimiento: this.formatDateForInput(fechaVencimiento)
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.productoLoteForm.reset();
     this.isEditMode = false;
     this.selectedProductoLoteId = undefined;
@@ -111,7 +113,7 @@ export class ProductoLoteComponent implements OnInit {
         next: () => {
           this.notificationService.success('Lote actualizado', 'El lote de producto se actualizó correctamente');
           this.cargarProductoLotes();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.error('Error al actualizar lote', error.message);
@@ -122,7 +124,7 @@ export class ProductoLoteComponent implements OnInit {
         next: () => {
           this.notificationService.success('Lote creado', 'El lote de producto se creó correctamente');
           this.cargarProductoLotes();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.error('Error al crear lote', error.message);

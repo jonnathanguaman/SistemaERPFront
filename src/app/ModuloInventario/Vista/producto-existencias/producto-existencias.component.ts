@@ -24,7 +24,7 @@ export class ProductoExistenciasComponent implements OnInit {
   existenciasForm: FormGroup;
   isEditing = false;
   editingId: number | null = null;
-  showModal = false;
+  showForm = false;
   searchTerm: string = '';
 
   constructor(
@@ -116,7 +116,7 @@ export class ProductoExistenciasComponent implements OnInit {
     });
   }
 
-  openModal(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingId = null;
     this.existenciasForm.reset({
@@ -127,15 +127,16 @@ export class ProductoExistenciasComponent implements OnInit {
       ubicacion: '',
       activo: true
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  closeModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.existenciasForm.reset();
   }
 
-  edit(existencias: ProductoExistenciasResponse): void {
+  abrirFormEditar(existencias: ProductoExistenciasResponse): void {
     this.isEditing = true;
     this.editingId = existencias.id;
     this.existenciasForm.patchValue({
@@ -149,7 +150,8 @@ export class ProductoExistenciasComponent implements OnInit {
       costoPromedio: existencias.costoPromedio,
       activo: existencias.activo
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   save(): void {
@@ -165,7 +167,7 @@ export class ProductoExistenciasComponent implements OnInit {
         next: () => {
           this.notificationService.showSuccess('Existencias actualizadas exitosamente');
           this.loadExistencias();
-          this.closeModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.showError('Error al actualizar: ' + error.message);
@@ -176,7 +178,7 @@ export class ProductoExistenciasComponent implements OnInit {
         next: () => {
           this.notificationService.showSuccess('Existencias registradas exitosamente');
           this.loadExistencias();
-          this.closeModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.showError('Error al registrar: ' + error.message);

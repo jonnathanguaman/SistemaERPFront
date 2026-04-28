@@ -22,7 +22,7 @@ export class CobroComponent implements OnInit {
   clientes: ClienteResponse[] = [];
   formasPago: FormaPagoResponse[] = [];
   cobroForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingCobroId: number | null = null;
   loading: boolean = false;
@@ -45,7 +45,7 @@ export class CobroComponent implements OnInit {
     private readonly notificationService: NotificationService
   ) {
     this.cobroForm = this.formBuilder.group({
-      numeroCobro: ['', [Validators.required, Validators.maxLength(20)]],
+      numeroCobro: [{ value: '', disabled: true }, [Validators.required, Validators.maxLength(20)]],
       clienteId: [null, Validators.required],
       fechaCobro: ['', Validators.required],
       formaPagoId: [null, Validators.required],
@@ -65,6 +65,10 @@ export class CobroComponent implements OnInit {
     this.cargarCobros();
     this.cargarClientes();
     this.cargarFormasPago();
+  }
+
+  get usuarioSesionNombre(): string {
+    return this.authService.userName || this.authService.username || 'Usuario autenticado';
   }
 
   private getAuthenticatedUserId(): number | null {
@@ -139,7 +143,11 @@ export class CobroComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
+    if (!this.syncAuthenticatedUserToForm()) {
+      return;
+    }
+
     this.isEditing = false;
     this.editingCobroId = null;
     const today = new Date().toISOString().split('T')[0];
@@ -151,14 +159,11 @@ export class CobroComponent implements OnInit {
       cajeroId: this.getAuthenticatedUserId()
     });
 
-    if (!this.cobroForm.get('cajeroId')?.value) {
-      this.syncAuthenticatedUserToForm();
-    }
-
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(cobro: CobroResponse): void {
+  abrirFormEditar(cobro: CobroResponse): void {
     if (cobro.estado !== 'PENDIENTE') {
       this.notificationService.warning('Solo se pueden editar cobros pendientes');
       return;
@@ -181,11 +186,12 @@ export class CobroComponent implements OnInit {
       moneda: cobro.moneda,
       observaciones: cobro.observaciones
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.cobroForm.reset();
     this.isEditing = false;
     this.editingCobroId = null;
@@ -209,7 +215,7 @@ export class CobroComponent implements OnInit {
         next: () => {
           this.notificationService.success('Cobro actualizado exitosamente');
           this.cargarCobros();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar cobro:', error);
@@ -221,7 +227,7 @@ export class CobroComponent implements OnInit {
         next: () => {
           this.notificationService.success('Cobro creado exitosamente');
           this.cargarCobros();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear cobro:', error);
@@ -335,7 +341,7 @@ export class CobroComponent implements OnInit {
     });
   }
 
-  cerrarModalDetalles(): void {
+  cerrarFormDetalles(): void {
     this.showDetallesModal = false;
     this.cobroSeleccionado = null;
     this.detallesCobro = [];

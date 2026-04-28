@@ -16,7 +16,7 @@ export class SubcategoriaComponent implements OnInit {
   subcategorias: SubcategoriaResponse[] = [];
   categorias: CategoriaResponse[] = [];
   subcategoriaForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingSubcategoriaId: number | null = null;
   loading: boolean = false;
@@ -93,17 +93,18 @@ export class SubcategoriaComponent implements OnInit {
   /**
    * Abre el modal para crear una nueva subcategoría
    */
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingSubcategoriaId = null;
     this.subcategoriaForm.reset();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
    * Abre el modal para editar una subcategoría existente
    */
-  abrirModalEditar(subcategoria: SubcategoriaResponse): void {
+  abrirFormEditar(subcategoria: SubcategoriaResponse): void {
     this.isEditing = true;
     this.editingSubcategoriaId = subcategoria.id;
     this.subcategoriaForm.patchValue({
@@ -111,14 +112,15 @@ export class SubcategoriaComponent implements OnInit {
       codigo: subcategoria.codigo,
       categoriaId: subcategoria.categoriaId
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
    * Cierra el modal y resetea el formulario
    */
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.subcategoriaForm.reset();
     this.isEditing = false;
     this.editingSubcategoriaId = null;
@@ -146,7 +148,7 @@ export class SubcategoriaComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Subcategoría actualizada exitosamente');
           this.cargarSubcategorias();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar subcategoría:', error);
@@ -159,7 +161,7 @@ export class SubcategoriaComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Subcategoría creada exitosamente');
           this.cargarSubcategorias();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear subcategoría:', error);

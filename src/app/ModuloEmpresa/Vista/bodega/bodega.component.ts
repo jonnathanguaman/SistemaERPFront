@@ -19,7 +19,7 @@ export class BodegaComponent implements OnInit {
   bodegasContable: BodegaResponse[] = [];
   empresas: EmpresaResponse[] = [];
   bodegaForm: FormGroup;
-  showModal = false;
+  showForm = false;
   isEditMode = false;
   selectedBodegaId?: number;
   loading = false;
@@ -76,13 +76,14 @@ export class BodegaComponent implements OnInit {
     );
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.bodegaForm.reset();
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(bodega: BodegaResponse): void {
+  abrirFormEditar(bodega: BodegaResponse): void {
     this.isEditMode = true;
     this.selectedBodegaId = bodega.id;
     this.bodegaForm.patchValue({
@@ -95,11 +96,12 @@ export class BodegaComponent implements OnInit {
       permiteBodegaOrigen: bodega.permiteBodegaOrigen ?? true,
       permiteBodegaDestino: bodega.permiteBodegaDestino ?? true
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.bodegaForm.reset();
     this.isEditMode = false;
     this.selectedBodegaId = undefined;
@@ -118,7 +120,7 @@ export class BodegaComponent implements OnInit {
         next: () => {
           this.notificationService.success('Bodega actualizada', 'La bodega se actualizó correctamente');
           this.cargarDatos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.error('Error al actualizar bodega', error.message);
@@ -129,7 +131,7 @@ export class BodegaComponent implements OnInit {
         next: () => {
           this.notificationService.success('Bodega creada', 'La bodega se creó correctamente');
           this.cargarDatos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.error('Error al crear bodega', error.message);

@@ -13,7 +13,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class MetodoValuacionComponent implements OnInit {
   metodosValuacion: MetodoValuacionResponse[] = [];
   metodoValuacionForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingMetodoValuacionId: number | null = null;
   loading: boolean = false;
@@ -71,31 +71,33 @@ export class MetodoValuacionComponent implements OnInit {
   /**
    * Abre el modal para crear un nuevo método de valuación
    */
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingMetodoValuacionId = null;
     this.metodoValuacionForm.reset();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
-   * Abre el modal para editar un método de valuación existente
+   * Abre el formulario para editar un método de valuación existente
    */
-  abrirModalEditar(metodoValuacion: MetodoValuacionResponse): void {
+  abrirFormEditar(metodoValuacion: MetodoValuacionResponse): void {
     this.isEditing = true;
     this.editingMetodoValuacionId = metodoValuacion.id;
     this.metodoValuacionForm.patchValue({
       nombre: metodoValuacion.nombre,
       descripcion: metodoValuacion.descripcion
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
-   * Cierra el modal y resetea el formulario
+   * Cierra el formulario y resetea el estado
    */
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.metodoValuacionForm.reset();
     this.isEditing = false;
     this.editingMetodoValuacionId = null;
@@ -122,7 +124,7 @@ export class MetodoValuacionComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Método de valuación actualizado exitosamente');
           this.cargarMetodosValuacion();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar método de valuación:', error);
@@ -135,7 +137,7 @@ export class MetodoValuacionComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Método de valuación creado exitosamente');
           this.cargarMetodosValuacion();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear método de valuación:', error);

@@ -13,7 +13,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class CuentaContableComponent implements OnInit {
   cuentasContables: CuentaContableResponse[] = [];
   cuentaContableForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingCuentaContableId: number | null = null;
   loading: boolean = false;
@@ -61,25 +61,27 @@ export class CuentaContableComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingCuentaContableId = null;
     this.cuentaContableForm.reset();
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(cuentaContable: CuentaContableResponse): void {
+  abrirFormEditar(cuentaContable: CuentaContableResponse): void {
     this.isEditing = true;
     this.editingCuentaContableId = cuentaContable.id;
     this.cuentaContableForm.patchValue({
       nombre: cuentaContable.nombre,
       descripcion: cuentaContable.descripcion
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.cuentaContableForm.reset();
     this.isEditing = false;
     this.editingCuentaContableId = null;
@@ -102,7 +104,7 @@ export class CuentaContableComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Cuenta contable actualizada exitosamente');
           this.cargarCuentasContables();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar cuenta contable:', error);
@@ -114,7 +116,7 @@ export class CuentaContableComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Cuenta contable creada exitosamente');
           this.cargarCuentasContables();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear cuenta contable:', error);

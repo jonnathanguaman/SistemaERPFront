@@ -1,244 +1,178 @@
 <div class="bodega-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Bodegas</h1>
-      <p class="subtitle">Gestiona las bodegas de las empresas</p>
+
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-breadcrumb">
+          <span>Empresa</span><span class="separator">/</span><span>Bodegas</span>
+        </div>
+        <h1>Bodegas</h1>
+        <p class="page-subtitle">Gestiona las bodegas y almacenes de la empresa</p>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nueva Bodega
+      </button>
     </div>
-    <button class="btn btn-primary" (click)="abrirModalCrear()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nueva Bodega
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Buscar por nombre, código o empresa…" [(ngModel)]="searchTerm" (input)="filtrarBodegas()">
+      </div>
+      <span class="result-count">{{ bodegasFiltradas.length }} bodega(s)</span>
+    </div>
+
+    <div class="inline-loader" *ngIf="loading"><div class="spin"></div><span>Cargando bodegas…</span></div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Empresa</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let bodega of bodegasFiltradas">
+            <td class="td-mono text-muted">{{ bodega.codigo }}</td>
+            <td><strong>{{ bodega.nombre }}</strong></td>
+            <td>{{ bodega.empresaNombre }}</td>
+            <td><span class="badge badge-neutral">{{ bodega.bodegaTipo }}</span></td>
+            <td>
+              <span class="badge" [class.badge-success]="bodega.activo" [class.badge-danger]="!bodega.activo">
+                {{ bodega.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td style="text-align:right">
+              <div style="display:flex;gap:6px;justify-content:flex-end">
+                <button class="btn-icon btn-edit" (click)="abrirFormEditar(bodega)" title="Editar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="eliminarBodega(bodega)" title="Eliminar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="bodegasFiltradas.length === 0 && !loading">
+            <td colspan="6">
+              <div class="list-empty">
+                <h3>Sin bodegas registradas</h3>
+                <p>{{ searchTerm ? 'Sin resultados para "' + searchTerm + '"' : 'Agrega la primera bodega.' }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="form-view" *ngIf="showForm">
+    <button class="btn-back" (click)="cerrarForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver a Bodegas
     </button>
-  </div>
 
-  <!-- Barra de búsqueda -->
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input 
-        type="text" 
-        class="search-input" 
-        placeholder="Buscar por nombre, código o empresa..."
-        [(ngModel)]="searchTerm"
-        (input)="filtrarBodegas()"
-      >
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <div class="page-breadcrumb">
+          <span>Empresa</span><span class="separator">/</span><span>Bodegas</span><span class="separator">/</span>
+          <span>{{ isEditMode ? 'Editar' : 'Nueva' }}</span>
+        </div>
+        <h1>{{ isEditMode ? 'Editar Bodega' : 'Nueva Bodega' }}</h1>
+        <p class="form-page-subtitle">{{ isEditMode ? 'Actualiza la información de la bodega' : 'Registra una nueva bodega o almacén' }}</p>
+      </div>
     </div>
-  </div>
 
-  <!-- Loading -->
-  <div class="loading-container" *ngIf="loading">
-    <div class="spinner"></div>
-    <p>Cargando bodegas...</p>
-  </div>
+    <form [formGroup]="bodegaForm" (ngSubmit)="guardarBodega()">
 
-  <!-- Tabla de bodegas -->
-  <div class="table-container" *ngIf="!loading">
-    <table class="bodegas-table">
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Nombre</th>
-          <th>Tipo</th>
-          <th>Bodega Padre</th>
-          <th>Empresa</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let bodega of bodegasFiltradas">
-          <td class="codigo-cell">{{ bodega.codigo }}</td>
-          <td>
-            <div class="bodega-info">
-              <span class="bodega-name">{{ bodega.nombre }}</span>
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <h3>Información de la Bodega</h3>
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="codigo">Código <span class="required">*</span></label>
+              <input type="text" id="codigo" formControlName="codigo" placeholder="BOD-001"
+                     [class.invalid]="isFieldInvalid('codigo')">
+              <span class="error-msg" *ngIf="isFieldInvalid('codigo')">{{ getFieldError('codigo') }}</span>
             </div>
-          </td>
-          <td>
-            <span class="badge" [ngClass]="bodega.bodegaTipo === 'CONTABLE' ? 'badge-contable' : 'badge-venta'">
-              {{ bodega.bodegaTipo === 'CONTABLE' ? 'Contable' : 'Almacén' }}
-            </span>
-          </td>
-          <td>{{ bodega.bodegaPadreNombre || '-' }}</td>
-          <td>
-            <span class="badge-empresa">{{ bodega.empresaNombre }}</span>
-          </td>
-          <td>
-            <span class="badge" [ngClass]="bodega.activo ? 'badge-success' : 'badge-danger'">
-              {{ bodega.activo ? 'Activa' : 'Inactiva' }}
-            </span>
-          </td>
-          <td>
-            <div class="actions-cell">
-              <button 
-                class="btn-icon btn-edit" 
-                (click)="abrirModalEditar(bodega)"
-                title="Editar bodega"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
-              <button 
-                class="btn-icon btn-delete" 
-                (click)="eliminarBodega(bodega)"
-                title="Eliminar bodega"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                  <line x1="10" y1="11" x2="10" y2="17"></line>
-                  <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-              </button>
+            <div class="form-group">
+              <label for="nombre">Nombre <span class="required">*</span></label>
+              <input type="text" id="nombre" formControlName="nombre" placeholder="Bodega Principal"
+                     [class.invalid]="isFieldInvalid('nombre')">
+              <span class="error-msg" *ngIf="isFieldInvalid('nombre')">{{ getFieldError('nombre') }}</span>
             </div>
-          </td>
-        </tr>
-        <!-- Sin datos -->
-        <tr *ngIf="bodegasFiltradas.length === 0">
-          <td colspan="8" class="no-data">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <p class="no-data-title">No hay bodegas registradas</p>
-            <p class="no-data-subtitle">Comienza creando la primera bodega para gestionar el inventario</p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Modal Crear/Editar Bodega -->
-  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <!-- Header del modal -->
-      <div class="modal-header">
-        <h2>{{ isEditMode ? 'Editar Bodega' : 'Nueva Bodega' }}</h2>
-        <button class="btn-close" (click)="cerrarModal()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+            <div class="form-group form-grid-full">
+              <label for="direccion">Dirección <span class="required">*</span></label>
+              <input type="text" id="direccion" formControlName="direccion" placeholder="Dirección de la bodega"
+                     [class.invalid]="isFieldInvalid('direccion')">
+              <span class="error-msg" *ngIf="isFieldInvalid('direccion')">{{ getFieldError('direccion') }}</span>
+            </div>
+            <div class="form-group">
+              <label for="empresaId">Empresa <span class="required">*</span></label>
+              <select id="empresaId" formControlName="empresaId" [class.invalid]="isFieldInvalid('empresaId')">
+                <option value="">Seleccione una empresa</option>
+                <option *ngFor="let empresa of empresas" [value]="empresa.id">{{ empresa.nombre }}</option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('empresaId')">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="bodegaTipo">Tipo de Bodega <span class="required">*</span></label>
+              <select id="bodegaTipo" formControlName="bodegaTipo">
+                <option value="VENTA">Venta</option>
+                <option value="COMPRA">Compra</option>
+                <option value="CONTABLE">Contable</option>
+                <option value="TRANSFERENCIA">Transferencia</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bodegaPadreId">Bodega Padre (Contable)</label>
+              <select id="bodegaPadreId" formControlName="bodegaPadreId">
+                <option [ngValue]="null">Sin bodega padre</option>
+                <option *ngFor="let b of bodegasContable" [value]="b.id">{{ b.nombre }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Formulario -->
-      <form [formGroup]="bodegaForm" (ngSubmit)="guardarBodega()" class="modal-form">
-        <div class="form-group">
-          <label for="codigo">
-            Código <span class="required">*</span>
-          </label>
-          <input 
-            type="text"
-            id="codigo"
-            formControlName="codigo"
-            placeholder="Ej: BOD-001"
-            [class.invalid]="isFieldInvalid('codigo')"
-          >
-          <span class="error-message" *ngIf="isFieldInvalid('codigo')">
-            {{ getFieldError('codigo') }}
-          </span>
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <h3>Permisos</h3>
         </div>
+        <div class="form-card-body">
+          <div class="toggle-group">
+            <label for="permiteBodegaOrigen">Permite como Bodega Origen</label>
+            <input type="checkbox" id="permiteBodegaOrigen" formControlName="permiteBodegaOrigen">
+          </div>
+          <div class="toggle-group" style="margin-top:8px">
+            <label for="permiteBodegaDestino">Permite como Bodega Destino</label>
+            <input type="checkbox" id="permiteBodegaDestino" formControlName="permiteBodegaDestino">
+          </div>
+        </div>
+      </div>
 
-        <div class="form-group">
-          <label for="nombre">
-            Nombre <span class="required">*</span>
-          </label>
-          <input 
-            type="text"
-            id="nombre"
-            formControlName="nombre"
-            placeholder="Ej: Bodega Principal"
-            [class.invalid]="isFieldInvalid('nombre')"
-          >
-          <span class="error-message" *ngIf="isFieldInvalid('nombre')">
-            {{ getFieldError('nombre') }}
-          </span>
-        </div>
-
-        <div class="form-group">
-          <label for="direccion">
-            Dirección <span class="required">*</span>
-          </label>
-          <input 
-            type="text"
-            id="direccion"
-            formControlName="direccion"
-            placeholder="Ej: Calle 123 #45-67"
-            [class.invalid]="isFieldInvalid('direccion')"
-          >
-          <span class="error-message" *ngIf="isFieldInvalid('direccion')">
-            {{ getFieldError('direccion') }}
-          </span>
-        </div>
-
-        <div class="form-group">
-          <label for="empresaId">
-            Empresa <span class="required">*</span>
-          </label>
-          <select
-            id="empresaId"
-            formControlName="empresaId"
-            [class.invalid]="isFieldInvalid('empresaId')"
-          >
-            <option value="">Selecciona una empresa</option>
-            <option *ngFor="let empresa of empresas" [value]="empresa.id">
-              {{ empresa.nombre }}
-            </option>
-          </select>
-          <span class="error-message" *ngIf="isFieldInvalid('empresaId')">
-            {{ getFieldError('empresaId') }}
-          </span>
-        </div>
-
-        <div class="form-group">
-          <label for="bodegaTipo">
-            Tipo de Bodega <span class="required">*</span>
-          </label>
-          <select id="bodegaTipo" formControlName="bodegaTipo">
-            <option value="CONTABLE">CONTABLE – Bodega padre (solo compras)</option>
-            <option value="VENTA">VENTA – Almacén (solo ventas)</option>
-          </select>
-        </div>
-
-        <div class="form-group" *ngIf="bodegaForm.get('bodegaTipo')?.value === 'VENTA'">
-          <label for="bodegaPadreId">Bodega Contable (Padre)</label>
-          <select id="bodegaPadreId" formControlName="bodegaPadreId">
-            <option [ngValue]="null">Sin bodega padre</option>
-            <option *ngFor="let b of bodegasContable" [value]="b.id">{{ b.nombre }}</option>
-          </select>
-        </div>
-
-        <div class="form-row-checks">
-          <label class="check-label">
-            <input type="checkbox" formControlName="permiteBodegaOrigen"> Permite como bodega origen
-          </label>
-          <label class="check-label">
-            <input type="checkbox" formControlName="permiteBodegaDestino"> Permite como bodega destino
-          </label>
-        </div>
-
-        <!-- Footer del modal -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
-            Cancelar
-          </button>
-          <button type="submit" class="btn btn-primary" [disabled]="bodegaForm.invalid || loading">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            {{ isEditMode ? 'Actualizar' : 'Guardar' }}
-          </button>
-        </div>
-      </form>
-    </div>
+      <div class="form-page-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="bodegaForm.invalid">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          {{ isEditMode ? 'Actualizar Bodega' : 'Guardar Bodega' }}
+        </button>
+      </div>
+    </form>
   </div>
+
 </div>

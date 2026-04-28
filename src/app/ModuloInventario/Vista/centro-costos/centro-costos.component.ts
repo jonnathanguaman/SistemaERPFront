@@ -13,7 +13,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class CentroCostosComponent implements OnInit {
   centrosCostos: CentroCostosResponse[] = [];
   centroCostosForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingCentroCostosId: number | null = null;
   loading: boolean = false;
@@ -61,25 +61,27 @@ export class CentroCostosComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingCentroCostosId = null;
     this.centroCostosForm.reset();
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(centroCostos: CentroCostosResponse): void {
+  abrirFormEditar(centroCostos: CentroCostosResponse): void {
     this.isEditing = true;
     this.editingCentroCostosId = centroCostos.id;
     this.centroCostosForm.patchValue({
       nombre: centroCostos.nombre,
       descripcion: centroCostos.descripcion
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.centroCostosForm.reset();
     this.isEditing = false;
     this.editingCentroCostosId = null;
@@ -102,7 +104,7 @@ export class CentroCostosComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Centro de costos actualizado exitosamente');
           this.cargarCentrosCostos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar centro de costos:', error);
@@ -114,7 +116,7 @@ export class CentroCostosComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Centro de costos creado exitosamente');
           this.cargarCentrosCostos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear centro de costos:', error);

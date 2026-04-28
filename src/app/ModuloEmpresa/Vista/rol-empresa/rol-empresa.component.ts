@@ -18,7 +18,7 @@ export class RolEmpresaComponent implements OnInit {
   rolesEmpresaFiltrados: RolEmpresaDetalle[] = [];
   empresas: EmpresaResponse[] = [];
   rolEmpresaForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   rolEmpresaIdEditar: number | null = null;
   busqueda = '';
@@ -79,26 +79,29 @@ export class RolEmpresaComponent implements OnInit {
     );
   }
 
-  abrirModal(rolEmpresa?: RolEmpresa): void {
-    if (rolEmpresa) {
-      this.modoEdicion = true;
-      this.rolEmpresaIdEditar = rolEmpresa.id || null;
-      this.rolEmpresaForm.patchValue({
-        nombre: rolEmpresa.nombre,
-        descripcion: rolEmpresa.descripcion,
-        empresaId: rolEmpresa.empresaId,
-        rolPadreId: rolEmpresa.rolPadreId
-      });
-    } else {
-      this.modoEdicion = false;
-      this.rolEmpresaIdEditar = null;
-      this.rolEmpresaForm.reset();
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.rolEmpresaIdEditar = null;
+    this.rolEmpresaForm.reset();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(rolEmpresa: RolEmpresa): void {
+    this.modoEdicion = true;
+    this.rolEmpresaIdEditar = rolEmpresa.id || null;
+    this.rolEmpresaForm.patchValue({
+      nombre: rolEmpresa.nombre,
+      descripcion: rolEmpresa.descripcion,
+      empresaId: rolEmpresa.empresaId,
+      rolPadreId: rolEmpresa.rolPadreId
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.rolEmpresaForm.reset();
     this.modoEdicion = false;
     this.rolEmpresaIdEditar = null;
@@ -121,7 +124,7 @@ export class RolEmpresaComponent implements OnInit {
         this.notificationService.showSuccess('Rol creado correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       this.notificationService.showError('Error al guardar el rol');
     }

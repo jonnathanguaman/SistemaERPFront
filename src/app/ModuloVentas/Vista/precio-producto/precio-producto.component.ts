@@ -22,7 +22,7 @@ export class PrecioProductoComponent implements OnInit {
   listasPreciosActivas: ListaPreciosResponse[] = [];
   productos: ProductoResponse[] = [];
   precioProductoForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   precioProductoIdEditar: number | null = null;
   busqueda = '';
@@ -79,29 +79,32 @@ export class PrecioProductoComponent implements OnInit {
     });
   }
 
-  abrirModal(precioProducto?: PrecioProductoResponse): void {
-    if (precioProducto) {
-      this.modoEdicion = true;
-      this.precioProductoIdEditar = precioProducto.id;
-      this.precioProductoForm.patchValue({
-        listaPreciosId: precioProducto.listaPreciosId,
-        productoId: precioProducto.productoId,
-        precio: precioProducto.precio,
-        precioMinimo: precioProducto.precioMinimo,
-        fechaVigenciaDesde: precioProducto.fechaVigenciaDesde,
-        fechaVigenciaHasta: precioProducto.fechaVigenciaHasta,
-        activo: precioProducto.activo
-      });
-    } else {
-      this.modoEdicion = false;
-      this.precioProductoIdEditar = null;
-      this.precioProductoForm.reset({ activo: true });
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.precioProductoIdEditar = null;
+    this.precioProductoForm.reset({ activo: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(precioProducto: PrecioProductoResponse): void {
+    this.modoEdicion = true;
+    this.precioProductoIdEditar = precioProducto.id;
+    this.precioProductoForm.patchValue({
+      listaPreciosId: precioProducto.listaPreciosId,
+      productoId: precioProducto.productoId,
+      precio: precioProducto.precio,
+      precioMinimo: precioProducto.precioMinimo,
+      fechaVigenciaDesde: precioProducto.fechaVigenciaDesde,
+      fechaVigenciaHasta: precioProducto.fechaVigenciaHasta,
+      activo: precioProducto.activo
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.precioProductoForm.reset({ activo: true });
     this.modoEdicion = false;
     this.precioProductoIdEditar = null;
@@ -124,7 +127,7 @@ export class PrecioProductoComponent implements OnInit {
         this.notificationService.showSuccess('Precio de producto creado correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       console.error('Error al guardar el precio de producto:', error);
       this.notificationService.showError('Error al guardar el precio de producto');

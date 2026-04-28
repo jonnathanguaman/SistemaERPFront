@@ -1,167 +1,160 @@
 <div class="lista-iva-container">
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Listas de IVA</h1>
-      <p class="subtitle">Gestión de tipos y porcentajes de IVA para productos</p>
+
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-breadcrumb">
+          <span>Ventas</span><span class="separator">/</span><span>Listas de IVA</span>
+        </div>
+        <h1>Listas de IVA</h1>
+        <p class="page-subtitle">Gestiona las listas de IVA y su vigencia</p>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nueva Lista IVA
+      </button>
     </div>
-    <button class="btn btn-primary" (click)="abrirModal()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nueva Lista de IVA
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Buscar por código, nombre o tipo…" [(ngModel)]="busqueda" (input)="filtrarListasIva()">
+      </div>
+      <span class="result-count">{{ listasIvaFiltradas.length }} lista(s)</span>
+    </div>
+
+    <div class="inline-loader" *ngIf="cargando"><div class="spin"></div><span>Cargando listas de IVA…</span></div>
+
+    <div class="table-wrapper" *ngIf="!cargando">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Tipo IVA</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+            <th>Vigencia</th>
+            <th>Estado</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let lista of listasIvaFiltradas">
+            <td class="td-mono">{{ lista.codigo }}</td>
+            <td><strong>{{ lista.nombre }}</strong></td>
+            <td class="text-muted">{{ lista.tipoIva }}</td>
+            <td class="text-muted">{{ lista.fechaVigenciaDesde }}</td>
+            <td class="text-muted">{{ lista.fechaVigenciaHasta || '—' }}</td>
+            <td>
+              <span class="badge" [ngClass]="obtenerClaseEstado(lista)">{{ obtenerEstadoVigencia(lista) }}</span>
+            </td>
+            <td>
+              <span class="badge" [class.badge-success]="lista.activo" [class.badge-danger]="!lista.activo">
+                {{ lista.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td style="text-align:right">
+              <div style="display:flex;gap:6px;justify-content:flex-end">
+                <button class="btn-icon btn-edit" (click)="abrirFormEditar(lista)" title="Editar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="eliminarListaIva(lista)" title="Eliminar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="listasIvaFiltradas.length === 0">
+            <td colspan="8">
+              <div class="list-empty">
+                <h3>Sin listas de IVA</h3>
+                <p>{{ busqueda ? 'Sin resultados para "' + busqueda + '"' : 'Agrega la primera lista de IVA.' }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="form-view" *ngIf="showForm">
+    <button class="btn-back" (click)="cerrarForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver a Listas de IVA
     </button>
-  </div>
 
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input type="text" class="search-input" placeholder="Buscar por código, nombre o tipo..." [(ngModel)]="busqueda" (input)="filtrarListasIva()">
-    </div>
-  </div>
-
-  <div class="table-container" *ngIf="!cargando">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Nombre</th>
-          <th>Tipo</th>
-          <th>Descripción</th>
-          <th>Desde</th>
-          <th>Hasta</th>
-          <th>Estado</th>
-          <th>Vigencia</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let lista of listasIvaFiltradas">
-          <td>
-            <strong>{{ lista.codigo }}</strong>
-          </td>
-          <td>{{ lista.nombre }}</td>
-          <td><span class="badge badge-info">{{ lista.tipoIva }}</span></td>
-          <td class="descripcion-cell">{{ lista.descripcion || '-' }}</td>
-          <td>{{ lista.fechaVigenciaDesde | date:'dd/MM/yyyy' }}</td>
-          <td>{{ lista.fechaVigenciaHasta ? (lista.fechaVigenciaHasta | date:'dd/MM/yyyy') : 'Sin límite' }}</td>
-          <td>
-            <span *ngIf="lista.activo" class="badge badge-success">Activo</span>
-            <span *ngIf="!lista.activo" class="badge badge-secondary">Inactivo</span>
-          </td>
-          <td>
-            <span [ngClass]="'badge ' + obtenerClaseEstado(lista)">{{ obtenerEstadoVigencia(lista) }}</span>
-          </td>
-          <td class="actions-cell">
-            <button class="btn btn-sm btn-warning" (click)="abrirModal(lista)" title="Editar">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-            </button>
-            <button class="btn btn-sm btn-danger" (click)="eliminarListaIva(lista)" title="Eliminar">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-            </button>
-          </td>
-        </tr>
-        <tr *ngIf="listasIvaFiltradas.length === 0">
-          <td colspan="9" class="empty-message">
-            <p *ngIf="!cargando">No se encontraron listas de IVA</p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="loading" *ngIf="cargando">
-    <p>Cargando listas de IVA...</p>
-  </div>
-
-  <!-- Modal -->
-  <div class="modal-overlay" *ngIf="mostrarModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>{{ modoEdicion ? 'Editar Lista de IVA' : 'Nueva Lista de IVA' }}</h2>
-        <button class="btn-close" (click)="cerrarModal()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-
-      <form [formGroup]="listaIvaForm" class="modal-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="codigo">Código *</label>
-            <input type="text" id="codigo" class="form-control" formControlName="codigo" placeholder="Ej: IVA_15">
-            <span class="error" *ngIf="listaIvaForm.get('codigo')?.hasError('required') && listaIvaForm.get('codigo')?.touched">
-              El código es requerido
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="nombre">Nombre *</label>
-            <input type="text" id="nombre" class="form-control" formControlName="nombre" placeholder="Ej: IVA General">
-            <span class="error" *ngIf="listaIvaForm.get('nombre')?.hasError('required') && listaIvaForm.get('nombre')?.touched">
-              El nombre es requerido
-            </span>
-          </div>
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <div class="page-breadcrumb">
+          <span>Ventas</span><span class="separator">/</span><span>Listas de IVA</span><span class="separator">/</span>
+          <span>{{ modoEdicion ? 'Editar' : 'Nueva' }}</span>
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="tipoIva">Tipo de IVA *</label>
-            <input type="text" id="tipoIva" class="form-control" formControlName="tipoIva" placeholder="Ej: 15%, 8%, Exento">
-            <span class="error" *ngIf="listaIvaForm.get('tipoIva')?.hasError('required') && listaIvaForm.get('tipoIva')?.touched">
-              El tipo de IVA es requerido
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="descripcion">Descripción</label>
-            <input type="text" id="descripcion" class="form-control" formControlName="descripcion" placeholder="Descripción opcional">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="fechaVigenciaDesde">Vigencia Desde *</label>
-            <input type="date" id="fechaVigenciaDesde" class="form-control" formControlName="fechaVigenciaDesde">
-            <span class="error" *ngIf="listaIvaForm.get('fechaVigenciaDesde')?.hasError('required') && listaIvaForm.get('fechaVigenciaDesde')?.touched">
-              La fecha es requerida
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="fechaVigenciaHasta">Vigencia Hasta</label>
-            <input type="date" id="fechaVigenciaHasta" class="form-control" formControlName="fechaVigenciaHasta" placeholder="Dejar en blanco si no hay límite">
-            <small class="form-text">Dejar en blanco para vigencia indefinida</small>
-          </div>
-        </div>
-
-        <div class="form-group checkbox-group">
-          <label>
-            <input type="checkbox" formControlName="activo">
-            <span>Activo</span>
-          </label>
-        </div>
-      </form>
-
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
-        <button class="btn btn-primary" (click)="guardarListaIva()" [disabled]="!listaIvaForm.valid">
-          {{ modoEdicion ? 'Actualizar' : 'Crear' }}
-        </button>
+        <h1>{{ modoEdicion ? 'Editar Lista IVA' : 'Nueva Lista de IVA' }}</h1>
+        <p class="form-page-subtitle">{{ modoEdicion ? 'Actualiza los datos de la lista' : 'Registra una nueva lista de IVA' }}</p>
       </div>
     </div>
+
+    <form [formGroup]="listaIvaForm" (ngSubmit)="guardarListaIva()">
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <h3>Información de la Lista IVA</h3>
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="codigo">Código <span class="required">*</span></label>
+              <input type="text" id="codigo" formControlName="codigo" placeholder="IVA-15"
+                     [class.invalid]="listaIvaForm.get('codigo')?.invalid && listaIvaForm.get('codigo')?.touched">
+              <span class="error-msg" *ngIf="listaIvaForm.get('codigo')?.invalid && listaIvaForm.get('codigo')?.touched">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="nombre">Nombre <span class="required">*</span></label>
+              <input type="text" id="nombre" formControlName="nombre" placeholder="IVA 15%"
+                     [class.invalid]="listaIvaForm.get('nombre')?.invalid && listaIvaForm.get('nombre')?.touched">
+              <span class="error-msg" *ngIf="listaIvaForm.get('nombre')?.invalid && listaIvaForm.get('nombre')?.touched">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="tipoIva">Tipo IVA <span class="required">*</span></label>
+              <input type="text" id="tipoIva" formControlName="tipoIva" placeholder="15%"
+                     [class.invalid]="listaIvaForm.get('tipoIva')?.invalid && listaIvaForm.get('tipoIva')?.touched">
+              <span class="error-msg" *ngIf="listaIvaForm.get('tipoIva')?.invalid && listaIvaForm.get('tipoIva')?.touched">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="descripcion">Descripción</label>
+              <input type="text" id="descripcion" formControlName="descripcion" placeholder="Descripción opcional">
+            </div>
+            <div class="form-group">
+              <label for="fechaVigenciaDesde">Vigencia Desde <span class="required">*</span></label>
+              <input type="date" id="fechaVigenciaDesde" formControlName="fechaVigenciaDesde"
+                     [class.invalid]="listaIvaForm.get('fechaVigenciaDesde')?.invalid && listaIvaForm.get('fechaVigenciaDesde')?.touched">
+              <span class="error-msg" *ngIf="listaIvaForm.get('fechaVigenciaDesde')?.invalid && listaIvaForm.get('fechaVigenciaDesde')?.touched">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="fechaVigenciaHasta">Vigencia Hasta</label>
+              <input type="date" id="fechaVigenciaHasta" formControlName="fechaVigenciaHasta">
+            </div>
+          </div>
+          <div class="toggle-group" style="margin-top:16px">
+            <label for="activo">Activo</label>
+            <input type="checkbox" id="activo" formControlName="activo">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-page-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="listaIvaForm.invalid">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
   </div>
+
 </div>

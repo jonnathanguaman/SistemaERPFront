@@ -24,7 +24,7 @@ export class BodegaResponsableComponent implements OnInit {
   personasEmpresa: PersonaEmpresa[] = [];
   personas: PersonaResponse[] = [];
   asignacionForm: FormGroup;
-  showModal = false;
+  showForm = false;
   loading = false;
   searchTerm = '';
 
@@ -98,13 +98,14 @@ export class BodegaResponsableComponent implements OnInit {
     );
   }
 
-  abrirModalAsignar(): void {
+  abrirFormCrear(): void {
     this.asignacionForm.reset({ activo: true });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.asignacionForm.reset();
   }
 
@@ -120,7 +121,7 @@ export class BodegaResponsableComponent implements OnInit {
       next: () => {
         this.notificationService.success('Responsable asignado', 'El responsable se asignó correctamente');
         this.cargarDatos();
-        this.cerrarModal();
+        this.cerrarForm();
       },
       error: (error) => {
         this.notificationService.error('Error al asignar responsable', error.message);

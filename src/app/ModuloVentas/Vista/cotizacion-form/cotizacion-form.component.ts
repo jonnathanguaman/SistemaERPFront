@@ -92,7 +92,7 @@ export class CotizacionFormComponent implements OnInit {
     private readonly detalleOrdenVentaService: DetalleOrdenVentaService
   ) {
     this.cotizacionForm = this.formBuilder.group({
-      numeroCotizacion: ['', Validators.required],
+      numeroCotizacion: [{ value: '', disabled: true }, Validators.required],
       clienteId: [null, Validators.required],
       contactoClienteId: [null],
       fechaCotizacion: [this.getFechaHoy(), Validators.required],
@@ -121,7 +121,7 @@ export class CotizacionFormComponent implements OnInit {
     if (this.cotizacionId) {
       this.cargarCotizacionExistente(this.cotizacionId);
     } else {
-      this.cotizacionForm.patchValue({ numeroCotizacion: `COT-${Date.now()}` });
+      this.cotizacionForm.patchValue({ numeroCotizacion: 'AUTOGENERADO' });
       this.agregarLinea();
     }
 
@@ -976,7 +976,7 @@ export class CotizacionFormComponent implements OnInit {
     const fechaOrden = this.getFechaHoy();
 
     const payloadOrden: OrdenVentaRequest = {
-      numeroOrden: `OV-${Date.now()}`,
+      numeroOrden: 'AUTOGENERADO',
       cotizacionId,
       clienteId: Number(datos.clienteId),
       contactoClienteId: datos.contactoClienteId ? Number(datos.contactoClienteId) : undefined,

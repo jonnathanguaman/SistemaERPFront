@@ -21,7 +21,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class MoviminetoInventarioComponent implements OnInit {
   movimientos: MovimientoInventarioResponse[] = [];
   movimientoForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   showDetalleModal: boolean = false;
   isEditing: boolean = false;
   editingMovimientoId: number | null = null;
@@ -135,16 +135,17 @@ export class MoviminetoInventarioComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingMovimientoId = null;
     this.movimientoForm.reset({ estado: 'BORRADOR' });
     this.detalles.clear();
     this.agregarDetalle();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(movimiento: MovimientoInventarioResponse): void {
+  abrirFormEditar(movimiento: MovimientoInventarioResponse): void {
     this.isEditing = true;
     this.editingMovimientoId = movimiento.id;
     
@@ -174,11 +175,12 @@ export class MoviminetoInventarioComponent implements OnInit {
       }));
     });
 
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.movimientoForm.reset();
     this.detalles.clear();
     this.isEditing = false;
@@ -224,7 +226,7 @@ export class MoviminetoInventarioComponent implements OnInit {
         next: () => {
           this.notificationService.success('Movimiento actualizado exitosamente');
           this.cargarMovimientos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar movimiento:', error);
@@ -236,7 +238,7 @@ export class MoviminetoInventarioComponent implements OnInit {
         next: () => {
           this.notificationService.success('Movimiento creado exitosamente');
           this.cargarMovimientos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear movimiento:', error);

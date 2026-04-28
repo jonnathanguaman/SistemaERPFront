@@ -24,7 +24,7 @@ export class ListaIvaComponent implements OnInit {
   listasIva: ListaIvaResponse[] = [];
   listasIvaFiltradas: ListaIvaResponse[] = [];
   listaIvaForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   listaIvaIdEditar: number | null = null;
   busqueda = '';
@@ -81,32 +81,35 @@ export class ListaIvaComponent implements OnInit {
     });
   }
 
-  abrirModal(listaIva?: ListaIvaResponse): void {
-    if (listaIva) {
-      this.modoEdicion = true;
-      this.listaIvaIdEditar = listaIva.id;
-      this.listaIvaForm.patchValue({
-        codigo: listaIva.codigo,
-        nombre: listaIva.nombre,
-        descripcion: listaIva.descripcion || '',
-        tipoIva: listaIva.tipoIva,
-        fechaVigenciaDesde: this.normalizarFecha(listaIva.fechaVigenciaDesde || null),
-        fechaVigenciaHasta: this.normalizarFecha(listaIva.fechaVigenciaHasta || null),
-        activo: listaIva.activo
-      });
-    } else {
-      this.modoEdicion = false;
-      this.listaIvaIdEditar = null;
-      this.listaIvaForm.reset({
-        activo: true,
-        fechaVigenciaDesde: new Date().toISOString().slice(0, 10)
-      });
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.listaIvaIdEditar = null;
+    this.listaIvaForm.reset({
+      activo: true,
+      fechaVigenciaDesde: new Date().toISOString().slice(0, 10)
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(listaIva: ListaIvaResponse): void {
+    this.modoEdicion = true;
+    this.listaIvaIdEditar = listaIva.id;
+    this.listaIvaForm.patchValue({
+      codigo: listaIva.codigo,
+      nombre: listaIva.nombre,
+      descripcion: listaIva.descripcion || '',
+      tipoIva: listaIva.tipoIva,
+      fechaVigenciaDesde: this.normalizarFecha(listaIva.fechaVigenciaDesde || null),
+      fechaVigenciaHasta: this.normalizarFecha(listaIva.fechaVigenciaHasta || null),
+      activo: listaIva.activo
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.listaIvaForm.reset();
     this.modoEdicion = false;
     this.listaIvaIdEditar = null;
@@ -133,7 +136,7 @@ export class ListaIvaComponent implements OnInit {
       this.listaIvaService.update(this.listaIvaIdEditar, payload).subscribe({
         next: () => {
           this.notificationService.showSuccess('Lista IVA actualizada correctamente');
-          this.cerrarModal();
+          this.cerrarForm();
           this.cargarDatos();
         },
         error: () => {
@@ -144,7 +147,7 @@ export class ListaIvaComponent implements OnInit {
       this.listaIvaService.save(payload).subscribe({
         next: () => {
           this.notificationService.showSuccess('Lista IVA creada correctamente');
-          this.cerrarModal();
+          this.cerrarForm();
           this.cargarDatos();
         },
         error: () => {

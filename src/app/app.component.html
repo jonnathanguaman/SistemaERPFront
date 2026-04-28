@@ -3,7 +3,11 @@
   <app-menu *ngIf="isAuthenticated"></app-menu>
   
   <!-- Contenido principal -->
-  <main class="main-content" [class.full-width]="!isAuthenticated">
+  <main
+    class="main-content"
+    [class.full-width]="!isAuthenticated"
+    [class.sidebar-collapsed]="isAuthenticated && isSidebarCollapsed"
+  >
     <router-outlet></router-outlet>
   </main>
 </div>

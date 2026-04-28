@@ -1,46 +1,25 @@
 <div class="recepcion-container">
-  <!-- Header -->
+
   <div class="page-header">
-    <div class="header-content">
+    <div class="page-header-left">
+      <nav class="page-breadcrumb" aria-label="Miga de pan">Compras <span class="separator">/</span> Recepciones</nav>
       <h1>Gestión de Recepciones de Inventario</h1>
-      <p class="subtitle">Administra las recepciones de mercancía de tus proveedores</p>
     </div>
-    <button class="btn btn-primary" (click)="nuevaRecepcion()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M16 2v4M8 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <line x1="12" y1="14" x2="12" y2="18"></line>
-        <line x1="10" y1="16" x2="14" y2="16"></line>
-      </svg>
-      Nueva Recepción
-    </button>
+    <button class="btn btn-primary" (click)="nuevaRecepcion()">+ Nueva Recepción</button>
   </div>
 
-  <!-- Barra de búsqueda -->
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input type="text" class="search-input"
-        placeholder="Buscar por número, proveedor, factura o guía..."
-        [(ngModel)]="searchTerm" />
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" placeholder="Buscar por número, proveedor, factura o guía…"
+             [(ngModel)]="searchTerm" class="form-control" />
     </div>
-    <div class="results-count">
-      <span class="count-badge">{{ recepcionesFiltradas.length }}</span>
-      recepción(es) encontrada(s)
-    </div>
+    <span class="result-count">{{ recepcionesFiltradas.length }} recepción(es) encontrada(s)</span>
   </div>
 
-  <!-- Loading -->
-  <div class="loading-container" *ngIf="isLoading && recepciones.length === 0">
-    <div class="spinner"></div>
-    <p>Cargando recepciones...</p>
-  </div>
+  <div *ngIf="isLoading && recepciones.length === 0" class="inline-loader">Cargando…</div>
 
-  <!-- Tabla -->
-  <div class="table-container" *ngIf="!isLoading || recepciones.length > 0">
-    <table class="recepciones-table">
+  <div class="table-wrapper" *ngIf="!isLoading || recepciones.length > 0">
+    <table>
       <thead>
         <tr>
           <th>Número Recepción</th>
@@ -54,70 +33,43 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngIf="recepcionesFiltradas.length === 0 && !isLoading">
-          <td colspan="8" class="no-data">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 2v4M8 2v4M3 10h18"></path>
-              <path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-            </svg>
-            <p>No se encontraron recepciones</p>
-          </td>
-        </tr>
-        <tr *ngFor="let recepcion of recepcionesFiltradas" class="table-row">
-          <td class="numero-cell">{{ recepcion.numeroRecepcion }}</td>
+        <tr *ngFor="let recepcion of recepcionesFiltradas">
+          <td class="td-mono">{{ recepcion.numeroRecepcion }}</td>
           <td>{{ formatearFecha(recepcion.fechaRecepcion) }}</td>
-          <td>{{ recepcion.proveedorRazonSocial || '-' }}</td>
+          <td>{{ recepcion.proveedorRazonSocial || '—' }}</td>
           <td>
             <div class="documentos-cell">
               <span *ngIf="recepcion.numeroFacturaProveedor">F: {{ recepcion.numeroFacturaProveedor }}</span>
               <span *ngIf="recepcion.numeroGuiaRemision">G: {{ recepcion.numeroGuiaRemision }}</span>
-              <span *ngIf="!recepcion.numeroFacturaProveedor && !recepcion.numeroGuiaRemision">-</span>
+              <span *ngIf="!recepcion.numeroFacturaProveedor && !recepcion.numeroGuiaRemision">—</span>
             </div>
           </td>
-          <td>{{ recepcion.bodegaNombre || '-' }}</td>
+          <td>{{ recepcion.bodegaNombre || '—' }}</td>
+          <td>{{ recepcion.detalles?.length || 0 }} producto(s)</td>
+          <td><span class="badge" [ngClass]="getEstadoBadgeClass(recepcion.estado)">{{ recepcion.estado }}</span></td>
           <td>
-            <span class="count-productos" [class.sin-productos]="!recepcion.detalles || recepcion.detalles.length === 0">
-              {{ recepcion.detalles?.length || 0 }} producto(s)
-            </span>
-          </td>
-          <td>
-            <span class="badge" [ngClass]="getEstadoBadgeClass(recepcion.estado)">{{ recepcion.estado }}</span>
-          </td>
-          <td class="actions-cell">
             <button class="btn-icon btn-view" (click)="verDetalle(recepcion)" title="Ver detalle">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
             </button>
             <button class="btn-icon btn-edit" (click)="editarRecepcion(recepcion)" title="Editar" *ngIf="recepcion.estado === 'PENDIENTE'">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             </button>
             <button class="btn-icon btn-success" (click)="confirmarRecepcion(recepcion)" title="Confirmar" *ngIf="recepcion.estado === 'PENDIENTE'">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </button>
-            <button class="btn-icon btn-warning" (click)="cancelarRecepcion(recepcion)" title="Cancelar" *ngIf="recepcion.estado !== 'CANCELADA' && recepcion.estado !== 'CONFIRMADA'">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
+            <button class="btn-icon btn-delete" (click)="cancelarRecepcion(recepcion)" title="Cancelar" *ngIf="recepcion.estado !== 'CANCELADA' && recepcion.estado !== 'CONFIRMADA'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
             <button class="btn-icon btn-delete" (click)="eliminarRecepcion(recepcion)" title="Eliminar" *ngIf="recepcion.estado === 'PENDIENTE'">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
           </td>
         </tr>
       </tbody>
     </table>
+    <div class="list-empty" *ngIf="recepcionesFiltradas.length === 0 && !isLoading">No se encontraron recepciones.</div>
   </div>
+
 </div>
 
 <!-- Modal de Vista Detalle (read-only) -->
@@ -126,80 +78,77 @@
     <div class="modal-header">
       <h2>Detalle de Recepción</h2>
       <button class="btn-close" (click)="cerrarDetalleModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
-
     <div class="detalle-content" *ngIf="recepcionSeleccionada">
       <div class="info-grid">
         <div class="info-item">
-          <label>Número de Recepción</label>
+          <span class="info-label">Número de Recepción</span>
           <span>{{ recepcionSeleccionada.numeroRecepcion }}</span>
         </div>
         <div class="info-item">
-          <label>Fecha</label>
+          <span class="info-label">Fecha</span>
           <span>{{ formatearFecha(recepcionSeleccionada.fechaRecepcion) }}</span>
         </div>
         <div class="info-item">
-          <label>Proveedor</label>
+          <span class="info-label">Proveedor</span>
           <span>{{ recepcionSeleccionada.proveedorRazonSocial }}</span>
         </div>
         <div class="info-item">
-          <label>Bodega</label>
-          <span>{{ recepcionSeleccionada.bodegaNombre || '-' }}</span>
+          <span class="info-label">Bodega</span>
+          <span>{{ recepcionSeleccionada.bodegaNombre || '—' }}</span>
         </div>
         <div class="info-item">
-          <label>Factura</label>
-          <span>{{ recepcionSeleccionada.numeroFacturaProveedor || '-' }}</span>
+          <span class="info-label">Factura</span>
+          <span>{{ recepcionSeleccionada.numeroFacturaProveedor || '—' }}</span>
         </div>
         <div class="info-item">
-          <label>Guía de Remisión</label>
-          <span>{{ recepcionSeleccionada.numeroGuiaRemision || '-' }}</span>
+          <span class="info-label">Guía de Remisión</span>
+          <span>{{ recepcionSeleccionada.numeroGuiaRemision || '—' }}</span>
         </div>
         <div class="info-item">
-          <label>Estado</label>
+          <span class="info-label">Estado</span>
           <span class="badge" [ngClass]="getEstadoBadgeClass(recepcionSeleccionada.estado)">{{ recepcionSeleccionada.estado }}</span>
         </div>
         <div class="info-item" *ngIf="recepcionSeleccionada.observaciones">
-          <label>Observaciones</label>
+          <span class="info-label">Observaciones</span>
           <span>{{ recepcionSeleccionada.observaciones }}</span>
         </div>
       </div>
-
       <div class="detalles-section" *ngIf="recepcionSeleccionada.detalles && recepcionSeleccionada.detalles.length > 0">
         <h3>Productos Recibidos</h3>
-        <table class="detalles-table">
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>SKU</th>
-              <th>Cant. Ordenada</th>
-              <th>Cant. Recibida</th>
-              <th>Cant. Rechazada</th>
-              <th>Costo Unitario</th>
-              <th>Costo Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let detalle of recepcionSeleccionada.detalles">
-              <td>{{ detalle.productoNombre || 'Producto #' + detalle.productoId }}</td>
-              <td>{{ detalle.productoSku || '-' }}</td>
-              <td>{{ detalle.cantidadOrdenada }}</td>
-              <td><strong>{{ detalle.cantidadRecibida }}</strong></td>
-              <td>{{ detalle.cantidadRechazada || 0 }}</td>
-              <td>{{ detalle.costoUnitario | currency:'USD':'symbol':'1.2-2' }}</td>
-              <td><strong>{{ detalle.costoTotal | currency:'USD':'symbol':'1.2-2' }}</strong></td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-wrapper">
+          <table class="detalles-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>SKU</th>
+                <th class="text-right">Cant. Ordenada</th>
+                <th class="text-right">Cant. Recibida</th>
+                <th class="text-right">Cant. Rechazada</th>
+                <th class="text-right">Costo Unit.</th>
+                <th class="text-right">Costo Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let detalle of recepcionSeleccionada.detalles">
+                <td>{{ detalle.productoNombre || 'Producto #' + detalle.productoId }}</td>
+                <td class="td-mono">{{ detalle.productoSku || '—' }}</td>
+                <td class="text-right td-mono">{{ detalle.cantidadOrdenada }}</td>
+                <td class="text-right td-mono"><strong>{{ detalle.cantidadRecibida }}</strong></td>
+                <td class="text-right td-mono">{{ detalle.cantidadRechazada || 0 }}</td>
+                <td class="text-right td-mono">{{ detalle.costoUnitario | currency:'USD':'symbol':'1.2-2' }}</td>
+                <td class="text-right td-mono"><strong>{{ detalle.costoTotal | currency:'USD':'symbol':'1.2-2' }}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-
-      <div class="sin-detalles" *ngIf="!recepcionSeleccionada.detalles || recepcionSeleccionada.detalles.length === 0">
-        <p>Esta recepción no tiene productos registrados.</p>
-        <button class="btn btn-primary" (click)="cerrarDetalleModal(); editarRecepcion(recepcionSeleccionada!)"
+      <div class="list-empty" *ngIf="!recepcionSeleccionada.detalles || recepcionSeleccionada.detalles.length === 0">
+        Esta recepción no tiene productos registrados.
+        <button class="btn btn-primary" style="margin-top:12px"
+          (click)="cerrarDetalleModal(); editarRecepcion(recepcionSeleccionada!)"
           *ngIf="recepcionSeleccionada.estado === 'PENDIENTE'">
           Ir a agregar productos
         </button>

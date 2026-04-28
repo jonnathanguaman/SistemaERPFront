@@ -25,6 +25,7 @@ export class MenuComponent implements OnInit {
     if (savedState !== null) {
       this.isCollapsed = JSON.parse(savedState);
     }
+    this.emitSidebarState();
 
     this.userName = this.authService.userName || 'Usuario';
     const roles = this.authService.userRoles;
@@ -43,6 +44,13 @@ export class MenuComponent implements OnInit {
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
     localStorage.setItem('sidebarCollapsed', JSON.stringify(this.isCollapsed));
+    this.emitSidebarState();
+  }
+
+  private emitSidebarState(): void {
+    globalThis.dispatchEvent(new CustomEvent('sidebar-state-changed', {
+      detail: { collapsed: this.isCollapsed }
+    }));
   }
 
   setActiveModule(module: string): void {

@@ -15,7 +15,7 @@ export class TipoClienteComponent implements OnInit {
   tiposCliente: TipoClienteResponse[] = [];
   tiposClienteFiltrados: TipoClienteResponse[] = [];
   tipoClienteForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   tipoClienteIdEditar: number | null = null;
   busqueda = '';
@@ -58,26 +58,29 @@ export class TipoClienteComponent implements OnInit {
     );
   }
 
-  abrirModal(tipoCliente?: TipoClienteResponse): void {
-    if (tipoCliente) {
-      this.modoEdicion = true;
-      this.tipoClienteIdEditar = tipoCliente.id;
-      this.tipoClienteForm.patchValue({
-        codigo: tipoCliente.codigo,
-        nombre: tipoCliente.nombre,
-        descripcion: tipoCliente.descripcion,
-        activo: tipoCliente.activo
-      });
-    } else {
-      this.modoEdicion = false;
-      this.tipoClienteIdEditar = null;
-      this.tipoClienteForm.reset({ activo: true });
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.tipoClienteIdEditar = null;
+    this.tipoClienteForm.reset({ activo: true });
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(tipoCliente: TipoClienteResponse): void {
+    this.modoEdicion = true;
+    this.tipoClienteIdEditar = tipoCliente.id;
+    this.tipoClienteForm.patchValue({
+      codigo: tipoCliente.codigo,
+      nombre: tipoCliente.nombre,
+      descripcion: tipoCliente.descripcion,
+      activo: tipoCliente.activo
+    });
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.tipoClienteForm.reset({ activo: true });
     this.modoEdicion = false;
     this.tipoClienteIdEditar = null;
@@ -100,7 +103,7 @@ export class TipoClienteComponent implements OnInit {
         this.notificationService.showSuccess('Tipo de cliente creado correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       console.error('Error al guardar el tipo de cliente:', error);
       this.notificationService.showError('Error al guardar el tipo de cliente');

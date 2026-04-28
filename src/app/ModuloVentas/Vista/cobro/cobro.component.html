@@ -1,318 +1,210 @@
-<div class="container">
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Gestión de Cobros</h1>
-      <p class="subtitle">Administra los cobros realizados a clientes</p>
+<div class="cobro-container">
+
+  <!-- ═══ LIST VIEW ═══ -->
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <nav class="page-breadcrumb">Ventas <span class="separator">/</span> Cobros</nav>
+        <h1>Gestión de Cobros</h1>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">+ Nuevo Cobro</button>
     </div>
-    <button class="btn btn-primary" (click)="abrirModalCrear()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nuevo Cobro
-    </button>
+
+    <div class="toolbar">
+      <div class="filter-tabs" style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" [class.btn-primary]="filterEstado==='TODOS'" [class.btn-secondary]="filterEstado!=='TODOS'"
+          (click)="filterEstado='TODOS'">Todos</button>
+        <button class="btn" [class.btn-primary]="filterEstado==='PENDIENTE'" [class.btn-secondary]="filterEstado!=='PENDIENTE'"
+          (click)="filterEstado='PENDIENTE'">Pendientes</button>
+        <button class="btn" [class.btn-primary]="filterEstado==='CONFIRMADO'" [class.btn-secondary]="filterEstado!=='CONFIRMADO'"
+          (click)="filterEstado='CONFIRMADO'">Confirmados</button>
+        <button class="btn" [class.btn-primary]="filterEstado==='ANULADO'" [class.btn-secondary]="filterEstado!=='ANULADO'"
+          (click)="filterEstado='ANULADO'">Anulados</button>
+      </div>
+      <div class="search-box">
+        <input type="text" placeholder="Buscar por número, cliente o forma de pago…"
+               [(ngModel)]="searchTerm" class="form-control" />
+      </div>
+      <span class="result-count">{{ cobrosFiltrados.length }} resultado(s)</span>
+    </div>
+
+    <div *ngIf="loading" class="inline-loader">Cargando…</div>
+
+    <!-- Detail panel -->
+    <div class="detail-panel" *ngIf="showDetallesModal && cobroSeleccionado">
+        <div class="detail-panel-header">
+        <span>Detalles del cobro {{ cobroSeleccionado.numeroCobro }}</span>
+        <button class="btn btn-secondary" (click)="cerrarFormDetalles()">Cerrar</button>
+      </div>
+      <div *ngIf="loadingDetalles" class="inline-loader">Cargando detalles…</div>
+      <div class="table-wrapper" *ngIf="!loadingDetalles">
+        <table>
+          <thead>
+            <tr>
+              <th>Factura</th>
+              <th class="text-right">Monto Aplicado</th>
+              <th>Fecha Aplicación</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of detallesCobro">
+              <td class="td-mono">{{ d.facturaNumero }}</td>
+              <td class="text-right td-mono">${{ d.montoAplicado | number:'1.2-2' }}</td>
+              <td>{{ d.fechaAplicacion | date:'dd/MM/yyyy' }}</td>
+              <td class="text-muted">{{ d.observaciones || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="list-empty" *ngIf="detallesCobro.length === 0">Sin detalles.</div>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Cliente</th>
+            <th>Fecha</th>
+            <th>Forma de Pago</th>
+            <th class="text-right">Monto</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cobro of cobrosFiltrados">
+            <td class="td-mono">{{ cobro.numeroCobro }}</td>
+            <td>{{ cobro.clienteNombre }}</td>
+            <td>{{ cobro.fechaCobro | date:'dd/MM/yyyy' }}</td>
+            <td>{{ cobro.formaPagoNombre }}</td>
+            <td class="text-right td-mono">${{ cobro.montoTotal | number:'1.2-2' }}</td>
+            <td><span class="badge" [ngClass]="getEstadoBadgeClass(cobro.estado)">{{ cobro.estado }}</span></td>
+            <td>
+              <button class="btn-icon btn-view" (click)="verDetallesCobro(cobro)" title="Ver detalles">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+              <button class="btn-icon btn-edit" *ngIf="cobro.estado === 'PENDIENTE'" (click)="abrirFormEditar(cobro)" title="Editar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              </button>
+              <button class="btn btn-secondary" style="font-size:0.72rem;padding:2px 7px" *ngIf="cobro.estado === 'PENDIENTE'" (click)="confirmarCobro(cobro)">Confirmar</button>
+              <button class="btn-icon btn-delete" *ngIf="cobro.estado !== 'ANULADO'" (click)="anularCobro(cobro)" title="Anular">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="list-empty" *ngIf="cobrosFiltrados.length === 0">No se encontraron cobros.</div>
+    </div>
   </div>
 
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input type="text" class="search-input" placeholder="Buscar por número, cliente..." [(ngModel)]="searchTerm">
+  <!-- ═══ FORM VIEW ═══ -->
+  <div class="form-view" *ngIf="showForm">
+    <button class="btn-back" (click)="cerrarForm()">&#8249; Volver a Cobros</button>
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <nav class="page-breadcrumb" aria-label="Miga de pan">
+          Ventas <span class="separator">/</span>
+          Cobros <span class="separator">/</span>
+          {{ isEditing ? 'Editar Cobro' : 'Nuevo Cobro' }}
+        </nav>
+        <h1>{{ isEditing ? 'Editar Cobro' : 'Nuevo Cobro' }}</h1>
+        <p class="form-page-subtitle">{{ isEditing ? 'Modifique los datos del cobro' : 'Registre un nuevo cobro de cliente' }}</p>
+      </div>
     </div>
-    <div class="filter-group">
-      <select [(ngModel)]="filterEstado" class="filter-select">
-        <option value="TODOS">Todos los estados</option>
-        <option value="PENDIENTE">Pendientes</option>
-        <option value="CONFIRMADO">Confirmados</option>
-        <option value="ANULADO">Anulados</option>
-      </select>
-    </div>
-    <div class="results-count">
-      <span>Mostrando</span>
-      <span class="count-badge">{{ cobrosFiltrados.length }}</span>
-      <span>de {{ cobros.length }} cobros</span>
-    </div>
-  </div>
 
-  <div class="loading-container" *ngIf="loading">
-    <div class="spinner"></div>
-    <p>Cargando cobros...</p>
-  </div>
+    <form [formGroup]="cobroForm">
 
-  <div class="table-container" *ngIf="!loading">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Número</th>
-          <th>Fecha</th>
-          <th>Cliente</th>
-          <th>Forma Pago</th>
-          <th>Monto Total</th>
-          <th>Disponible</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let cobro of cobrosFiltrados">
-          <td class="codigo-cell">{{ cobro.numeroCobro }}</td>
-          <td>{{ cobro.fechaCobro | date: 'dd/MM/yyyy' }}</td>
-          <td class="nombre-cell">{{ cobro.clienteNombre }}</td>
-          <td>{{ cobro.formaPagoNombre }}</td>
-          <td class="monto-cell">{{ cobro.montoTotal | number: '1.2-2' }}</td>
-          <td class="monto-cell">{{ cobro.montoDisponible | number: '1.2-2' }}</td>
-          <td>
-            <span class="badge" [ngClass]="getEstadoBadgeClass(cobro.estado)">
-              {{ cobro.estado }}
-            </span>
-          </td>
-          <td>
-            <div class="actions-cell">
-              <button class="btn-icon btn-info" (click)="verDetallesCobro(cobro)" title="Ver detalles">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              </button>
-              <button *ngIf="cobro.estado === 'PENDIENTE'" class="btn-icon btn-success" 
-                      (click)="confirmarCobro(cobro)" title="Confirmar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </button>
-              <button *ngIf="cobro.estado === 'PENDIENTE'" class="btn-icon btn-edit"
-                      (click)="abrirModalEditar(cobro)" title="Editar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
-              <button *ngIf="cobro.estado !== 'ANULADO'" class="btn-icon btn-delete"
-                      (click)="anularCobro(cobro)" title="Anular">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
+      <div class="form-card">
+        <div class="form-card-header">Datos Principales</div>
+        <div class="form-card-body">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>Número Cobro</label>
+              <input type="text" formControlName="numeroCobro" readonly class="text-muted" />
             </div>
-          </td>
-        </tr>
-        <tr *ngIf="cobrosFiltrados.length === 0">
-          <td colspan="8" class="no-data">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-            <p>No se encontraron cobros</p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 
-  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
-    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>{{ isEditing ? 'Editar Cobro' : 'Nuevo Cobro' }}</h2>
-        <button class="btn-close" (click)="cerrarModal()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+            <div class="form-group">
+              <label>Cliente <span class="required">*</span></label>
+              <select formControlName="clienteId" [class.invalid]="isFieldInvalid('clienteId')">
+                <option [ngValue]="null">— Seleccione —</option>
+                <option *ngFor="let c of clientes" [ngValue]="c.id">{{ c.nombres }}</option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('clienteId')">{{ getFieldError('clienteId') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>Fecha Cobro <span class="required">*</span></label>
+              <input type="date" formControlName="fechaCobro" [class.invalid]="isFieldInvalid('fechaCobro')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('fechaCobro')">{{ getFieldError('fechaCobro') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>Forma de Pago <span class="required">*</span></label>
+              <select formControlName="formaPagoId" [class.invalid]="isFieldInvalid('formaPagoId')">
+                <option [ngValue]="null">— Seleccione —</option>
+                <option *ngFor="let fp of formasPago" [ngValue]="fp.id">{{ fp.nombre }}</option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('formaPagoId')">{{ getFieldError('formaPagoId') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>Monto Total <span class="required">*</span></label>
+              <input type="number" formControlName="montoTotal" min="0.01" step="0.01"
+                     [class.invalid]="isFieldInvalid('montoTotal')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('montoTotal')">{{ getFieldError('montoTotal') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>Moneda</label>
+              <input type="text" formControlName="moneda" />
+            </div>
+
+            <div class="form-group">
+              <label>Tipo de Cambio</label>
+              <input type="number" formControlName="tipoCambio" min="0.01" step="0.0001" />
+            </div>
+
+            <div class="form-group">
+              <label>N° Documento</label>
+              <input type="text" formControlName="numeroDocumento" />
+            </div>
+
+            <div class="form-group">
+              <label>Fecha Documento</label>
+              <input type="date" formControlName="fechaDocumento" />
+            </div>
+
+            <div class="form-group form-grid-full">
+              <label>Observaciones</label>
+              <textarea formControlName="observaciones" rows="3"></textarea>
+            </div>
+
+          </div>
+        </div>
       </div>
 
-      <form [formGroup]="cobroForm" (ngSubmit)="guardarCobro()" class="modal-form">
-        <div class="form-row">
+      <div class="form-card">
+        <div class="form-card-header">Cajero</div>
+        <div class="form-card-body">
           <div class="form-group">
-            <label for="numeroCobro">Número de Cobro <span class="required">*</span></label>
-            <input type="text" id="numeroCobro" formControlName="numeroCobro"
-                   [class.invalid]="isFieldInvalid('numeroCobro')" placeholder="COB-0001">
-            <span class="error-message" *ngIf="isFieldInvalid('numeroCobro')">
-              {{ getFieldError('numeroCobro') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="fechaCobro">Fecha <span class="required">*</span></label>
-            <input type="date" id="fechaCobro" formControlName="fechaCobro"
-                   [class.invalid]="isFieldInvalid('fechaCobro')">
-            <span class="error-message" *ngIf="isFieldInvalid('fechaCobro')">
-              {{ getFieldError('fechaCobro') }}
-            </span>
+            <label>Usuario en sesión</label>
+            <input type="text" [value]="usuarioSesionNombre" readonly class="text-muted" />
           </div>
         </div>
+      </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="clienteId">Cliente <span class="required">*</span></label>
-            <select id="clienteId" formControlName="clienteId"
-                    [class.invalid]="isFieldInvalid('clienteId')">
-              <option [ngValue]="null">Seleccione un cliente</option>
-              <option *ngFor="let cliente of clientes" [ngValue]="cliente.id">
-                {{ cliente.razonSocial || cliente.nombreComercial || (cliente.nombres + ' ' + cliente.apellidos) }}
-              </option>
-            </select>
-            <span class="error-message" *ngIf="isFieldInvalid('clienteId')">
-              {{ getFieldError('clienteId') }}
-            </span>
-          </div>
+    </form>
 
-          <div class="form-group">
-            <label for="formaPagoId">Forma de Pago <span class="required">*</span></label>
-            <select id="formaPagoId" formControlName="formaPagoId"
-                    [class.invalid]="isFieldInvalid('formaPagoId')">
-              <option [ngValue]="null">Seleccione una forma de pago</option>
-              <option *ngFor="let forma of formasPago" [ngValue]="forma.id">
-                {{ forma.nombre }}
-              </option>
-            </select>
-            <span class="error-message" *ngIf="isFieldInvalid('formaPagoId')">
-              {{ getFieldError('formaPagoId') }}
-            </span>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="numeroDocumento">Número de Documento</label>
-            <input type="text" id="numeroDocumento" formControlName="numeroDocumento"
-                   placeholder="Número de cheque, transferencia, etc.">
-          </div>
-
-          <div class="form-group">
-            <label for="fechaDocumento">Fecha Documento</label>
-            <input type="date" id="fechaDocumento" formControlName="fechaDocumento">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="montoTotal">Monto Total <span class="required">*</span></label>
-            <input type="number" id="montoTotal" formControlName="montoTotal"
-                   [class.invalid]="isFieldInvalid('montoTotal')" placeholder="0.00" step="0.01">
-            <span class="error-message" *ngIf="isFieldInvalid('montoTotal')">
-              {{ getFieldError('montoTotal') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="moneda">Moneda</label>
-            <select id="moneda" formControlName="moneda">
-              <option value="USD">USD - Dólar</option>
-              <option value="PEN">PEN - Soles</option>
-              <option value="EUR">EUR - Euro</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="observaciones">Observaciones</label>
-          <textarea id="observaciones" formControlName="observaciones" rows="3"
-                    placeholder="Observaciones adicionales"></textarea>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary">{{ isEditing ? 'Actualizar' : 'Crear' }}</button>
-        </div>
-      </form>
+    <div class="form-page-footer">
+      <button class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
+      <button class="btn btn-primary" (click)="guardarCobro()">
+        {{ isEditing ? 'Actualizar' : 'Guardar' }}
+      </button>
     </div>
   </div>
 
-  <!-- Modal de Detalles -->
-  <div class="modal-overlay" *ngIf="showDetallesModal" (click)="cerrarModalDetalles()">
-    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div>
-          <h2>Detalles del Cobro</h2>
-          <p class="subtitle" *ngIf="cobroSeleccionado">
-            {{ cobroSeleccionado.numeroCobro }} - {{ cobroSeleccionado.clienteNombre }}
-          </p>
-        </div>
-        <button class="btn-close" (click)="cerrarModalDetalles()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-
-      <div class="modal-body">
-        <!-- Información del Cobro -->
-        <div class="info-grid" *ngIf="cobroSeleccionado">
-          <div class="info-item">
-            <div class="info-label">Fecha de Cobro:</div>
-            <span>{{ cobroSeleccionado.fechaCobro | date: 'dd/MM/yyyy' }}</span>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Forma de Pago:</div>
-            <span>{{ cobroSeleccionado.formaPagoNombre }}</span>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Monto Total:</div>
-            <span class="monto-highlight">{{ cobroSeleccionado.montoTotal | number: '1.2-2' }}</span>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Monto Aplicado:</div>
-            <span>{{ cobroSeleccionado.montoAplicado | number: '1.2-2' }}</span>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Monto Disponible:</div>
-            <span>{{ cobroSeleccionado.montoDisponible | number: '1.2-2' }}</span>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Estado:</div>
-            <span class="badge" [ngClass]="getEstadoBadgeClass(cobroSeleccionado.estado)">
-              {{ cobroSeleccionado.estado }}
-            </span>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- Tabla de Detalles -->
-        <h3>Aplicaciones del Cobro</h3>
-        
-        <div class="loading-container" *ngIf="loadingDetalles">
-          <div class="spinner"></div>
-          <p>Cargando detalles...</p>
-        </div>
-
-        <div class="table-container" *ngIf="!loadingDetalles">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Factura</th>
-                <th>Monto Aplicado</th>
-                <th>Fecha Aplicación</th>
-                <th>Observaciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let detalle of detallesCobro">
-                <td class="codigo-cell">{{ detalle.facturaNumero }}</td>
-                <td class="monto-cell">{{ detalle.montoAplicado | number: '1.2-2' }}</td>
-                <td>{{ detalle.fechaAplicacion | date: 'dd/MM/yyyy' }}</td>
-                <td class="observaciones-cell">{{ detalle.observaciones || '-' }}</td>
-              </tr>
-              <tr *ngIf="detallesCobro.length === 0">
-                <td colspan="4" class="no-data">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                  </svg>
-                  <p>Este cobro aún no tiene detalles aplicados</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>

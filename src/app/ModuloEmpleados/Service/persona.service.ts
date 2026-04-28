@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
-import { PersonaRequest, PersonaResponse } from '../Entidades/persona.model';
+import { PersonaEdicionResponse, PersonaRequest, PersonaResponse } from '../Entidades/persona.model';
 import { PersonaConCredencialesRequest } from '../Entidades/persona-con-credenciales.model';
 import { environment } from '../../../environments/environment';
 
@@ -76,6 +76,19 @@ export class PersonaService {
     }
 
     /**
+     * Obtener configuración extendida de edición para un empleado
+     * @param id ID del empleado
+     * @returns Observable con datos personales, credenciales y asignaciones
+     */
+    getConfiguracionEdicion(id: number): Observable<PersonaEdicionResponse> {
+        const url = `${this.apiUrl}/${id}/configuracion-edicion`;
+        return this.http.get<PersonaEdicionResponse>(url)
+        .pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    /**
      * Actualizar un empleado existente
      * @param id ID del empleado
      * @param persona Datos actualizados del empleado
@@ -83,6 +96,20 @@ export class PersonaService {
      */
     update(id: number, persona: PersonaRequest): Observable<PersonaResponse> {
         const url = `${this.apiUrl}/${id}`;
+        return this.http.put<PersonaResponse>(url, persona, this.httpOptions)
+        .pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    /**
+     * Actualizar un empleado junto con credenciales, rol y empresa
+     * @param id ID del empleado
+     * @param persona Datos completos de edición
+     * @returns Observable con el empleado actualizado
+     */
+    updateConCredenciales(id: number, persona: PersonaConCredencialesRequest): Observable<PersonaResponse> {
+        const url = `${this.apiUrl}/${id}/con-credenciales`;
         return this.http.put<PersonaResponse>(url, persona, this.httpOptions)
         .pipe(
             catchError(this.handleError)

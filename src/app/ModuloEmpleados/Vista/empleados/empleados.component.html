@@ -1,246 +1,272 @@
 <div class="empleados-container">
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="page-header-left">
-      <nav class="page-breadcrumb">
-        <span>Inicio</span>
-        <span class="separator">/</span>
-        <span>Empleados</span>
-      </nav>
-      <h1>Empleados</h1>
-      <p class="page-subtitle">Administra el personal de tu empresa</p>
-    </div>
-    <button class="btn btn-primary" (click)="abrirModalCrear()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nuevo Empleado
-    </button>
-  </div>
+  <!-- ══════════════════════════════════════
+       VISTA LISTA
+       ══════════════════════════════════════ -->
+  <div class="list-view" *ngIf="!showForm">
 
-  <!-- Toolbar de búsqueda -->
-  <div class="toolbar">
-    <div class="search-box">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd"/>
-      </svg>
-      <input
-        type="text"
-        placeholder="Buscar por nombre, cédula, email o teléfono..."
-        [(ngModel)]="searchTerm"
-      />
-    </div>
-    <span class="result-count">{{ empleadosFiltrados.length }} empleado(s)</span>
-  </div>
-
-  <!-- Skeleton loading -->
-  <div class="table-wrapper" *ngIf="isLoading && empleados.length === 0">
-    <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]">
-      <div class="skeleton-avatar"></div>
-      <div style="flex:1; display:flex; gap:12px;">
-        <div class="skeleton skeleton-text" style="width:22%;"></div>
-        <div class="skeleton skeleton-text" style="width:14%;"></div>
-        <div class="skeleton skeleton-text" style="width:16%;"></div>
-        <div class="skeleton skeleton-text" style="width:22%;"></div>
-        <div class="skeleton skeleton-text" style="width:18%;"></div>
-        <div class="skeleton skeleton-text" style="width:8%;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tabla de empleados -->
-  <div class="table-wrapper" *ngIf="!isLoading || empleados.length > 0">
-    <table>
-      <thead>
-        <tr>
-          <th>Empleado</th>
-          <th>Cédula</th>
-          <th>Teléfono</th>
-          <th>Email</th>
-          <th>Dirección</th>
-          <th>Estado</th>
-          <th style="text-align:right;">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Empty state -->
-        <tr *ngIf="empleadosFiltrados.length === 0 && !isLoading">
-          <td colspan="7">
-            <div class="empty-state">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-              <h3>No se encontraron empleados</h3>
-              <p>{{ searchTerm ? 'Intenta con otros términos de búsqueda.' : 'Crea el primer empleado haciendo clic en "Nuevo Empleado".' }}</p>
-              <button class="btn btn-primary btn-sm" *ngIf="!searchTerm" (click)="abrirModalCrear()">
-                Crear empleado
-              </button>
-            </div>
-          </td>
-        </tr>
-        <!-- Filas de datos -->
-        <tr *ngFor="let empleado of empleadosFiltrados">
-          <td>
-            <div class="employee-cell">
-              <div class="avatar">{{ empleado.nombre ? empleado.nombre.charAt(0).toUpperCase() : '?' }}</div>
-              <span class="fw-600">{{ empleado.nombre }}</span>
-            </div>
-          </td>
-          <td class="text-muted">{{ empleado.cedula }}</td>
-          <td class="text-muted">{{ empleado.telefono }}</td>
-          <td class="text-muted">{{ empleado.email }}</td>
-          <td class="direccion-cell text-muted">{{ empleado.direccion }}</td>
-          <td>
-            <span class="badge" [class.badge-success]="empleado.activo" [class.badge-danger]="!empleado.activo">
-              {{ empleado.activo ? 'Activo' : 'Inactivo' }}
-            </span>
-          </td>
-          <td class="actions-cell">
-            <button class="btn-icon btn-edit" (click)="abrirModalEditar(empleado)" title="Editar empleado">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-            </button>
-            <button class="btn-icon btn-delete" (click)="eliminarEmpleado(empleado)" title="Eliminar empleado">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-</div>
-
-<!-- =========================================
-     MODAL CREAR / EDITAR EMPLEADO
-     ========================================= -->
-<div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-
-    <div class="modal-header">
-      <div class="modal-title-group">
-        <div class="modal-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z"/>
-          </svg>
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-breadcrumb">
+          <span>Empleados</span>
         </div>
-        <div>
-          <h2>{{ isEditMode ? 'Editar Empleado' : 'Nuevo Empleado' }}</h2>
-          <p class="modal-subtitle">{{ isEditMode ? 'Actualiza la información del empleado' : 'Completa los datos del nuevo empleado' }}</p>
-        </div>
+        <h1>Empleados</h1>
+        <p class="page-subtitle">Administra el personal de tu empresa</p>
       </div>
-      <button class="btn-close" (click)="cerrarModal()" title="Cerrar">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
-          <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
+        Nuevo Empleado
       </button>
     </div>
 
-    <form [formGroup]="empleadoForm" (ngSubmit)="guardarEmpleado()" class="modal-form">
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Buscar por nombre, cédula, email o teléfono…"
+               [(ngModel)]="searchTerm">
+      </div>
+      <span class="result-count">{{ empleadosFiltrados.length }} empleado(s)</span>
+    </div>
 
-      <!-- Sección: Información personal -->
-      <div class="form-section">
-        <div class="form-section-header">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z"/>
+    <!-- Skeleton -->
+    <div class="table-wrapper" *ngIf="isLoading && empleados.length === 0">
+      <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]">
+        <div class="skeleton-avatar"></div>
+        <div style="flex:1;display:flex;gap:12px">
+          <div class="skeleton skeleton-text" style="width:22%"></div>
+          <div class="skeleton skeleton-text" style="width:14%"></div>
+          <div class="skeleton skeleton-text" style="width:16%"></div>
+          <div class="skeleton skeleton-text" style="width:22%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!isLoading || empleados.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Empleado</th>
+            <th>Cédula</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Dirección</th>
+            <th>Estado</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="empleadosFiltrados.length === 0 && !isLoading">
+            <td colspan="7">
+              <div class="list-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <h3>No se encontraron empleados</h3>
+                <p>{{ searchTerm ? 'Intenta con otros términos de búsqueda.' : 'Crea el primer empleado.' }}</p>
+                <button class="btn btn-primary btn-sm" *ngIf="!searchTerm" (click)="abrirFormCrear()">
+                  Crear empleado
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngFor="let empleado of empleadosFiltrados">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="avatar">{{ empleado.nombre ? empleado.nombre.charAt(0).toUpperCase() : '?' }}</div>
+                <strong>{{ empleado.nombre }}</strong>
+              </div>
+            </td>
+            <td class="text-muted td-mono">{{ empleado.cedula }}</td>
+            <td class="text-muted">{{ empleado.telefono }}</td>
+            <td class="text-muted">{{ empleado.email }}</td>
+            <td class="text-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ empleado.direccion }}</td>
+            <td>
+              <span class="badge" [class.badge-success]="empleado.activo" [class.badge-danger]="!empleado.activo">
+                {{ empleado.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td style="text-align:right">
+              <div style="display:flex;gap:6px;justify-content:flex-end">
+                <button class="btn-icon btn-edit" (click)="abrirFormEditar(empleado)" title="Editar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="eliminarEmpleado(empleado)" title="Eliminar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       VISTA FORMULARIO
+       ══════════════════════════════════════ -->
+  <div class="form-view" *ngIf="showForm">
+
+    <button class="btn-back" (click)="cerrarForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Volver a Empleados
+    </button>
+
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <div class="page-breadcrumb">
+          <span>Empleados</span><span class="separator">/</span>
+          <span>{{ isEditMode ? 'Editar' : 'Nuevo' }}</span>
+        </div>
+        <h1>{{ isEditMode ? 'Editar Empleado' : 'Nuevo Empleado' }}</h1>
+        <p class="form-page-subtitle">
+          {{ isEditMode ? 'Actualiza la información del empleado' : 'Completa los datos del nuevo empleado' }}
+        </p>
+      </div>
+    </div>
+
+    <form [formGroup]="empleadoForm" (ngSubmit)="guardarEmpleado()">
+
+      <!-- Información Personal -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
           </svg>
           <h3>Información Personal</h3>
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="nombre">Nombre Completo <span class="required">*</span></label>
-            <input type="text" id="nombre" formControlName="nombre" placeholder="Ej: Juan Pérez" [class.invalid]="isFieldInvalid('nombre')"/>
-            <span class="field-error" *ngIf="isFieldInvalid('nombre')">{{ getFieldError('nombre') }}</span>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nombre">Nombre Completo <span class="required">*</span></label>
+              <input type="text" id="nombre" formControlName="nombre" placeholder="Juan Pérez"
+                     [class.invalid]="isFieldInvalid('nombre')">
+              <span class="error-msg" *ngIf="isFieldInvalid('nombre')">{{ getFieldError('nombre') }}</span>
+            </div>
+            <div class="form-group">
+              <label for="cedula">Cédula <span class="required">*</span></label>
+              <input type="text" id="cedula" formControlName="cedula" placeholder="0123456789"
+                     [class.invalid]="isFieldInvalid('cedula')">
+              <span class="error-msg" *ngIf="isFieldInvalid('cedula')">{{ getFieldError('cedula') }}</span>
+            </div>
+            <div class="form-group">
+              <label for="telefono">Teléfono <span class="required">*</span></label>
+              <input type="tel" id="telefono" formControlName="telefono" placeholder="0987654321"
+                     [class.invalid]="isFieldInvalid('telefono')">
+              <span class="error-msg" *ngIf="isFieldInvalid('telefono')">{{ getFieldError('telefono') }}</span>
+            </div>
+            <div class="form-group">
+              <label for="email">Email <span class="required">*</span></label>
+              <input type="email" id="email" formControlName="email" placeholder="juan@ejemplo.com"
+                     [class.invalid]="isFieldInvalid('email')">
+              <span class="error-msg" *ngIf="isFieldInvalid('email')">{{ getFieldError('email') }}</span>
+            </div>
+            <div class="form-group form-grid-full">
+              <label for="direccion">Dirección <span class="required">*</span></label>
+              <textarea id="direccion" formControlName="direccion" rows="2"
+                        placeholder="Av. Principal #123, Ciudad"
+                        [class.invalid]="isFieldInvalid('direccion')"></textarea>
+              <span class="error-msg" *ngIf="isFieldInvalid('direccion')">{{ getFieldError('direccion') }}</span>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="cedula">Cédula <span class="required">*</span></label>
-            <input type="text" id="cedula" formControlName="cedula" placeholder="Ej: 0123456789" [class.invalid]="isFieldInvalid('cedula')"/>
-            <span class="field-error" *ngIf="isFieldInvalid('cedula')">{{ getFieldError('cedula') }}</span>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="telefono">Teléfono <span class="required">*</span></label>
-            <input type="tel" id="telefono" formControlName="telefono" placeholder="Ej: 0987654321" [class.invalid]="isFieldInvalid('telefono')"/>
-            <span class="field-error" *ngIf="isFieldInvalid('telefono')">{{ getFieldError('telefono') }}</span>
-          </div>
-          <div class="form-group">
-            <label for="email">Email <span class="required">*</span></label>
-            <input type="email" id="email" formControlName="email" placeholder="Ej: juan@ejemplo.com" [class.invalid]="isFieldInvalid('email')"/>
-            <span class="field-error" *ngIf="isFieldInvalid('email')">{{ getFieldError('email') }}</span>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="direccion">Dirección <span class="required">*</span></label>
-          <textarea id="direccion" formControlName="direccion" rows="2" placeholder="Ej: Av. Principal #123, Ciudad" [class.invalid]="isFieldInvalid('direccion')"></textarea>
-          <span class="field-error" *ngIf="isFieldInvalid('direccion')">{{ getFieldError('direccion') }}</span>
         </div>
       </div>
 
-      <!-- Sección: Credenciales (solo creación) -->
-      <div class="form-section" *ngIf="!isEditMode">
-        <div class="form-section-header">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clip-rule="evenodd"/>
+      <!-- Credenciales y Acceso -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
-          <h3>Credenciales de Acceso <span style="font-weight:400; font-size:12px; color:var(--color-text-muted);">(opcional)</span></h3>
+          <h3>{{ isEditMode ? 'Acceso, Rol y Empresa' : 'Credenciales de Acceso' }}</h3>
         </div>
+        <div class="form-card-body">
 
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="crearUsuario" [ngModelOptions]="{standalone: true}" (change)="onCrearUsuarioChange()"/>
-            <span>Crear usuario de acceso al sistema</span>
-          </label>
-        </div>
-
-        <div *ngIf="crearUsuario" class="credentials-fields">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="username">Nombre de Usuario <span class="required">*</span></label>
-              <input type="text" id="username" formControlName="username" placeholder="Ej: jperez" [class.invalid]="isFieldInvalid('username')"/>
-              <span class="field-error" *ngIf="isFieldInvalid('username')">{{ getFieldError('username') }}</span>
-            </div>
-            <div class="form-group">
-              <label for="password">Contraseña <span class="required">*</span></label>
-              <input type="password" id="password" formControlName="password" placeholder="Mínimo 6 caracteres" [class.invalid]="isFieldInvalid('password')"/>
-              <span class="field-error" *ngIf="isFieldInvalid('password')">{{ getFieldError('password') }}</span>
-            </div>
+          <!-- Toggle crear usuario (solo al crear) -->
+          <div class="toggle-group" *ngIf="!isEditMode" style="margin-bottom:16px">
+            <label for="crearUsuarioToggle">Crear usuario de acceso al sistema</label>
+            <input type="checkbox" id="crearUsuarioToggle"
+                   [(ngModel)]="crearUsuario" [ngModelOptions]="{standalone: true}"
+                   (change)="onCrearUsuarioChange()">
           </div>
-          <div class="form-group">
-            <label for="rolId">Rol <span class="required">*</span></label>
-            <select id="rolId" formControlName="rolId" [class.invalid]="isFieldInvalid('rolId')">
-              <option [ngValue]="null" disabled>Seleccione un rol</option>
-              <option *ngFor="let rol of roles" [ngValue]="rol.id">{{ rol.nombre }}</option>
-            </select>
-            <span class="field-error" *ngIf="isFieldInvalid('rolId')">Debe seleccionar un rol</span>
+
+          <div *ngIf="crearUsuario || isEditMode">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="username">
+                  Nombre de Usuario <span class="required" *ngIf="!isEditMode">*</span>
+                </label>
+                <input type="text" id="username" formControlName="username" placeholder="jperez"
+                       [class.invalid]="isFieldInvalid('username')">
+                <span class="error-msg" *ngIf="isFieldInvalid('username')">{{ getFieldError('username') }}</span>
+              </div>
+              <div class="form-group">
+                <label for="password">
+                  {{ isEditMode ? 'Nueva Contraseña' : 'Contraseña' }}
+                  <span class="required" *ngIf="!isEditMode">*</span>
+                </label>
+                <input type="password" id="password" formControlName="password"
+                       [placeholder]="isEditMode ? 'Dejar vacío para mantener la actual' : 'Mínimo 6 caracteres'"
+                       [class.invalid]="isFieldInvalid('password')">
+                <span class="error-msg" *ngIf="isFieldInvalid('password')">{{ getFieldError('password') }}</span>
+              </div>
+              <div class="form-group">
+                <label for="rolId">Rol <span class="required" *ngIf="!isEditMode">*</span></label>
+                <select id="rolId" formControlName="rolId" [class.invalid]="isFieldInvalid('rolId')">
+                  <option [ngValue]="null" disabled>Seleccione un rol</option>
+                  <option *ngFor="let rol of roles" [ngValue]="rol.id">{{ rol.nombre }}</option>
+                </select>
+                <span class="error-msg" *ngIf="isFieldInvalid('rolId')">{{ getFieldError('rolId') }}</span>
+              </div>
+              <div class="form-group">
+                <label for="empresaId">Empresa <span class="required" *ngIf="!isEditMode">*</span></label>
+                <select id="empresaId" formControlName="empresaId"
+                        [class.invalid]="isFieldInvalid('empresaId')" (change)="onEmpresaChange()">
+                  <option [ngValue]="null" disabled>Seleccione una empresa</option>
+                  <option *ngFor="let empresa of empresas" [ngValue]="empresa.id">{{ empresa.nombre }}</option>
+                </select>
+                <span class="error-msg" *ngIf="isFieldInvalid('empresaId')">{{ getFieldError('empresaId') }}</span>
+              </div>
+              <div class="form-group">
+                <label for="rolEmpresaId">Rol de Empresa (opcional)</label>
+                <select id="rolEmpresaId" formControlName="rolEmpresaId"
+                        [disabled]="!empleadoForm.get('empresaId')?.value">
+                  <option [ngValue]="null">Sin rol de empresa</option>
+                  <option *ngFor="let r of rolesEmpresaDisponibles" [ngValue]="r.id">{{ r.nombre }}</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Footer del modal -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cerrarModal()" [disabled]="isLoading">
+      <div class="form-page-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()" [disabled]="isLoading">
           Cancelar
         </button>
         <button type="submit" class="btn btn-primary" [disabled]="isLoading || empleadoForm.invalid">
-          <span *ngIf="!isLoading">{{ isEditMode ? 'Actualizar' : 'Guardar' }}</span>
-          <span *ngIf="isLoading">Procesando...</span>
+          <svg *ngIf="!isLoading" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>{{ isLoading ? 'Guardando…' : (isEditMode ? 'Actualizar Empleado' : 'Guardar Empleado') }}</span>
         </button>
       </div>
 
     </form>
   </div>
+
 </div>

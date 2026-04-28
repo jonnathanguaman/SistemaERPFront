@@ -4,6 +4,7 @@ export interface EmpresaRequest {
   direccion: string;
   telefono: string;
   email: string;
+  necesitaDespacho: boolean;
 }
 
 export interface EmpresaResponse {
@@ -13,5 +14,6 @@ export interface EmpresaResponse {
   direccion: string;
   telefono: string;
   email: string;
+  necesitaDespacho: boolean;
   activo: boolean;
 }

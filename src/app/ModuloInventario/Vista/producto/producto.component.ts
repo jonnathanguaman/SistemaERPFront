@@ -21,7 +21,7 @@ export class ProductoComponent implements OnInit {
   productos: ProductoResponse[] = [];
   productosFiltrados: ProductoResponse[] = [];
   productoForm: FormGroup;
-  showModal = false;
+  showForm = false;
   isEditMode = false;
   selectedProductoId?: number;
   loading = false;
@@ -110,7 +110,7 @@ export class ProductoComponent implements OnInit {
     );
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.productoForm.reset({
       temperatura: 'AMBIENTE',
@@ -121,10 +121,11 @@ export class ProductoComponent implements OnInit {
       cantidadPorCaja: 1,
       estado: true
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(producto: ProductoResponse): void {
+  abrirFormEditar(producto: ProductoResponse): void {
     this.isEditMode = true;
     this.selectedProductoId = producto.id;
     this.productoForm.patchValue({
@@ -145,11 +146,12 @@ export class ProductoComponent implements OnInit {
       subgrupoId: producto.subgrupoId,
       productoTipoId: producto.productoTipoId
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.productoForm.reset();
     this.isEditMode = false;
     this.selectedProductoId = undefined;
@@ -168,7 +170,7 @@ export class ProductoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Producto actualizado', 'El producto se actualizó correctamente');
           this.cargarProductos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.error('Error al actualizar producto', error.message);
@@ -179,7 +181,7 @@ export class ProductoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Producto creado', 'El producto se creó correctamente');
           this.cargarProductos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.error('Error al crear producto', error.message);

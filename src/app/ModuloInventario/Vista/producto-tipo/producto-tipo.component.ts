@@ -14,7 +14,7 @@ export class ProductoTipoComponent implements OnInit {
   productoTipos: ProductoTipoResponse[] = [];
   productoTiposFiltrados: ProductoTipoResponse[] = [];
   productoTipoForm: FormGroup;
-  showModal = false;
+  showForm = false;
   isEditMode = false;
   selectedProductoTipoId?: number;
   loading = false;
@@ -56,23 +56,25 @@ export class ProductoTipoComponent implements OnInit {
     );
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.productoTipoForm.reset();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(productoTipo: ProductoTipoResponse): void {
+  abrirFormEditar(productoTipo: ProductoTipoResponse): void {
     this.isEditMode = true;
     this.selectedProductoTipoId = productoTipo.id;
     this.productoTipoForm.patchValue({
       nombre: productoTipo.nombre
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.productoTipoForm.reset();
     this.isEditMode = false;
     this.selectedProductoTipoId = undefined;
@@ -91,7 +93,7 @@ export class ProductoTipoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Tipo de producto actualizado', 'El tipo de producto se actualizó correctamente');
           this.cargarProductoTipos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.error('Error al actualizar tipo de producto', error.message);
@@ -102,7 +104,7 @@ export class ProductoTipoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Tipo de producto creado', 'El tipo de producto se creó correctamente');
           this.cargarProductoTipos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.error('Error al crear tipo de producto', error.message);

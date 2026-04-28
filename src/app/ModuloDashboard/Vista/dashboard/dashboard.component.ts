@@ -155,10 +155,10 @@ export class DashboardComponent implements OnInit {
 
     // Cuentas por Cobrar
     this.cxcPendientes = this.cuentasPorCobrar.filter(c => c.estado === 'PENDIENTE').length;
-    this.cxcPagadaParcial = this.cuentasPorCobrar.filter(c => c.estado === 'PAGADA_PARCIAL').length;
+    this.cxcPagadaParcial = this.cuentasPorCobrar.filter(c => c.estado === 'PARCIAL').length;
     this.cxcVencidas = this.cuentasPorCobrar.filter(c => c.estado === 'VENCIDA').length;
     this.montoCxcPendiente = this.cuentasPorCobrar
-      .filter(c => ['PENDIENTE', 'PAGADA_PARCIAL'].includes(c.estado))
+      .filter(c => ['PENDIENTE', 'PARCIAL'].includes(c.estado))
       .reduce((s, c) => s + (c.montoPendiente || 0), 0);
     this.montoCxcVencido = this.cuentasPorCobrar
       .filter(c => c.estado === 'VENCIDA')

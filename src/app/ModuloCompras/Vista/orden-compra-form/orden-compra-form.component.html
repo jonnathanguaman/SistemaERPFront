@@ -1,230 +1,228 @@
 <div class="orden-form-page">
-  <div class="page-heading">
-    <h1>{{ tituloPagina }}</h1>
-    <p>Gestiona la información y detalle de la orden de compra.</p>
-  </div>
 
-  <div class="toolbar-card" *ngIf="!isLoading || ordenSeleccionada || !isEditMode">
-    <div class="top-actions">
-      <div class="left-actions">
-        <button class="btn btn-secondary" (click)="volverAlListado()">Volver</button>
-        <button class="btn btn-primary" *ngIf="mostrarAccionesEdicion" (click)="guardarOrden()" [disabled]="isLoading || ordenForm.invalid">
-          {{ isLoading ? 'Procesando...' : 'Guardar' }}
-        </button>
-        <button class="btn btn-secondary" *ngIf="mostrarAccionesEdicion" (click)="descartarCambios()" [disabled]="isLoading">
-          Descartar
-        </button>
-        </div>
+  <button class="btn-back" (click)="volverAlListado()">&#8249; Volver a Órdenes de Compra</button>
 
-      <div class="estado-actions">
-        <button
-          type="button"
-          *ngFor="let estado of estadosDisponibles"
-          class="btn-estado"
-          [class.activo]="isEstadoActivo(estado)"
-          [disabled]="!puedeSeleccionarEstado(estado)"
-          (click)="seleccionarEstado(estado)"
-        >
-          {{ estado }}
-        </button>
-      </div>
+  <div class="form-page-header">
+    <div class="form-page-header-text">
+      <nav class="page-breadcrumb" aria-label="Miga de pan">
+        Compras <span class="separator">/</span>
+        Órdenes de Compra <span class="separator">/</span>
+        {{ isEditMode ? 'Editar Orden' : 'Nueva Orden' }}
+      </nav>
+      <h1>{{ tituloPagina }}</h1>
+      <p class="form-page-subtitle">Gestiona la información y detalle de la orden de compra.</p>
     </div>
   </div>
 
-  <div class="content-card" *ngIf="!isLoading || ordenSeleccionada || !isEditMode">
-    <form [formGroup]="ordenForm" (ngSubmit)="guardarOrden()" class="page-form">
-      <div class="form-section section-card header-section">
-        <div class="header-section-title">
-          <h3>Cabecera de Orden de Compra</h3>
-          <p>Completa los campos principales para registrar la orden.</p>
-        </div>
+  <div *ngIf="isLoading && isEditMode && !ordenSeleccionada" class="inline-loader">Cargando…</div>
 
-        <div class="campos-grid">
-          <div class="form-group">
-            <label for="numeroOrden">Número de Orden <span class="required">*</span></label>
-            <input
-              type="text"
-              id="numeroOrden"
-              formControlName="numeroOrden"
-              placeholder="Ej: OC-001"
-              [class.invalid]="isFieldInvalid('numeroOrden')"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('numeroOrden')">
-              {{ getFieldError('numeroOrden') }}
-            </span>
-          </div>
+  <div *ngIf="!isLoading || ordenSeleccionada || !isEditMode">
 
-          <div class="form-group">
-            <label for="proveedorId">Proveedor <span class="required">*</span></label>
-            <select
-              id="proveedorId"
-              formControlName="proveedorId"
-              [class.invalid]="isFieldInvalid('proveedorId')"
-            >
-              <option value="">Seleccione un proveedor</option>
-              <option *ngFor="let proveedor of proveedores" [value]="proveedor.id">
-                {{ proveedor.razonSocial }}
-              </option>
-            </select>
-            <span class="error-message" *ngIf="isFieldInvalid('proveedorId')">
-              {{ getFieldError('proveedorId') }}
-            </span>
-          </div>
+    <div class="estado-strip" *ngIf="estadosDisponibles.length > 0">
+      <button
+        type="button"
+        *ngFor="let estado of estadosDisponibles"
+        class="btn-estado"
+        [class.activo]="isEstadoActivo(estado)"
+        [disabled]="!puedeSeleccionarEstado(estado)"
+        (click)="seleccionarEstado(estado)"
+      >
+        {{ estado }}
+      </button>
+    </div>
 
-          <div class="form-group">
-            <label for="fechaOrden">Fecha de Orden <span class="required">*</span></label>
-            <input
-              type="date"
-              id="fechaOrden"
-              formControlName="fechaOrden"
-              [class.invalid]="isFieldInvalid('fechaOrden')"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('fechaOrden')">
-              {{ getFieldError('fechaOrden') }}
-            </span>
-          </div>
+    <form [formGroup]="ordenForm" (ngSubmit)="guardarOrden()">
 
-          <div class="form-group">
-            <label for="fechaEntregaEsperada">Fecha Entrega Esperada</label>
-            <input
-              type="date"
-              id="fechaEntregaEsperada"
-              formControlName="fechaEntregaEsperada"
-            />
-          </div>
+      <div class="form-card">
+        <div class="form-card-header">Cabecera de Orden de Compra</div>
+        <div class="form-card-body">
+          <div class="form-grid">
 
-          <div class="form-group">
-            <label for="bodegaId">Bodega <span class="required">*</span></label>
-            <select
-              id="bodegaId"
-              formControlName="bodegaId"
-              [class.invalid]="isFieldInvalid('bodegaId')"
-            >
-              <option [ngValue]="null">Seleccione una bodega</option>
-              <option *ngFor="let bodega of bodegas" [ngValue]="bodega.id">
-                {{ bodega.codigo }} - {{ bodega.nombre }}
-              </option>
-            </select>
-            <span class="error-message" *ngIf="isFieldInvalid('bodegaId')">
-              {{ getFieldError('bodegaId') }}
-            </span>
-          </div>
-        </div>
+            <div class="form-group">
+              <label for="numeroOrden">Número de Orden</label>
+              <input
+                type="text"
+                id="numeroOrden"
+                formControlName="numeroOrden"
+                placeholder="Se genera automáticamente"
+                readonly
+                [class.invalid]="isFieldInvalid('numeroOrden')"
+              />
+              <span class="error-msg" *ngIf="isFieldInvalid('numeroOrden')">{{ getFieldError('numeroOrden') }}</span>
+            </div>
 
-        <div class="form-group">
-          <label for="direccionEntrega">Dirección de Entrega</label>
-          <textarea
-            id="direccionEntrega"
-            formControlName="direccionEntrega"
-            rows="2"
-            placeholder="Dirección donde se entregará la orden"
-          ></textarea>
-        </div>
+            <div class="form-group">
+              <label for="proveedorId">Proveedor <span class="required">*</span></label>
+              <select
+                id="proveedorId"
+                formControlName="proveedorId"
+                [class.invalid]="isFieldInvalid('proveedorId')"
+              >
+                <option value="">Seleccione un proveedor</option>
+                <option *ngFor="let proveedor of proveedores" [value]="proveedor.id">
+                  {{ proveedor.razonSocial }}
+                </option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('proveedorId')">{{ getFieldError('proveedorId') }}</span>
+            </div>
 
-        <div class="form-group">
-          <label for="observaciones">Observaciones</label>
-          <textarea
-            id="observaciones"
-            formControlName="observaciones"
-            rows="3"
-            placeholder="Notas adicionales sobre la orden"
-          ></textarea>
-        </div>
-      </div>
+            <div class="form-group">
+              <label for="fechaOrden">Fecha de Orden <span class="required">*</span></label>
+              <input
+                type="date"
+                id="fechaOrden"
+                formControlName="fechaOrden"
+                [class.invalid]="isFieldInvalid('fechaOrden')"
+              />
+              <span class="error-msg" *ngIf="isFieldInvalid('fechaOrden')">{{ getFieldError('fechaOrden') }}</span>
+            </div>
 
-      <div class="form-section section-card detalle-section">
-        <div class="detalle-header">
-          <div>
-            <h3>Detalle de Orden de Compra</h3>
-            <p>Agrega productos y define cantidades, descuentos e impuesto.</p>
-          </div>
-          <button type="button" class="btn btn-secondary" [disabled]="!puedeEditarFormulario" (click)="agregarDetalle()">Añadir línea</button>
-        </div>
+            <div class="form-group">
+              <label for="fechaEntregaEsperada">Fecha Entrega Esperada</label>
+              <input
+                type="date"
+                id="fechaEntregaEsperada"
+                formControlName="fechaEntregaEsperada"
+              />
+            </div>
 
-        <div class="detalle-table-wrapper">
-          <table class="detalle-table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario</th>
-                <th>Desc. %</th>
-                <th>Desc. Monto</th>
-                <th>IVA %</th>
-                <th>Total Línea</th>
-                <th>Acciones</th>
-              </tr>
-            </thead> 
-            <tbody formArrayName="detalles">
-              <tr *ngIf="detalles.length === 0">
-                <td colspan="8" class="no-data">No hay líneas agregadas.</td>
-              </tr>
+            <div class="form-group">
+              <label for="bodegaId">Bodega <span class="required">*</span></label>
+              <select
+                id="bodegaId"
+                formControlName="bodegaId"
+                [class.invalid]="isFieldInvalid('bodegaId')"
+              >
+                <option [ngValue]="null">Seleccione una bodega</option>
+                <option *ngFor="let bodega of bodegas" [ngValue]="bodega.id">
+                  {{ bodega.codigo }} - {{ bodega.nombre }}
+                </option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('bodegaId')">{{ getFieldError('bodegaId') }}</span>
+            </div>
 
-              <tr *ngFor="let detalle of detallesControls; let i = index" [formGroupName]="i">
-                <td>
-                  <select formControlName="productoId" [disabled]="!puedeEditarFormulario" [class.invalid]="isDetalleFieldInvalid(i, 'productoId')" (change)="onProductoDetalleChange(i)">
-                    <option [ngValue]="null">
-                      {{ isLoadingProductos ? 'Cargando productos...' : (productos.length === 0 ? 'No hay productos activos' : 'Seleccione producto') }}
-                    </option>
-                    <option *ngFor="let producto of productos" [ngValue]="producto.id">
-                      {{ producto.productoNombre }}
-                    </option>
-                  </select>
-                </td>
+            <div class="form-group form-grid-full">
+              <label for="direccionEntrega">Dirección de Entrega</label>
+              <textarea
+                id="direccionEntrega"
+                formControlName="direccionEntrega"
+                rows="2"
+                placeholder="Dirección donde se entregará la orden"
+              ></textarea>
+            </div>
 
-                <td>
-                  <input type="number" formControlName="cantidadOrdenada" min="0.01" step="0.01" [readonly]="!puedeEditarFormulario" [class.invalid]="isDetalleFieldInvalid(i, 'cantidadOrdenada')" (input)="onLineaChange()">
-                </td>
+            <div class="form-group form-grid-full">
+              <label for="observaciones">Observaciones</label>
+              <textarea
+                id="observaciones"
+                formControlName="observaciones"
+                rows="3"
+                placeholder="Notas adicionales sobre la orden"
+              ></textarea>
+            </div>
 
-                <td>
-                  <input type="number" formControlName="precioUnitario" min="0" step="0.01" [readonly]="!puedeEditarFormulario" [class.invalid]="isDetalleFieldInvalid(i, 'precioUnitario')" (input)="onLineaChange()">
-                </td>
-
-                <td>
-                  <input type="number" formControlName="descuentoPorcentaje" min="0" max="100" step="0.01" [readonly]="!puedeEditarFormulario" (input)="onLineaChange()">
-                </td>
-
-                <td>
-                  <input type="number" formControlName="descuentoMonto" min="0" step="0.01" readonly>
-                </td>
-
-                <td>
-                  <input type="number" formControlName="impuestoPorcentaje" min="0" step="0.01" [readonly]="true" [class.invalid]="isDetalleFieldInvalid(i, 'impuestoPorcentaje')">
-                </td>
-
-                <td class="cell-total">{{ calcularTotalDetalle(i) | currency: 'USD' }}</td>
-
-                <td>
-                  <button type="button" class="btn-delete" (click)="eliminarDetalle(i)" [disabled]="!puedeEditarFormulario || detalles.length === 1">
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="totals-strip" *ngIf="detalles.length > 0">
-          <div class="total-box">
-            <span>Subtotal</span>
-            <strong>{{ calcularSubtotalOrden() | currency: 'USD' }}</strong>
-          </div>
-          <div class="total-box">
-            <span>Descuento</span>
-            <strong>{{ calcularDescuentoOrden() | currency: 'USD' }}</strong>
-          </div>
-          <div class="total-box">
-            <span>Impuesto</span>
-            <strong>{{ calcularImpuestoOrden() | currency: 'USD' }}</strong>
-          </div>
-          <div class="total-box total-final">
-            <span>Total</span>
-            <strong>{{ calcularTotalOrden() | currency: 'USD' }}</strong>
           </div>
         </div>
       </div>
+
+      <div class="form-card">
+        <div class="form-card-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Detalle de Orden de Compra</span>
+          <button type="button" class="btn btn-secondary" [disabled]="!puedeEditarFormulario" (click)="agregarDetalle()">+ Añadir línea</button>
+        </div>
+        <div class="form-card-body">
+
+          <div class="table-wrapper">
+            <table class="detalle-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th class="text-right">Cantidad</th>
+                  <th class="text-right">Precio Unit.</th>
+                  <th class="text-right">Desc. %</th>
+                  <th class="text-right">Desc. Monto</th>
+                  <th class="text-right">IVA %</th>
+                  <th class="text-right">Total Línea</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody formArrayName="detalles">
+                <tr *ngIf="detalles.length === 0">
+                  <td colspan="8" class="list-empty">No hay líneas agregadas.</td>
+                </tr>
+                <tr *ngFor="let detalle of detallesControls; let i = index" [formGroupName]="i">
+                  <td>
+                    <select formControlName="productoId" [disabled]="!puedeEditarFormulario" [class.invalid]="isDetalleFieldInvalid(i, 'productoId')" (change)="onProductoDetalleChange(i)">
+                      <option [ngValue]="null">
+                        {{ isLoadingProductos ? 'Cargando productos...' : (productos.length === 0 ? 'No hay productos activos' : 'Seleccione producto') }}
+                      </option>
+                      <option *ngFor="let producto of productos" [ngValue]="producto.id">
+                        {{ producto.productoNombre }}
+                      </option>
+                    </select>
+                  </td>
+                  <td>
+                    <input type="number" formControlName="cantidadOrdenada" min="0.01" step="0.01" [readonly]="!puedeEditarFormulario" [class.invalid]="isDetalleFieldInvalid(i, 'cantidadOrdenada')" (input)="onLineaChange()">
+                  </td>
+                  <td>
+                    <input type="number" formControlName="precioUnitario" min="0" step="0.01" [readonly]="!puedeEditarFormulario" [class.invalid]="isDetalleFieldInvalid(i, 'precioUnitario')" (input)="onLineaChange()">
+                  </td>
+                  <td>
+                    <input type="number" formControlName="descuentoPorcentaje" min="0" max="100" step="0.01" [readonly]="!puedeEditarFormulario" (input)="onLineaChange()">
+                  </td>
+                  <td>
+                    <input type="number" formControlName="descuentoMonto" min="0" step="0.01" readonly>
+                  </td>
+                  <td>
+                    <input type="number" formControlName="impuestoPorcentaje" min="0" step="0.01" [readonly]="true" [class.invalid]="isDetalleFieldInvalid(i, 'impuestoPorcentaje')">
+                  </td>
+                  <td class="text-right td-mono cell-total">{{ calcularTotalDetalle(i) | currency: 'USD' }}</td>
+                  <td>
+                    <button type="button" class="btn-icon btn-delete" (click)="eliminarDetalle(i)" [disabled]="!puedeEditarFormulario || detalles.length === 1" title="Eliminar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="totals-strip" *ngIf="detalles.length > 0">
+            <div class="total-box">
+              <span>Subtotal</span>
+              <strong>{{ calcularSubtotalOrden() | currency: 'USD' }}</strong>
+            </div>
+            <div class="total-box">
+              <span>Descuento</span>
+              <strong>{{ calcularDescuentoOrden() | currency: 'USD' }}</strong>
+            </div>
+            <div class="total-box">
+              <span>Impuesto</span>
+              <strong>{{ calcularImpuestoOrden() | currency: 'USD' }}</strong>
+            </div>
+            <div class="total-box total-final">
+              <span>Total</span>
+              <strong>{{ calcularTotalOrden() | currency: 'USD' }}</strong>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-page-footer" *ngIf="mostrarAccionesEdicion">
+        <button type="button" class="btn btn-secondary" (click)="descartarCambios()" [disabled]="isLoading">Descartar</button>
+        <button type="button" class="btn btn-secondary" (click)="volverAlListado()">Volver</button>
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading || ordenForm.invalid">
+          {{ isLoading ? 'Procesando...' : 'Guardar' }}
+        </button>
+      </div>
+
+      <div class="form-page-footer" *ngIf="!mostrarAccionesEdicion">
+        <button type="button" class="btn btn-secondary" (click)="volverAlListado()">Volver</button>
+      </div>
+
     </form>
+
   </div>
 
-  <div class="loading-state" *ngIf="isLoading && isEditMode && !ordenSeleccionada">Cargando orden...</div>
 </div>

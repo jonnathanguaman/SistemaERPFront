@@ -27,7 +27,7 @@ export class PermisoDirectoPersonalComponent implements OnInit {
   personas: PersonaResponse[] = [];
   empresas: EmpresaResponse[] = [];
   permisoDirectoForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   permisoDirectoIdEditar: number | null = null;
   busqueda = '';
@@ -113,26 +113,29 @@ export class PermisoDirectoPersonalComponent implements OnInit {
     );
   }
 
-  abrirModal(permisoDirecto?: PermisoDirectoPersonal): void {
-    if (permisoDirecto) {
-      this.modoEdicion = true;
-      this.permisoDirectoIdEditar = permisoDirecto.id || null;
-      this.permisoDirectoForm.patchValue({
-        personaEmpresaId: permisoDirecto.personaEmpresaId,
-        accionProcesoId: permisoDirecto.accionProcesoId,
-        fechaInicio: permisoDirecto.fechaInicio,
-        fechaFin: permisoDirecto.fechaFin
-      });
-    } else {
-      this.modoEdicion = false;
-      this.permisoDirectoIdEditar = null;
-      this.permisoDirectoForm.reset();
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.permisoDirectoIdEditar = null;
+    this.permisoDirectoForm.reset();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(permisoDirecto: PermisoDirectoPersonal): void {
+    this.modoEdicion = true;
+    this.permisoDirectoIdEditar = permisoDirecto.id || null;
+    this.permisoDirectoForm.patchValue({
+      personaEmpresaId: permisoDirecto.personaEmpresaId,
+      accionProcesoId: permisoDirecto.accionProcesoId,
+      fechaInicio: permisoDirecto.fechaInicio,
+      fechaFin: permisoDirecto.fechaFin
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.permisoDirectoForm.reset();
     this.modoEdicion = false;
     this.permisoDirectoIdEditar = null;
@@ -155,7 +158,7 @@ export class PermisoDirectoPersonalComponent implements OnInit {
         this.notificationService.showSuccess('Permiso directo creado correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       this.notificationService.showError('Error al guardar el permiso directo');
     }

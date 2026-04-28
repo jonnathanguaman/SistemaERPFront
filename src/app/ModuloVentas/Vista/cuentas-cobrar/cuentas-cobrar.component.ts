@@ -19,7 +19,7 @@ export class CuentasCobrarComponent implements OnInit {
   clientes: ClienteResponse[] = [];
   facturas: FacturaResponse[] = [];
   cuentaForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingCuentaId: number | null = null;
   loading: boolean = false;
@@ -113,7 +113,7 @@ export class CuentasCobrarComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingCuentaId = null;
     const today = new Date().toISOString().split('T')[0];
@@ -126,10 +126,11 @@ export class CuentasCobrarComponent implements OnInit {
       montoOriginal: 0,
       montoPagado: 0
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(cuenta: CuentaPorCobrarResponse): void {
+  abrirFormEditar(cuenta: CuentaPorCobrarResponse): void {
     this.isEditing = true;
     this.editingCuentaId = cuenta.id;
     this.cuentaForm.patchValue({
@@ -143,11 +144,12 @@ export class CuentasCobrarComponent implements OnInit {
       montoPagado: cuenta.montoPagado,
       observaciones: cuenta.observaciones
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.cuentaForm.reset();
     this.isEditing = false;
     this.editingCuentaId = null;
@@ -167,7 +169,7 @@ export class CuentasCobrarComponent implements OnInit {
         next: () => {
           this.notificationService.success('Cuenta por cobrar actualizada exitosamente');
           this.cargarCuentas();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar cuenta:', error);
@@ -179,7 +181,7 @@ export class CuentasCobrarComponent implements OnInit {
         next: () => {
           this.notificationService.success('Cuenta por cobrar creada exitosamente');
           this.cargarCuentas();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear cuenta:', error);

@@ -5,6 +5,12 @@ import { ClienteService } from '../../Service/cliente.service';
 import { DireccionClienteResponse, DireccionClienteRequest } from '../../Entidad/direccion-cliente.model';
 import { ClienteResponse } from '../../Entidad/cliente.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
+import { PaisService } from '../../../ModuloEmpresa/Service/pais.service';
+import { ProvinciaService } from '../../../ModuloEmpresa/Service/provincia.service';
+import { CiudadService } from '../../../ModuloEmpresa/Service/ciudad.service';
+import { PaisResponse } from '../../../ModuloEmpresa/Entidad/pais.model';
+import { ProvinciaResponse } from '../../../ModuloEmpresa/Entidad/provincia.model';
+import { CiudadResponse } from '../../../ModuloEmpresa/Entidad/ciudad.model';
 
 @Component({
   selector: 'app-direccion-cliente',
@@ -16,12 +22,15 @@ export class DireccionClienteComponent implements OnInit {
   direcciones: DireccionClienteResponse[] = [];
   clientes: ClienteResponse[] = [];
   direccionForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingDireccionId: number | null = null;
   loading: boolean = false;
   searchTerm: string = '';
   clienteIdFiltro: number | null = null;
+  paises: PaisResponse[] = [];
+  provincias: ProvinciaResponse[] = [];
+  ciudades: CiudadResponse[] = [];
 
   tiposDireccion = [
     { value: 'FACTURACION', label: 'Facturación' },
@@ -32,6 +41,9 @@ export class DireccionClienteComponent implements OnInit {
   constructor(
     private readonly direccionService: DireccionClienteService,
     private readonly clienteService: ClienteService,
+    private readonly paisService: PaisService,
+    private readonly provinciaService: ProvinciaService,
+    private readonly ciudadService: CiudadService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
@@ -42,6 +54,9 @@ export class DireccionClienteComponent implements OnInit {
       direccion: ['', Validators.required],
       ciudad: [''],
       provincia: [''],
+      paisId: [null, Validators.required],
+      provinciaId: [null, Validators.required],
+      ciudadId: [null, Validators.required],
       codigoPostal: [''],
       referencia: [''],
       contacto: [''],
@@ -54,6 +69,88 @@ export class DireccionClienteComponent implements OnInit {
   ngOnInit(): void {
     this.cargarDirecciones();
     this.cargarClientes();
+    this.cargarPaises();
+
+    this.direccionForm.get('paisId')?.valueChanges.subscribe((paisId: number | null) => {
+      this.onPaisChange(paisId);
+    });
+
+    this.direccionForm.get('provinciaId')?.valueChanges.subscribe((provinciaId: number | null) => {
+      this.onProvinciaChange(provinciaId);
+    });
+
+    this.direccionForm.get('ciudadId')?.valueChanges.subscribe((ciudadId: number | null) => {
+      this.actualizarCiudadTexto(ciudadId);
+    });
+  }
+
+  cargarPaises(): void {
+    this.paisService.findActivos().subscribe({
+      next: (data) => {
+        this.paises = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar países:', error);
+        this.notificationService.error('Error al cargar países');
+      }
+    });
+  }
+
+  cargarProvinciasPorPais(paisId: number): void {
+    this.provinciaService.findByPais(paisId).subscribe({
+      next: (data) => {
+        this.provincias = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar provincias:', error);
+        this.notificationService.error('Error al cargar provincias');
+      }
+    });
+  }
+
+  cargarCiudadesPorProvincia(provinciaId: number): void {
+    this.ciudadService.findByProvincia(provinciaId).subscribe({
+      next: (data) => {
+        this.ciudades = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar ciudades:', error);
+        this.notificationService.error('Error al cargar ciudades');
+      }
+    });
+  }
+
+  onPaisChange(paisId: number | null): void {
+    this.provincias = [];
+    this.ciudades = [];
+    this.direccionForm.patchValue({ provinciaId: null, ciudadId: null, provincia: '', ciudad: '' }, { emitEvent: false });
+
+    if (paisId) {
+      this.cargarProvinciasPorPais(paisId);
+    }
+  }
+
+  onProvinciaChange(provinciaId: number | null): void {
+    this.ciudades = [];
+    this.direccionForm.patchValue({ ciudadId: null, ciudad: '' }, { emitEvent: false });
+
+    if (provinciaId) {
+      this.cargarCiudadesPorProvincia(provinciaId);
+      const provincia = this.provincias.find((p) => p.id === provinciaId);
+      this.direccionForm.patchValue({ provincia: provincia?.nombre || '' }, { emitEvent: false });
+    } else {
+      this.direccionForm.patchValue({ provincia: '' }, { emitEvent: false });
+    }
+  }
+
+  actualizarCiudadTexto(ciudadId: number | null): void {
+    if (!ciudadId) {
+      this.direccionForm.patchValue({ ciudad: '' }, { emitEvent: false });
+      return;
+    }
+
+    const ciudad = this.ciudades.find((c) => c.id === ciudadId);
+    this.direccionForm.patchValue({ ciudad: ciudad?.nombre || '' }, { emitEvent: false });
   }
 
   get direccionesFiltradas(): DireccionClienteResponse[] {
@@ -103,18 +200,24 @@ export class DireccionClienteComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingDireccionId = null;
     this.direccionForm.reset({
       tipoDireccion: 'AMBAS',
+      paisId: null,
+      provinciaId: null,
+      ciudadId: null,
       esPrincipal: false,
       activo: true
     });
-    this.showModal = true;
+    this.provincias = [];
+    this.ciudades = [];
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(direccion: DireccionClienteResponse): void {
+  abrirFormEditar(direccion: DireccionClienteResponse): void {
     this.isEditing = true;
     this.editingDireccionId = direccion.id;
     this.direccionForm.patchValue({
@@ -124,6 +227,9 @@ export class DireccionClienteComponent implements OnInit {
       direccion: direccion.direccion,
       ciudad: direccion.ciudad,
       provincia: direccion.provincia,
+      paisId: direccion.paisId,
+      provinciaId: direccion.provinciaId,
+      ciudadId: direccion.ciudadId,
       codigoPostal: direccion.codigoPostal,
       referencia: direccion.referencia,
       contacto: direccion.contacto,
@@ -131,12 +237,28 @@ export class DireccionClienteComponent implements OnInit {
       esPrincipal: direccion.esPrincipal,
       activo: direccion.activo
     });
-    this.showModal = true;
+
+    if (direccion.paisId) {
+      this.cargarProvinciasPorPais(direccion.paisId);
+    } else {
+      this.provincias = [];
+    }
+
+    if (direccion.provinciaId) {
+      this.cargarCiudadesPorProvincia(direccion.provinciaId);
+    } else {
+      this.ciudades = [];
+    }
+
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.direccionForm.reset();
+    this.provincias = [];
+    this.ciudades = [];
     this.isEditing = false;
     this.editingDireccionId = null;
   }
@@ -148,14 +270,21 @@ export class DireccionClienteComponent implements OnInit {
       return;
     }
 
-    const direccionData: DireccionClienteRequest = this.direccionForm.value;
+    const formValue = this.direccionForm.value;
+    const provincia = this.provincias.find((p) => p.id === formValue.provinciaId);
+    const ciudad = this.ciudades.find((c) => c.id === formValue.ciudadId);
+    const direccionData: DireccionClienteRequest = {
+      ...formValue,
+      provincia: provincia?.nombre || formValue.provincia || '',
+      ciudad: ciudad?.nombre || formValue.ciudad || ''
+    };
 
     if (this.isEditing && this.editingDireccionId !== null) {
       this.direccionService.update(this.editingDireccionId, direccionData).subscribe({
         next: () => {
           this.notificationService.success('Dirección actualizada exitosamente');
           this.cargarDirecciones();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar dirección:', error);
@@ -167,7 +296,7 @@ export class DireccionClienteComponent implements OnInit {
         next: () => {
           this.notificationService.success('Dirección creada exitosamente');
           this.cargarDirecciones();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear dirección:', error);

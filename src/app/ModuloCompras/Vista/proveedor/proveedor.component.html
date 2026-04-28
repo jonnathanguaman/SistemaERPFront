@@ -1,430 +1,315 @@
-<div class="proveedores-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Gestión de Proveedores</h1>
-      <p class="subtitle">Administra los proveedores de tu empresa</p>
-    </div>
-    <button class="btn btn-primary" (click)="abrirModalCrear()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-        <circle cx="9" cy="7" r="4"></circle>
-        <line x1="19" y1="8" x2="19" y2="14"></line>
-        <line x1="22" y1="11" x2="16" y2="11"></line>
-      </svg>
-      Nuevo Proveedor
-    </button>
-  </div>
+<div class="proveedor-container">
 
-  <!-- Barra de búsqueda y filtros -->
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input
-        type="text"
-        class="search-input"
-        placeholder="Buscar por razón social, nombre comercial, identificación, email o teléfono..."
-        [(ngModel)]="searchTerm"
-      />
-    </div>
-    <div class="results-count">
-      <span class="count-badge">{{ proveedoresFiltrados.length }}</span>
-      proveedor(es) encontrado(s)
-    </div>
-  </div>
-
-  <!-- Loading -->
-  <div class="loading-container" *ngIf="isLoading && proveedores.length === 0">
-    <div class="spinner"></div>
-    <p>Cargando proveedores...</p>
-  </div>
-
-  <!-- Tabla de proveedores -->
-  <div class="table-container" *ngIf="!isLoading || proveedores.length > 0">
-    <table class="proveedores-table">
-      <thead>
-        <tr>
-          <th>Razón Social</th>
-          <th>Nombre Comercial</th>
-          <th>Identificación</th>
-          <th>Tipo</th>
-          <th>Categoría</th>
-          <th>Teléfono</th>
-          <th>Email</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngIf="proveedoresFiltrados.length === 0 && !isLoading">
-          <td colspan="9" class="no-data">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            <p>No se encontraron proveedores</p>
-          </td>
-        </tr>
-        <tr *ngFor="let proveedor of proveedoresFiltrados" class="table-row">
-          <td class="nombre-cell">{{ proveedor.razonSocial }}</td>
-          <td>{{ proveedor.nombreComercial || '-' }}</td>
-          <td>
-            <div class="identificacion-cell">
-              <span class="tipo-id">{{ proveedor.tipoIdentificacion }}</span>
-              <span>{{ proveedor.numeroIdentificacion }}</span>
-            </div>
-          </td>
-          <td>{{ proveedor.tipoProveedor || '-' }}</td>
-          <td>
-            <span class="badge badge-categoria" *ngIf="proveedor.categoria">{{ proveedor.categoria }}</span>
-            <span *ngIf="!proveedor.categoria">-</span>
-          </td>
-          <td>{{ proveedor.telefono || proveedor.celular || '-' }}</td>
-          <td>{{ proveedor.email || '-' }}</td>
-          <td>
-            <span class="badge" [ngClass]="getEstadoBadgeClass(proveedor.estado || 'ACTIVO')">
-              {{ proveedor.estado || 'ACTIVO' }}
-            </span>
-          </td>
-          <td class="actions-cell">
-            <button class="btn-icon btn-edit" (click)="abrirModalEditar(proveedor)" title="Editar">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-            </button>
-            <button class="btn-icon btn-delete" (click)="eliminarProveedor(proveedor)" title="Eliminar">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Modal -->
-<div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>{{ isEditMode ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</h2>
-      <button class="btn-close" (click)="cerrarModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-breadcrumb">
+          <span>Compras</span><span class="separator">/</span><span>Proveedores</span>
+        </div>
+        <h1>Proveedores</h1>
+        <p class="page-subtitle">Gestiona el directorio de proveedores de la empresa</p>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
+        Nuevo Proveedor
       </button>
     </div>
 
-    <form [formGroup]="proveedorForm" (ngSubmit)="guardarProveedor()" class="modal-form">
-      <!-- Sección: Identificación -->
-      <div class="form-section">
-        <h3 class="section-title">Identificación</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="tipoIdentificacion">Tipo de Identificación <span class="required">*</span></label>
-            <select
-              id="tipoIdentificacion"
-              formControlName="tipoIdentificacion"
-              [class.invalid]="isFieldInvalid('tipoIdentificacion')"
-            >
-              <option *ngFor="let tipo of tiposIdentificacion" [value]="tipo">{{ tipo }}</option>
-            </select>
-            <span class="error-message" *ngIf="isFieldInvalid('tipoIdentificacion')">
-              {{ getFieldError('tipoIdentificacion') }}
-            </span>
-          </div>
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Buscar por nombre, RUC, email o teléfono…" [(ngModel)]="searchTerm">
+      </div>
+      <span class="result-count">{{ proveedoresFiltrados.length }} proveedor(es)</span>
+    </div>
 
-          <div class="form-group">
-            <label for="numeroIdentificacion">Número de Identificación <span class="required">*</span></label>
-            <input
-              type="text"
-              id="numeroIdentificacion"
-              formControlName="numeroIdentificacion"
-              placeholder="Ej: 0123456789001"
-              [class.invalid]="isFieldInvalid('numeroIdentificacion')"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('numeroIdentificacion')">
-              {{ getFieldError('numeroIdentificacion') }}
-            </span>
+    <div class="inline-loader" *ngIf="isLoading"><div class="spin"></div><span>Cargando proveedores…</span></div>
+
+    <div class="table-wrapper" *ngIf="!isLoading">
+      <table>
+        <thead>
+          <tr>
+            <th>Identificación</th>
+            <th>Razón Social</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let proveedor of proveedoresFiltrados">
+            <td class="td-mono text-muted">{{ proveedor.numeroIdentificacion }}</td>
+            <td>
+              <div>
+                <strong>{{ proveedor.razonSocial }}</strong>
+                <div *ngIf="proveedor.nombreComercial" style="font-size:12px;color:var(--color-text-muted)">{{ proveedor.nombreComercial }}</div>
+              </div>
+            </td>
+            <td class="text-muted">{{ proveedor.telefono || proveedor.celular || '—' }}</td>
+            <td class="text-muted">{{ proveedor.email || '—' }}</td>
+            <td><span class="badge badge-neutral">{{ proveedor.tipoProveedor || '—' }}</span></td>
+            <td>
+              <span class="badge" [ngClass]="getEstadoBadgeClass(proveedor.estado)">{{ proveedor.estado }}</span>
+            </td>
+            <td style="text-align:right">
+              <div style="display:flex;gap:6px;justify-content:flex-end">
+                <button class="btn-icon btn-edit" (click)="abrirFormEditar(proveedor)" title="Editar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="eliminarProveedor(proveedor)" title="Eliminar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="proveedoresFiltrados.length === 0 && !isLoading">
+            <td colspan="7">
+              <div class="list-empty">
+                <h3>Sin proveedores registrados</h3>
+                <p>{{ searchTerm ? 'Sin resultados para "' + searchTerm + '"' : 'Agrega el primer proveedor.' }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="form-view" *ngIf="showForm">
+    <button class="btn-back" (click)="cerrarForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver a Proveedores
+    </button>
+
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <div class="page-breadcrumb">
+          <span>Compras</span><span class="separator">/</span><span>Proveedores</span><span class="separator">/</span>
+          <span>{{ isEditMode ? 'Editar' : 'Nuevo' }}</span>
+        </div>
+        <h1>{{ isEditMode ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</h1>
+        <p class="form-page-subtitle">{{ isEditMode ? 'Actualiza la información del proveedor' : 'Registra un nuevo proveedor' }}</p>
+      </div>
+    </div>
+
+    <form [formGroup]="proveedorForm" (ngSubmit)="guardarProveedor()">
+
+      <!-- Identificación -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <h3>Identificación</h3>
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="tipoIdentificacion">Tipo de Identificación <span class="required">*</span></label>
+              <select id="tipoIdentificacion" formControlName="tipoIdentificacion">
+                <option *ngFor="let tipo of tiposIdentificacion" [value]="tipo">{{ tipo }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="numeroIdentificacion">Número de Identificación <span class="required">*</span></label>
+              <input type="text" id="numeroIdentificacion" formControlName="numeroIdentificacion" placeholder="1234567890"
+                     [class.invalid]="isFieldInvalid('numeroIdentificacion')">
+              <span class="error-msg" *ngIf="isFieldInvalid('numeroIdentificacion')">{{ getFieldError('numeroIdentificacion') }}</span>
+            </div>
+            <div class="form-group">
+              <label for="razonSocial">Razón Social <span class="required">*</span></label>
+              <input type="text" id="razonSocial" formControlName="razonSocial" placeholder="Nombre legal del proveedor"
+                     [class.invalid]="isFieldInvalid('razonSocial')">
+              <span class="error-msg" *ngIf="isFieldInvalid('razonSocial')">{{ getFieldError('razonSocial') }}</span>
+            </div>
+            <div class="form-group">
+              <label for="nombreComercial">Nombre Comercial</label>
+              <input type="text" id="nombreComercial" formControlName="nombreComercial" placeholder="Nombre comercial">
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Sección: Datos Básicos -->
-      <div class="form-section">
-        <h3 class="section-title">Datos Básicos</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="razonSocial">Razón Social <span class="required">*</span></label>
-            <input
-              type="text"
-              id="razonSocial"
-              formControlName="razonSocial"
-              placeholder="Ej: Empresa S.A."
-              [class.invalid]="isFieldInvalid('razonSocial')"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('razonSocial')">
-              {{ getFieldError('razonSocial') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="nombreComercial">Nombre Comercial</label>
-            <input
-              type="text"
-              id="nombreComercial"
-              formControlName="nombreComercial"
-              placeholder="Ej: Mi Empresa"
-            />
+      <!-- Clasificación -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+          <h3>Clasificación</h3>
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="tipoProveedor">Tipo de Proveedor</label>
+              <select id="tipoProveedor" formControlName="tipoProveedor">
+                <option value="">Sin clasificar</option>
+                <option *ngFor="let tipo of tiposProveedor" [value]="tipo">{{ tipo }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="categoria">Categoría</label>
+              <select id="categoria" formControlName="categoria">
+                <option value="">Sin categoría</option>
+                <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="estado">Estado</label>
+              <select id="estado" formControlName="estado">
+                <option *ngFor="let est of estados" [value]="est">{{ est }}</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Sección: Clasificación -->
-      <div class="form-section">
-        <h3 class="section-title">Clasificación</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="tipoProveedor">Tipo de Proveedor</label>
-            <select id="tipoProveedor" formControlName="tipoProveedor">
-              <option value="">-- Seleccione --</option>
-              <option *ngFor="let tipo of tiposProveedor" [value]="tipo">{{ tipo }}</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="categoria">Categoría</label>
-            <select id="categoria" formControlName="categoria">
-              <option value="">-- Seleccione --</option>
-              <option *ngFor="let cat of categorias" [value]="cat">Categoría {{ cat }}</option>
-            </select>
+      <!-- Contacto -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 11.5 19.79 19.79 0 0 1 1 2.81a2 2 0 0 1 2-2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9l-.08.03"/></svg>
+          <h3>Datos de Contacto</h3>
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="telefono">Teléfono</label>
+              <input type="tel" id="telefono" formControlName="telefono" placeholder="02-1234567">
+            </div>
+            <div class="form-group">
+              <label for="celular">Celular</label>
+              <input type="tel" id="celular" formControlName="celular" placeholder="0987654321">
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" formControlName="email" placeholder="proveedor@ejemplo.com"
+                     [class.invalid]="isFieldInvalid('email')">
+              <span class="error-msg" *ngIf="isFieldInvalid('email')">{{ getFieldError('email') }}</span>
+            </div>
+            <div class="form-group">
+              <label for="sitioWeb">Sitio Web</label>
+              <input type="text" id="sitioWeb" formControlName="sitioWeb" placeholder="www.proveedor.com">
+            </div>
+            <div class="form-group form-grid-full">
+              <label for="contactoPrincipal">Contacto Principal</label>
+              <input type="text" id="contactoPrincipal" formControlName="contactoPrincipal" placeholder="Nombre del contacto">
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Sección: Contacto -->
-      <div class="form-section">
-        <h3 class="section-title">Información de Contacto</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="telefono">Teléfono</label>
-            <input
-              type="tel"
-              id="telefono"
-              formControlName="telefono"
-              placeholder="Ej: 022345678"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="celular">Celular</label>
-            <input
-              type="tel"
-              id="celular"
-              formControlName="celular"
-              placeholder="Ej: 0987654321"
-            />
-          </div>
+      <!-- Ubicación -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <h3>Ubicación</h3>
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              formControlName="email"
-              placeholder="Ej: contacto@empresa.com"
-              [class.invalid]="isFieldInvalid('email')"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('email')">
-              {{ getFieldError('email') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="sitioWeb">Sitio Web</label>
-            <input
-              type="text"
-              id="sitioWeb"
-              formControlName="sitioWeb"
-              placeholder="Ej: www.empresa.com"
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="contactoPrincipal">Contacto Principal</label>
-          <input
-            type="text"
-            id="contactoPrincipal"
-            formControlName="contactoPrincipal"
-            placeholder="Ej: Juan Pérez - Gerente de Ventas"
-          />
-        </div>
-      </div>
-
-      <!-- Sección: Dirección -->
-      <div class="form-section">
-        <h3 class="section-title">Dirección</h3>
-        <div class="form-group">
-          <label for="direccion">Dirección</label>
-          <textarea
-            id="direccion"
-            formControlName="direccion"
-            rows="2"
-            placeholder="Ej: Av. Principal #123"
-          ></textarea>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="ciudad">Ciudad</label>
-            <input
-              type="text"
-              id="ciudad"
-              formControlName="ciudad"
-              placeholder="Ej: Quito"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="provincia">Provincia</label>
-            <input
-              type="text"
-              id="provincia"
-              formControlName="provincia"
-              placeholder="Ej: Pichincha"
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="pais">País</label>
-          <input
-            type="text"
-            id="pais"
-            formControlName="pais"
-          />
-        </div>
-      </div>
-
-      <!-- Sección: Condiciones Comerciales -->
-      <div class="form-section">
-        <h3 class="section-title">Condiciones Comerciales</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="diasCredito">Días de Crédito</label>
-            <input
-              type="number"
-              id="diasCredito"
-              formControlName="diasCredito"
-              placeholder="0"
-              min="0"
-              [class.invalid]="isFieldInvalid('diasCredito')"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('diasCredito')">
-              {{ getFieldError('diasCredito') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="descuentoComercial">Descuento Comercial (%)</label>
-            <input
-              type="number"
-              id="descuentoComercial"
-              formControlName="descuentoComercial"
-              placeholder="0"
-              min="0"
-              max="100"
-              step="0.01"
-              [class.invalid]="isFieldInvalid('descuentoComercial')"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('descuentoComercial')">
-              {{ getFieldError('descuentoComercial') }}
-            </span>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="paisId">País <span class="required">*</span></label>
+              <select id="paisId" formControlName="paisId" [class.invalid]="isFieldInvalid('paisId')">
+                <option [ngValue]="null" disabled>Seleccione un país</option>
+                <option *ngFor="let pais of paises" [ngValue]="pais.id">{{ pais.nombre }}</option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('paisId')">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="provinciaId">Provincia <span class="required">*</span></label>
+              <select id="provinciaId" formControlName="provinciaId" [class.invalid]="isFieldInvalid('provinciaId')"
+                      [disabled]="!proveedorForm.get('paisId')?.value">
+                <option [ngValue]="null" disabled>Seleccione una provincia</option>
+                <option *ngFor="let prov of provincias" [ngValue]="prov.id">{{ prov.nombre }}</option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('provinciaId')">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="ciudadId">Ciudad <span class="required">*</span></label>
+              <select id="ciudadId" formControlName="ciudadId" [class.invalid]="isFieldInvalid('ciudadId')"
+                      [disabled]="!proveedorForm.get('provinciaId')?.value">
+                <option [ngValue]="null" disabled>Seleccione una ciudad</option>
+                <option *ngFor="let ciudad of ciudades" [ngValue]="ciudad.id">{{ ciudad.nombre }}</option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('ciudadId')">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="direccion">Dirección</label>
+              <input type="text" id="direccion" formControlName="direccion" placeholder="Av. Principal #123">
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Sección: Datos Bancarios -->
-      <div class="form-section">
-        <h3 class="section-title">Datos Bancarios</h3>
-        <div class="form-group">
-          <label for="banco">Banco</label>
-          <input
-            type="text"
-            id="banco"
-            formControlName="banco"
-            placeholder="Ej: Banco Pichincha"
-          />
+      <!-- Condiciones Comerciales -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <h3>Condiciones Comerciales</h3>
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="tipoCuenta">Tipo de Cuenta</label>
-            <select id="tipoCuenta" formControlName="tipoCuenta">
-              <option value="">-- Seleccione --</option>
-              <option *ngFor="let tipo of tiposCuenta" [value]="tipo">{{ tipo }}</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="numeroCuenta">Número de Cuenta</label>
-            <input
-              type="text"
-              id="numeroCuenta"
-              formControlName="numeroCuenta"
-              placeholder="Ej: 1234567890"
-            />
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="diasCredito">Días de Crédito</label>
+              <input type="number" id="diasCredito" formControlName="diasCredito" placeholder="0" min="0">
+            </div>
+            <div class="form-group">
+              <label for="descuentoComercial">Descuento Comercial (%)</label>
+              <input type="number" id="descuentoComercial" formControlName="descuentoComercial" placeholder="0" min="0" max="100" step="0.01">
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Sección: Control -->
-      <div class="form-section">
-        <h3 class="section-title">Control</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="estado">Estado</label>
-            <select id="estado" formControlName="estado">
-              <option *ngFor="let est of estados" [value]="est">{{ est }}</option>
-            </select>
-          </div>
+      <!-- Datos Bancarios -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <h3>Datos Bancarios</h3>
         </div>
-
-        <div class="form-group">
-          <label for="observaciones">Observaciones</label>
-          <textarea
-            id="observaciones"
-            formControlName="observaciones"
-            rows="3"
-            placeholder="Observaciones adicionales sobre el proveedor"
-          ></textarea>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="banco">Banco</label>
+              <input type="text" id="banco" formControlName="banco" placeholder="Nombre del banco">
+            </div>
+            <div class="form-group">
+              <label for="tipoCuenta">Tipo de Cuenta</label>
+              <select id="tipoCuenta" formControlName="tipoCuenta">
+                <option value="">Sin cuenta</option>
+                <option *ngFor="let tipo of tiposCuenta" [value]="tipo">{{ tipo }}</option>
+              </select>
+            </div>
+            <div class="form-group form-grid-full">
+              <label for="numeroCuenta">Número de Cuenta</label>
+              <input type="text" id="numeroCuenta" formControlName="numeroCuenta" placeholder="1234567890">
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cerrarModal()" [disabled]="isLoading">
-          Cancelar
-        </button>
+      <!-- Observaciones -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+          <h3>Observaciones</h3>
+        </div>
+        <div class="form-card-body">
+          <div class="form-group">
+            <textarea id="observaciones" formControlName="observaciones" rows="3" placeholder="Notas adicionales sobre el proveedor…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-page-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()" [disabled]="isLoading">Cancelar</button>
         <button type="submit" class="btn btn-primary" [disabled]="isLoading || proveedorForm.invalid">
-          <span *ngIf="!isLoading">{{ isEditMode ? 'Actualizar' : 'Guardar' }}</span>
-          <span *ngIf="isLoading">Procesando...</span>
+          <svg *ngIf="!isLoading" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>{{ isLoading ? 'Guardando…' : (isEditMode ? 'Actualizar Proveedor' : 'Guardar Proveedor') }}</span>
         </button>
       </div>
     </form>
   </div>
-</div>
 
+</div>

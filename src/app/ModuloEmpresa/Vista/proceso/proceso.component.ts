@@ -14,7 +14,7 @@ export class ProcesoComponent implements OnInit {
   procesos: Proceso[] = [];
   procesosFiltrados: Proceso[] = [];
   procesoForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   procesoIdEditar: number | null = null;
   busqueda = '';
@@ -54,24 +54,27 @@ export class ProcesoComponent implements OnInit {
     );
   }
 
-  abrirModal(proceso?: Proceso): void {
-    if (proceso) {
-      this.modoEdicion = true;
-      this.procesoIdEditar = proceso.id || null;
-      this.procesoForm.patchValue({
-        codigo: proceso.codigo,
-        nombre: proceso.nombre
-      });
-    } else {
-      this.modoEdicion = false;
-      this.procesoIdEditar = null;
-      this.procesoForm.reset();
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.procesoIdEditar = null;
+    this.procesoForm.reset();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(proceso: Proceso): void {
+    this.modoEdicion = true;
+    this.procesoIdEditar = proceso.id || null;
+    this.procesoForm.patchValue({
+      codigo: proceso.codigo,
+      nombre: proceso.nombre
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.procesoForm.reset();
     this.modoEdicion = false;
     this.procesoIdEditar = null;
@@ -94,7 +97,7 @@ export class ProcesoComponent implements OnInit {
         this.notificationService.showSuccess('Proceso creado correctamente');
       }
       this.cargarProcesos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       this.notificationService.showError('Error al guardar el proceso');
     }

@@ -3,6 +3,12 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProveedorService } from '../../Service/proveedor.service';
 import { ProveedorRequest, ProveedorResponse } from '../../Entidades/proveedor.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
+import { PaisService } from '../../../ModuloEmpresa/Service/pais.service';
+import { ProvinciaService } from '../../../ModuloEmpresa/Service/provincia.service';
+import { CiudadService } from '../../../ModuloEmpresa/Service/ciudad.service';
+import { PaisResponse } from '../../../ModuloEmpresa/Entidad/pais.model';
+import { ProvinciaResponse } from '../../../ModuloEmpresa/Entidad/provincia.model';
+import { CiudadResponse } from '../../../ModuloEmpresa/Entidad/ciudad.model';
 
 @Component({
   selector: 'app-proveedor',
@@ -17,7 +23,7 @@ export class ProveedorComponent implements OnInit {
   proveedorForm: FormGroup;
   
   isLoading: boolean = false;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditMode: boolean = false;
   
   searchTerm: string = '';
@@ -28,9 +34,15 @@ export class ProveedorComponent implements OnInit {
   categorias = ['A', 'B', 'C'];
   tiposCuenta = ['AHORROS', 'CORRIENTE'];
   estados = ['ACTIVO', 'INACTIVO', 'BLOQUEADO'];
+  paises: PaisResponse[] = [];
+  provincias: ProvinciaResponse[] = [];
+  ciudades: CiudadResponse[] = [];
   
   constructor(
     private readonly proveedorService: ProveedorService,
+    private readonly paisService: PaisService,
+    private readonly provinciaService: ProvinciaService,
+    private readonly ciudadService: CiudadService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
@@ -58,7 +70,10 @@ export class ProveedorComponent implements OnInit {
       direccion: [''],
       ciudad: [''],
       provincia: [''],
-      pais: ['Ecuador'],
+      pais: [''],
+      paisId: [null, Validators.required],
+      provinciaId: [null, Validators.required],
+      ciudadId: [null, Validators.required],
       
       // Condiciones comerciales
       diasCredito: [0, [Validators.min(0)]],
@@ -77,6 +92,92 @@ export class ProveedorComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarProveedores();
+    this.cargarPaises();
+
+    this.proveedorForm.get('paisId')?.valueChanges.subscribe((paisId: number | null) => {
+      this.onPaisChange(paisId);
+    });
+
+    this.proveedorForm.get('provinciaId')?.valueChanges.subscribe((provinciaId: number | null) => {
+      this.onProvinciaChange(provinciaId);
+    });
+
+    this.proveedorForm.get('ciudadId')?.valueChanges.subscribe((ciudadId: number | null) => {
+      this.actualizarCiudadTexto(ciudadId);
+    });
+  }
+
+  cargarPaises(): void {
+    this.paisService.findActivos().subscribe({
+      next: (data) => {
+        this.paises = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar países:', error);
+        this.notificationService.error('Error al cargar países');
+      }
+    });
+  }
+
+  cargarProvinciasPorPais(paisId: number): void {
+    this.provinciaService.findByPais(paisId).subscribe({
+      next: (data) => {
+        this.provincias = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar provincias:', error);
+        this.notificationService.error('Error al cargar provincias');
+      }
+    });
+  }
+
+  cargarCiudadesPorProvincia(provinciaId: number): void {
+    this.ciudadService.findByProvincia(provinciaId).subscribe({
+      next: (data) => {
+        this.ciudades = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar ciudades:', error);
+        this.notificationService.error('Error al cargar ciudades');
+      }
+    });
+  }
+
+  onPaisChange(paisId: number | null): void {
+    this.provincias = [];
+    this.ciudades = [];
+    this.proveedorForm.patchValue({ provinciaId: null, ciudadId: null, provincia: '', ciudad: '' }, { emitEvent: false });
+
+    if (paisId) {
+      this.cargarProvinciasPorPais(paisId);
+      const pais = this.paises.find((p) => p.id === paisId);
+      this.proveedorForm.patchValue({ pais: pais?.nombre || '' }, { emitEvent: false });
+    } else {
+      this.proveedorForm.patchValue({ pais: '' }, { emitEvent: false });
+    }
+  }
+
+  onProvinciaChange(provinciaId: number | null): void {
+    this.ciudades = [];
+    this.proveedorForm.patchValue({ ciudadId: null, ciudad: '' }, { emitEvent: false });
+
+    if (provinciaId) {
+      this.cargarCiudadesPorProvincia(provinciaId);
+      const provincia = this.provincias.find((p) => p.id === provinciaId);
+      this.proveedorForm.patchValue({ provincia: provincia?.nombre || '' }, { emitEvent: false });
+    } else {
+      this.proveedorForm.patchValue({ provincia: '' }, { emitEvent: false });
+    }
+  }
+
+  actualizarCiudadTexto(ciudadId: number | null): void {
+    if (!ciudadId) {
+      this.proveedorForm.patchValue({ ciudad: '' }, { emitEvent: false });
+      return;
+    }
+
+    const ciudad = this.ciudades.find((c) => c.id === ciudadId);
+    this.proveedorForm.patchValue({ ciudad: ciudad?.nombre || '' }, { emitEvent: false });
   }
 
   cargarProveedores(): void {
@@ -95,23 +196,29 @@ export class ProveedorComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.proveedorSeleccionado = null;
     this.proveedorForm.reset({
       tipoIdentificacion: 'RUC',
-      pais: 'Ecuador',
+      pais: '',
+      paisId: null,
+      provinciaId: null,
+      ciudadId: null,
       diasCredito: 0,
       descuentoComercial: 0,
       estado: 'ACTIVO'
     });
-    this.showModal = true;
+    this.provincias = [];
+    this.ciudades = [];
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(proveedor: ProveedorResponse): void {
+  abrirFormEditar(proveedor: ProveedorResponse): void {
     this.isEditMode = true;
     this.proveedorSeleccionado = proveedor;
-    
+
     this.proveedorForm.patchValue({
       tipoIdentificacion: proveedor.tipoIdentificacion,
       numeroIdentificacion: proveedor.numeroIdentificacion,
@@ -128,6 +235,9 @@ export class ProveedorComponent implements OnInit {
       ciudad: proveedor.ciudad,
       provincia: proveedor.provincia,
       pais: proveedor.pais,
+      paisId: proveedor.paisId,
+      provinciaId: proveedor.provinciaId,
+      ciudadId: proveedor.ciudadId,
       diasCredito: proveedor.diasCredito,
       descuentoComercial: proveedor.descuentoComercial,
       banco: proveedor.banco,
@@ -136,13 +246,28 @@ export class ProveedorComponent implements OnInit {
       estado: proveedor.estado,
       observaciones: proveedor.observaciones
     });
-    
-    this.showModal = true;
+
+    if (proveedor.paisId) {
+      this.cargarProvinciasPorPais(proveedor.paisId);
+    } else {
+      this.provincias = [];
+    }
+
+    if (proveedor.provinciaId) {
+      this.cargarCiudadesPorProvincia(proveedor.provinciaId);
+    } else {
+      this.ciudades = [];
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.proveedorForm.reset();
+    this.provincias = [];
+    this.ciudades = [];
     this.proveedorSeleccionado = null;
   }
 
@@ -155,7 +280,16 @@ export class ProveedorComponent implements OnInit {
 
     this.isLoading = true;
     
-    const proveedorData: ProveedorRequest = this.proveedorForm.value;
+    const formValue = this.proveedorForm.value;
+    const pais = this.paises.find((p) => p.id === formValue.paisId);
+    const provincia = this.provincias.find((p) => p.id === formValue.provinciaId);
+    const ciudad = this.ciudades.find((c) => c.id === formValue.ciudadId);
+    const proveedorData: ProveedorRequest = {
+      ...formValue,
+      pais: pais?.nombre || formValue.pais || '',
+      provincia: provincia?.nombre || formValue.provincia || '',
+      ciudad: ciudad?.nombre || formValue.ciudad || ''
+    };
 
     if (this.isEditMode && this.proveedorSeleccionado) {
       this.proveedorService.update(this.proveedorSeleccionado.id, proveedorData).subscribe({
@@ -163,7 +297,7 @@ export class ProveedorComponent implements OnInit {
           this.isLoading = false;
           this.notificationService.success('Proveedor actualizado exitosamente');
           this.cargarProveedores();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.isLoading = false;
@@ -176,7 +310,7 @@ export class ProveedorComponent implements OnInit {
           this.isLoading = false;
           this.notificationService.success('Proveedor creado exitosamente');
           this.cargarProveedores();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.isLoading = false;
@@ -279,7 +413,7 @@ export class ProveedorComponent implements OnInit {
     return '';
   }
 
-  getEstadoBadgeClass(estado: string): string {
+  getEstadoBadgeClass(estado?: string): string {
     switch (estado) {
       case 'ACTIVO':
         return 'badge-success';

@@ -1,338 +1,221 @@
 <div class="detalle-recepcion-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Detalles de Recepción</h1>
-      <p class="subtitle">Gestiona los productos recibidos en cada recepción</p>
+
+  <!-- ═══ LIST VIEW ═══ -->
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <nav class="page-breadcrumb">Compras <span class="separator">›</span> Detalles de Recepción</nav>
+        <h1>Detalles de Recepción</h1>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">+ Agregar Detalle</button>
     </div>
-    <button class="btn btn-primary" (click)="abrirModalCrear()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Agregar Detalle
-    </button>
-  </div>
 
-  <!-- Filtro por recepción -->
-  <div class="filter-bar">
-    <div class="form-group">
-      <label for="recepcionFilter">Filtrar por Recepción</label>
-      <input
-        id="recepcionFilter"
-        type="number"
-        placeholder="ID de la recepción"
-        [(ngModel)]="recepcionIdFilter"
-        (change)="setRecepcionFilter(recepcionIdFilter)"
-      />
+    <div class="toolbar">
+      <div class="search-box">
+        <input type="number" placeholder="ID de recepción…" [(ngModel)]="recepcionIdFilter"
+               (change)="setRecepcionFilter(recepcionIdFilter)" class="form-control" />
+      </div>
+      <div class="search-box">
+        <input type="text" placeholder="Buscar por producto, SKU, lote o calidad…"
+               [(ngModel)]="searchTerm" class="form-control" />
+      </div>
+      <span class="result-count">{{ detallesFiltrados.length }} resultado(s)</span>
+    </div>
+
+    <div *ngIf="isLoading" class="inline-loader">Cargando…</div>
+
+    <div class="table-wrapper" *ngIf="!isLoading">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>SKU</th>
+            <th>Bodega</th>
+            <th>Lote</th>
+            <th class="text-right">Cant. Ordenada</th>
+            <th class="text-right">Cant. Recibida</th>
+            <th class="text-right">Cant. Rechazada</th>
+            <th class="text-right">Costo Unit.</th>
+            <th class="text-right">Costo Total</th>
+            <th>Calidad</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let detalle of detallesFiltrados">
+            <td>{{ detalle.productoNombre || '—' }}</td>
+            <td class="td-mono">{{ detalle.productoSku || '—' }}</td>
+            <td>{{ detalle.bodegaNombre || '—' }}</td>
+            <td class="td-mono">{{ detalle.numeroLote || '—' }}</td>
+            <td class="text-right td-mono">{{ detalle.cantidadOrdenada | number:'1.0-4' }}</td>
+            <td class="text-right td-mono">{{ detalle.cantidadRecibida | number:'1.0-4' }}</td>
+            <td class="text-right td-mono">{{ detalle.cantidadRechazada || 0 | number:'1.0-4' }}</td>
+            <td class="text-right td-mono">${{ detalle.costoUnitario | number:'1.2-4' }}</td>
+            <td class="text-right td-mono">${{ detalle.costoTotal | number:'1.2-2' }}</td>
+            <td>
+              <span class="badge" [ngClass]="getEstadoCalidadBadgeClass(detalle.estadoCalidad)"
+                    *ngIf="detalle.estadoCalidad">{{ detalle.estadoCalidad }}</span>
+              <span *ngIf="!detalle.estadoCalidad">—</span>
+            </td>
+            <td>
+              <button class="btn-icon btn-edit" (click)="abrirFormEditar(detalle)" title="Editar">✎</button>
+              <button class="btn-icon btn-delete" (click)="eliminarDetalle(detalle)" title="Eliminar">✕</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="list-empty" *ngIf="detallesFiltrados.length === 0">
+        Ingrese un ID de recepción para ver sus detalles.
+      </div>
     </div>
   </div>
 
-  <!-- Barra de búsqueda -->
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input
-        type="text"
-        class="search-input"
-        placeholder="Buscar por producto, SKU, lote o estado de calidad..."
-        [(ngModel)]="searchTerm"
-      />
+  <!-- ═══ FORM VIEW ═══ -->
+  <div class="form-view" *ngIf="showForm">
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <nav class="page-breadcrumb">
+          Compras <span class="separator">›</span>
+          <button class="btn-back" (click)="cerrarForm()">Detalles de Recepción</button>
+          <span class="separator">›</span>
+          {{ isEditMode ? 'Editar Detalle' : 'Nuevo Detalle' }}
+        </nav>
+        <h1>{{ isEditMode ? 'Editar Detalle de Recepción' : 'Nuevo Detalle de Recepción' }}</h1>
+        <p class="form-page-subtitle">Registre los datos del producto recibido</p>
+      </div>
     </div>
-    <div class="results-count">
-      <span class="count-badge">{{ detallesFiltrados.length }}</span>
-      detalle(s) encontrado(s)
-    </div>
-  </div>
 
-  <!-- Loading -->
-  <div class="loading-container" *ngIf="isLoading && detalles.length === 0">
-    <div class="spinner"></div>
-    <p>Cargando detalles...</p>
-  </div>
+    <form [formGroup]="detalleForm">
 
-  <!-- Tabla -->
-  <div class="table-container" *ngIf="!isLoading || detalles.length > 0">
-    <table class="detalles-table">
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>SKU</th>
-          <th>Bodega</th>
-          <th>Lote</th>
-          <th>Cant. Ordenada</th>
-          <th>Cant. Recibida</th>
-          <th>Cant. Rechazada</th>
-          <th>Costo Unitario</th>
-          <th>Costo Total</th>
-          <th>Estado Calidad</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngIf="detallesFiltrados.length === 0 && !isLoading">
-          <td colspan="11" class="no-data">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 3h18v18H3zM21 9H3M21 15H3M12 3v18"></path>
-            </svg>
-            <p>No se encontraron detalles de recepción</p>
-          </td>
-        </tr>
-        <tr *ngFor="let detalle of detallesFiltrados" class="table-row">
-          <td class="producto-cell">{{ detalle.productoNombre || 'Sin nombre' }}</td>
-          <td>{{ detalle.productoSku || 'N/A' }}</td>
-          <td>{{ detalle.bodegaNombre || 'N/A' }}</td>
-          <td>{{ detalle.numeroLote || 'N/A' }}</td>
-          <td class="numero-cell">{{ detalle.cantidadOrdenada | number:'1.0-2' }}</td>
-          <td class="numero-cell">{{ detalle.cantidadRecibida | number:'1.0-2' }}</td>
-          <td class="numero-cell">{{ detalle.cantidadRechazada || 0 | number:'1.0-2' }}</td>
-          <td class="numero-cell">{{ detalle.costoUnitario | currency:'USD':'symbol':'1.2-4' }}</td>
-          <td class="numero-cell">{{ detalle.costoTotal | currency:'USD':'symbol':'1.2-2' }}</td>
-          <td>
-            <span class="badge" [ngClass]="getEstadoCalidadBadgeClass(detalle.estadoCalidad)" *ngIf="detalle.estadoCalidad">
-              {{ detalle.estadoCalidad }}
-            </span>
-            <span *ngIf="!detalle.estadoCalidad">-</span>
-          </td>
-          <td class="actions-cell">
-            <button class="btn-icon btn-edit" (click)="abrirModalEditar(detalle)" title="Editar">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-            </button>
-            <button class="btn-icon btn-delete" (click)="eliminarDetalle(detalle)" title="Eliminar">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+      <div class="form-card">
+        <div class="form-card-header">Referencias</div>
+        <div class="form-card-body">
+          <div class="form-grid">
 
-<!-- Modal de Creación/Edición -->
-<div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>{{ isEditMode ? 'Editar Detalle' : 'Nuevo Detalle' }}</h2>
-      <button class="btn-close" (click)="cerrarModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
+            <div class="form-group">
+              <label>ID Recepción <span class="required">*</span></label>
+              <input type="number" formControlName="recepcionId" min="1"
+                     [class.invalid]="isFieldInvalid('recepcionId')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('recepcionId')">{{ getFieldError('recepcionId') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>ID Detalle Orden Compra <span class="required">*</span></label>
+              <input type="number" formControlName="detalleOrdenCompraId" min="1"
+                     [class.invalid]="isFieldInvalid('detalleOrdenCompraId')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('detalleOrdenCompraId')">{{ getFieldError('detalleOrdenCompraId') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>ID Producto <span class="required">*</span></label>
+              <input type="number" formControlName="productoId" min="1"
+                     [class.invalid]="isFieldInvalid('productoId')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('productoId')">{{ getFieldError('productoId') }}</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-card-header">Información de Lote</div>
+        <div class="form-card-body">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>Número de Lote</label>
+              <input type="text" formControlName="numeroLote" />
+            </div>
+
+            <div class="form-group">
+              <label>ID de Lote</label>
+              <input type="number" formControlName="loteId" />
+            </div>
+
+            <div class="form-group">
+              <label>Fecha de Fabricación</label>
+              <input type="date" formControlName="fechaFabricacion" />
+            </div>
+
+            <div class="form-group">
+              <label>Fecha de Vencimiento</label>
+              <input type="date" formControlName="fechaVencimiento" />
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-card-header">Cantidades y Costo</div>
+        <div class="form-card-body">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>Cantidad Ordenada <span class="required">*</span></label>
+              <input type="number" formControlName="cantidadOrdenada" min="0" step="0.0001"
+                     [class.invalid]="isFieldInvalid('cantidadOrdenada')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('cantidadOrdenada')">{{ getFieldError('cantidadOrdenada') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>Cantidad Recibida <span class="required">*</span></label>
+              <input type="number" formControlName="cantidadRecibida" min="0" step="0.0001"
+                     [class.invalid]="isFieldInvalid('cantidadRecibida')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('cantidadRecibida')">{{ getFieldError('cantidadRecibida') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>Cantidad Rechazada</label>
+              <input type="number" formControlName="cantidadRechazada" min="0" step="0.0001" />
+            </div>
+
+            <div class="form-group">
+              <label>Costo Unitario <span class="required">*</span></label>
+              <input type="number" formControlName="costoUnitario" min="0" step="0.0001"
+                     [class.invalid]="isFieldInvalid('costoUnitario')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('costoUnitario')">{{ getFieldError('costoUnitario') }}</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-card-header">Control de Calidad</div>
+        <div class="form-card-body">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>Estado de Calidad</label>
+              <select formControlName="estadoCalidad">
+                <option value="">— Seleccione —</option>
+                <option *ngFor="let estado of estadosCalidad" [value]="estado">{{ estado }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Motivo de Rechazo</label>
+              <input type="text" formControlName="motivoRechazo" />
+            </div>
+
+            <div class="form-group form-grid-full">
+              <label>Observaciones</label>
+              <textarea formControlName="observaciones" rows="3"></textarea>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+    <div class="form-page-footer">
+      <button class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
+      <button class="btn btn-primary" (click)="guardarDetalle()">
+        {{ isEditMode ? 'Actualizar' : 'Guardar' }}
       </button>
     </div>
-
-    <form [formGroup]="detalleForm" (ngSubmit)="guardarDetalle()" class="modal-form">
-      <!-- Sección: Referencias -->
-      <div class="form-section">
-        <h3 class="section-title">Referencias</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="detalleOrdenCompraId">Detalle Orden Compra <span class="required">*</span></label>
-            <input
-              id="detalleOrdenCompraId"
-              type="number"
-              formControlName="detalleOrdenCompraId"
-              [class.invalid]="isFieldInvalid('detalleOrdenCompraId')"
-              placeholder="ID del detalle de orden"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('detalleOrdenCompraId')">
-              {{ getFieldError('detalleOrdenCompraId') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="productoId">Producto <span class="required">*</span></label>
-            <input
-              id="productoId"
-              type="number"
-              formControlName="productoId"
-              [class.invalid]="isFieldInvalid('productoId')"
-              placeholder="ID del producto"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('productoId')">
-              {{ getFieldError('productoId') }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sección: Información de Lote -->
-      <div class="form-section">
-        <h3 class="section-title">Información de Lote</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="numeroLote">Número de Lote</label>
-            <input
-              id="numeroLote"
-              type="text"
-              formControlName="numeroLote"
-              placeholder="Número del lote"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="loteId">ID de Lote</label>
-            <input
-              id="loteId"
-              type="number"
-              formControlName="loteId"
-              placeholder="ID del lote (opcional)"
-            />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="fechaFabricacion">Fecha de Fabricación</label>
-            <input
-              id="fechaFabricacion"
-              type="date"
-              formControlName="fechaFabricacion"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="fechaVencimiento">Fecha de Vencimiento</label>
-            <input
-              id="fechaVencimiento"
-              type="date"
-              formControlName="fechaVencimiento"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Sección: Cantidades -->
-      <div class="form-section">
-        <h3 class="section-title">Cantidades</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="cantidadOrdenada">Cantidad Ordenada <span class="required">*</span></label>
-            <input
-              id="cantidadOrdenada"
-              type="number"
-              step="0.0001"
-              formControlName="cantidadOrdenada"
-              [class.invalid]="isFieldInvalid('cantidadOrdenada')"
-              placeholder="0.0000"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('cantidadOrdenada')">
-              {{ getFieldError('cantidadOrdenada') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="cantidadRecibida">Cantidad Recibida <span class="required">*</span></label>
-            <input
-              id="cantidadRecibida"
-              type="number"
-              step="0.0001"
-              formControlName="cantidadRecibida"
-              [class.invalid]="isFieldInvalid('cantidadRecibida')"
-              placeholder="0.0000"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('cantidadRecibida')">
-              {{ getFieldError('cantidadRecibida') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label for="cantidadRechazada">Cantidad Rechazada</label>
-            <input
-              id="cantidadRechazada"
-              type="number"
-              step="0.0001"
-              formControlName="cantidadRechazada"
-              placeholder="0.0000"
-            />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="costoUnitario">Costo Unitario <span class="required">*</span></label>
-            <input
-              id="costoUnitario"
-              type="number"
-              step="0.0001"
-              formControlName="costoUnitario"
-              [class.invalid]="isFieldInvalid('costoUnitario')"
-              placeholder="0.0000"
-            />
-            <span class="error-message" *ngIf="isFieldInvalid('costoUnitario')">
-              {{ getFieldError('costoUnitario') }}
-            </span>
-          </div>
-
-          <div class="form-group">
-            <label>Costo Total</label>
-            <div class="costo-total">
-              {{ calcularCostoTotal() | currency:'USD':'symbol':'1.2-2' }}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sección: Control de Calidad -->
-      <div class="form-section">
-        <h3 class="section-title">Control de Calidad</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="estadoCalidad">Estado de Calidad</label>
-            <select
-              id="estadoCalidad"
-              formControlName="estadoCalidad"
-            >
-              <option value="">Seleccione un estado</option>
-              <option *ngFor="let estado of estadosCalidad" [value]="estado">{{ estado }}</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="motivoRechazo">Motivo de Rechazo</label>
-            <input
-              id="motivoRechazo"
-              type="text"
-              formControlName="motivoRechazo"
-              placeholder="Ingrese el motivo si fue rechazado"
-            />
-          </div>
-        </div>
-
-        <div class="form-group full-width">
-          <label for="observaciones">Observaciones</label>
-          <textarea
-            id="observaciones"
-            formControlName="observaciones"
-            rows="3"
-            placeholder="Observaciones adicionales..."
-          ></textarea>
-        </div>
-      </div>
-
-      <!-- Botones -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
-          Cancelar
-        </button>
-        <button type="submit" class="btn btn-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
-          </svg>
-          {{ isEditMode ? 'Actualizar' : 'Guardar' }}
-        </button>
-      </div>
-    </form>
   </div>
+
 </div>

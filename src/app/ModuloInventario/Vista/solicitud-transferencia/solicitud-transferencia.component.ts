@@ -32,7 +32,7 @@ export class SolicitudTransferenciaComponent implements OnInit {
 
   solicitudForm: FormGroup;
   detalles: DetalleLinea[] = [];
-  showModal = false;
+  showForm = false;
   showRechazarModal = false;
   isEditMode = false;
   isViewMode = false;
@@ -53,7 +53,7 @@ export class SolicitudTransferenciaComponent implements OnInit {
     private readonly notificationService: NotificationService
   ) {
     this.solicitudForm = this.fb.group({
-      numeroSolicitud: ['', Validators.required],
+      numeroSolicitud: [{ value: '', disabled: true }, Validators.required],
       bodegaOrigenId: [null, Validators.required],
       bodegaDestinoId: [null, Validators.required],
       fechaSolicitud: [this.getFechaHoy(), Validators.required],
@@ -100,17 +100,18 @@ export class SolicitudTransferenciaComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.isViewMode = false;
     this.solicitudForm.reset({ fechaSolicitud: this.getFechaHoy() });
-    this.solicitudForm.patchValue({ numeroSolicitud: `ST-${Date.now()}` });
+    this.solicitudForm.patchValue({ numeroSolicitud: 'AUTOGENERADO' });
     this.detalles = [];
     this.agregarLinea();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalVer(solicitud: SolicitudTransferenciaResponse): void {
+  abrirFormVer(solicitud: SolicitudTransferenciaResponse): void {
     this.isViewMode = true;
     this.isEditMode = false;
     this.selectedSolicitudId = solicitud.id;
@@ -129,11 +130,12 @@ export class SolicitudTransferenciaComponent implements OnInit {
       observaciones: d.observaciones || ''
     }));
     this.solicitudForm.disable();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.solicitudForm.enable();
     this.solicitudForm.reset();
     this.detalles = [];
@@ -181,7 +183,7 @@ export class SolicitudTransferenciaComponent implements OnInit {
       next: () => {
         this.notificationService.success('Solicitud creada', 'La solicitud se creó correctamente');
         this.cargarDatos();
-        this.cerrarModal();
+        this.cerrarForm();
       },
       error: (err) => {
         this.notificationService.error('Error al crear solicitud', err.message);

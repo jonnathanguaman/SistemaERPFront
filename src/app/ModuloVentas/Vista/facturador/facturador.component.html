@@ -1,0 +1,358 @@
+<div class="facturador-wrap" *ngIf="!loading; else loader">
+
+  <!-- Mensajes globales -->
+  <div class="alert alert--success" *ngIf="successMsg">{{ successMsg }}</div>
+  <div class="alert alert--error"   *ngIf="errorMsg">{{ errorMsg }}</div>
+
+  <div class="facturador">
+
+    <!-- ═══════════════════════════════════════════
+         PANEL IZQUIERDO — Catálogo de productos
+    ═══════════════════════════════════════════ -->
+    <div class="catalogo">
+      <div class="catalogo__header">
+        <span class="catalogo__title">Productos disponibles</span>
+        <span class="catalogo__count">{{ productosFiltrados.length }} de {{ existencias.length }}</span>
+      </div>
+      <div class="catalogo__search-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="catalogo__search" type="text" placeholder="Buscar por nombre..." [(ngModel)]="busquedaProducto">
+      </div>
+
+      <div class="catalogo__lista">
+        <div *ngFor="let ex of productosFiltrados" class="prod-card">
+          <div class="prod-card__info">
+            <span class="prod-card__nombre">{{ ex.productoNombre }}</span>
+            <span class="prod-card__bodega">{{ ex.bodegaNombre }}</span>
+            <div class="prod-card__meta">
+              <span class="prod-card__stock" [class.prod-card__stock--bajo]="ex.cantidadDisponible <= 5">
+                Stock: {{ ex.cantidadDisponible }}
+              </span>
+              <span class="prod-card__precio">
+                {{ formatMoneda(precioDeProducto(ex.productoId)) }}
+              </span>
+            </div>
+          </div>
+          <button class="prod-card__btn" (click)="agregarProducto(ex)"
+            [disabled]="ex.cantidadDisponible === 0"
+            [title]="ex.cantidadDisponible === 0 ? 'Sin stock' : 'Agregar al carrito'">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="empty-productos" *ngIf="productosFiltrados.length === 0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;opacity:.4">
+            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          </svg>
+          <span>Sin productos con stock disponible</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         PANEL DERECHO — Formulario de factura
+    ═══════════════════════════════════════════ -->
+    <div class="panel">
+
+      <!-- Cabecera de la factura -->
+      <div class="panel__section">
+        <div class="panel__section-title">Datos de la factura</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label" for="numeroFactura">N° Factura</label>
+            <input id="numeroFactura" class="form-input" type="text" [(ngModel)]="numeroFactura" placeholder="Se genera automáticamente" maxlength="20" readonly>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="ordenVentaGenerada">N° Orden de Venta</label>
+            <input id="ordenVentaGenerada" class="form-input" type="text" [value]="ordenVentaNumero || 'Se generará automáticamente'" readonly>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="fechaEmision">Fecha emisión *</label>
+            <input id="fechaEmision" class="form-input" type="date" [(ngModel)]="fechaEmision">
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="fechaVencimiento">Fecha vencimiento *</label>
+            <input id="fechaVencimiento" class="form-input" type="date" [(ngModel)]="fechaVencimiento">
+          </div>
+        </div>
+
+        <!-- Cliente -->
+        <div class="form-field form-field--full">
+          <label class="form-label" for="busquedaCedula">Buscar cliente por cédula o RUC *</label>
+          <div class="cliente-busqueda">
+            <input id="busquedaCedula" class="form-input" type="text" [(ngModel)]="busquedaCedula" (ngModelChange)="onBusquedaCedulaChange($event)" placeholder="Ingrese la cédula o RUC" maxlength="13" inputmode="numeric" pattern="[0-9]*" (keyup.enter)="buscarClientePorCedula()">
+            <button class="btn-buscar-cliente" type="button" (click)="buscarClientePorCedula()" [disabled]="!puedeBuscarCliente">
+              Buscar
+            </button>
+          </div>
+          <small class="form-help">Solo números. Cédula: 10 dígitos. RUC: 13 dígitos.</small>
+        </div>
+
+        <div class="form-field form-field--full">
+          <label class="form-label" for="clienteId">Cliente *</label>
+          <select id="clienteId" class="form-input" [(ngModel)]="clienteId">
+            <option [ngValue]="null" disabled>Seleccione un cliente...</option>
+            <option *ngFor="let c of clientes" [ngValue]="c.id">
+              {{ c.nombreCompleto || c.razonSocial }} — {{ c.numeroIdentificacion }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Info del cliente seleccionado -->
+        <div class="cliente-info" *ngIf="clienteSeleccionado">
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+            {{ clienteSeleccionado.email || 'Sin email' }}
+          </span>
+          <span *ngIf="clienteSeleccionado.condicionPagoNombre">
+            Condición: {{ clienteSeleccionado.condicionPagoNombre }}
+          </span>
+          <span *ngIf="(clienteSeleccionado.descuentoGeneral ?? 0) > 0">
+            Dto. general: {{ clienteSeleccionado.descuentoGeneral }}%
+          </span>
+        </div>
+
+        <!-- Forma de pago -->
+        <div class="form-field form-field--full">
+          <label class="form-label" for="formaPagoId">Forma de pago *</label>
+          <select id="formaPagoId" class="form-input" [(ngModel)]="formaPagoId">
+            <option [ngValue]="null" disabled>Seleccione forma de pago...</option>
+            <option *ngFor="let fp of formasPago" [ngValue]="fp.id">{{ fp.nombre }}</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Carrito -->
+      <div class="panel__section panel__section--cart">
+        <div class="panel__section-title">
+          Artículos
+          <span class="cart-count" *ngIf="lineas.length > 0">{{ lineas.length }}</span>
+        </div>
+
+        <div class="cart-empty" *ngIf="lineas.length === 0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;opacity:.35">
+            <circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/>
+            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+          </svg>
+          <span>Selecciona productos del catálogo</span>
+        </div>
+
+        <table class="cart-table" *ngIf="lineas.length > 0">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cant.</th>
+              <th>Precio</th>
+              <th>Dto.%</th>
+              <th>Subtotal</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let linea of lineas; let i = index">
+              <td class="cart-prod-nombre">
+                {{ linea.productoNombre }}
+                <small>Stock: {{ linea.stockDisponible }}</small>
+              </td>
+              <td>
+                <input class="cart-input cart-input--sm"
+                  type="number" [(ngModel)]="linea.cantidad"
+                  (change)="validarCantidad(linea)"
+                  min="1" [max]="linea.stockDisponible">
+              </td>
+              <td>
+                <input class="cart-input"
+                  type="number" [(ngModel)]="linea.precioUnitario"
+                  min="0" step="0.01">
+              </td>
+              <td>
+                <input class="cart-input cart-input--sm"
+                  type="number" [(ngModel)]="linea.descuentoPct"
+                  (change)="validarDescuento(linea)"
+                  min="0" max="100">
+              </td>
+              <td class="cart-subtotal">{{ formatMoneda(subtotalLinea(linea)) }}</td>
+              <td>
+                <button class="cart-del" (click)="eliminarLinea(i)" title="Eliminar">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totales -->
+      <div class="panel__section panel__section--totales" *ngIf="lineas.length > 0">
+        <div class="totales-row">
+          <span>Subtotal</span>
+          <span>{{ formatMoneda(subtotal) }}</span>
+        </div>
+        <div class="totales-row totales-row--desc" *ngIf="descuentoTotal > 0">
+          <span>Descuento</span>
+          <span>- {{ formatMoneda(descuentoTotal) }}</span>
+        </div>
+        <div class="totales-row">
+          <span>IVA 15%</span>
+          <span>{{ formatMoneda(iva) }}</span>
+        </div>
+        <div class="totales-divider"></div>
+        <div class="totales-row totales-row--total">
+          <span>TOTAL</span>
+          <span>{{ formatMoneda(total) }}</span>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="panel__actions">
+        <button class="btn-secondary" type="button" (click)="limpiarFormulario()" [disabled]="guardando">
+          Limpiar
+        </button>
+        <button class="btn-primary" type="button" (click)="emitirFactura()"
+          [disabled]="!formularioValido || guardando">
+          <span *ngIf="guardando">Emitiendo...</span>
+          <span *ngIf="!guardando">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Emitir Factura
+          </span>
+        </button>
+      </div>
+
+    </div><!-- /panel -->
+  </div><!-- /facturador -->
+</div>
+
+<ng-template #loader>
+  <div class="fact-loader">
+    <div class="fact-spinner"></div>
+    <span>Cargando datos...</span>
+  </div>
+</ng-template>
+
+<div class="modal-overlay" *ngIf="showRegistrarClienteModal" (click)="onModalOverlayClick($event)" (keydown)="onModalOverlayKeydown($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Registrar cliente</h3>
+      <button type="button" class="modal-close" (click)="cerrarModalRegistrarCliente()" [disabled]="registrandoCliente">×</button>
+    </div>
+
+    <p class="modal-help">No existe un cliente con esa identificación. Regístralo para continuar con la factura.</p>
+
+    <div class="modal-grid">
+      <div class="form-field">
+        <label class="form-label" for="nuevoTipoIdentificacion">Tipo identificación</label>
+        <select id="nuevoTipoIdentificacion" class="form-input" [(ngModel)]="nuevoCliente.tipoIdentificacion">
+          <option value="DNI">Cédula</option>
+          <option value="RUC">RUC</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevoNumeroIdentificacion">Número identificación *</label>
+        <input id="nuevoNumeroIdentificacion" class="form-input" type="text" [(ngModel)]="nuevoCliente.numeroIdentificacion" (ngModelChange)="onNuevoClienteNumeroChange($event)" maxlength="13" inputmode="numeric" pattern="[0-9]*" placeholder="10 o 13 dígitos">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevoCondicionPago">Condición de pago *</label>
+        <select id="nuevoCondicionPago" class="form-input" [(ngModel)]="nuevoCliente.condicionPagoId">
+          <option [ngValue]="null" disabled>Seleccione condición...</option>
+          <option *ngFor="let cp of condicionesPago" [ngValue]="cp.id">{{ cp.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevoListaPrecios">Lista de precios *</label>
+        <select id="nuevoListaPrecios" class="form-input" [(ngModel)]="nuevoCliente.listaPreciosId" [disabled]="true">
+          <option [ngValue]="null" disabled>Seleccione lista...</option>
+          <option *ngFor="let lp of listasPrecios" [ngValue]="lp.id">{{ lp.nombre }}</option>
+        </select>
+        <small class="form-help">Se asigna automáticamente la lista Minorista.</small>
+      </div>
+
+      <div class="form-field form-field--full">
+        <label class="form-label" for="nuevoRazonSocial">Razón social</label>
+        <input id="nuevoRazonSocial" class="form-input" type="text" [(ngModel)]="nuevoCliente.razonSocial" placeholder="Empresa o negocio">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevoNombres">Nombres</label>
+        <input id="nuevoNombres" class="form-input" type="text" [(ngModel)]="nuevoCliente.nombres" placeholder="Nombres">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevoApellidos">Apellidos</label>
+        <input id="nuevoApellidos" class="form-input" type="text" [(ngModel)]="nuevoCliente.apellidos" placeholder="Apellidos">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevoEmail">Email</label>
+        <input id="nuevoEmail" class="form-input" type="email" [(ngModel)]="nuevoCliente.email" placeholder="correo@dominio.com">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevoTelefono">Teléfono</label>
+        <input id="nuevoTelefono" class="form-input" type="text" [(ngModel)]="nuevoCliente.telefono" placeholder="0999999999">
+      </div>
+
+      <div class="form-field form-field--full">
+        <label class="form-label" for="nuevaDireccion">Dirección</label>
+        <input id="nuevaDireccion" class="form-input" type="text" [(ngModel)]="nuevoCliente.direccion" placeholder="Calle, número, sector">
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevoPais">País *</label>
+        <select id="nuevoPais" class="form-input" [(ngModel)]="nuevoCliente.paisId" (ngModelChange)="onNuevoClientePaisChange()">
+          <option [ngValue]="null" disabled>Seleccione país...</option>
+          <option *ngFor="let pais of paises" [ngValue]="pais.id">{{ pais.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevaProvincia">Provincia *</label>
+        <select id="nuevaProvincia" class="form-input" [(ngModel)]="nuevoCliente.provinciaId" (ngModelChange)="onNuevoClienteProvinciaChange()" [disabled]="!nuevoCliente.paisId">
+          <option [ngValue]="null" disabled>Seleccione provincia...</option>
+          <option *ngFor="let provincia of provinciasRegistroCliente" [ngValue]="provincia.id">{{ provincia.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevaCiudad">Ciudad *</label>
+        <select id="nuevaCiudad" class="form-input" [(ngModel)]="nuevoCliente.ciudadId" (ngModelChange)="onNuevoClienteCiudadChange()" [disabled]="!nuevoCliente.provinciaId">
+          <option [ngValue]="null" disabled>Seleccione ciudad...</option>
+          <option *ngFor="let ciudad of ciudadesRegistroCliente" [ngValue]="ciudad.id">{{ ciudad.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="nuevoCodigoPostal">Código postal</label>
+        <input id="nuevoCodigoPostal" class="form-input" type="text" [(ngModel)]="nuevoCliente.codigoPostal" placeholder="090101">
+      </div>
+
+    </div>
+
+    <div class="alert alert--error" *ngIf="registrarClienteError">{{ registrarClienteError }}</div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" type="button" (click)="cerrarModalRegistrarCliente()" [disabled]="registrandoCliente">Cancelar</button>
+      <button class="btn-primary" type="button" (click)="guardarClienteDesdeModal()" [disabled]="registrandoCliente">
+        <span *ngIf="registrandoCliente">Guardando...</span>
+        <span *ngIf="!registrandoCliente">Guardar cliente</span>
+      </button>
+    </div>
+  </div>
+</div>

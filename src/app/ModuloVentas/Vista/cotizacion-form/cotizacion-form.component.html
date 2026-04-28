@@ -1,114 +1,106 @@
 <div class="cotizacion-form-page">
-  <div class="page-heading">
-    <h1>Presupuestos / Nuevo</h1>
-    <p>Registra la cabecera y el detalle de la cotización en una sola vista.</p>
-  </div>
 
-  <div class="toolbar-card">
-    <div class="top-actions">
-      <div class="left-actions">
-        <button class="btn btn-secondary" (click)="volverListado()">Volver</button>
-        <button class="btn btn-primary" *ngIf="mostrarBotonesGuardarDescartar()" (click)="guardarCotizacion()" [disabled]="guardando">
-          {{ guardando ? 'Guardando...' : 'Guardar' }}
-        </button>
-        <button class="btn btn-primary" *ngIf="mostrarBotonEnviar()" (click)="enviarDesdeToolbar()">Enviar</button>
-        <button class="btn btn-danger" *ngIf="mostrarBotonesGuardarDescartar()" (click)="descartar()">Descartar</button>
-        <button class="btn btn-success" *ngIf="mostrarAccionesEnviada()" (click)="aprobarDesdeToolbar()">Aprobar</button>
-        <button class="btn btn-danger" *ngIf="mostrarAccionesEnviada()" (click)="cancelarDesdeToolbar()">Cancelar</button>
-        <button class="btn btn-primary" *ngIf="mostrarBotonConvertir()" (click)="convertirAOrdenDesdeToolbar()">Convertir a Orden</button>
-      </div>
+  <button class="btn-back" (click)="volverListado()">‹ Volver a Cotizaciones</button>
 
-      <div class="estado-actions">
-        <button
-          type="button"
-          *ngFor="let estado of estadosDisponibles"
-          class="btn-estado"
-          [class.activo]="isEstadoActivo(estado)"
-          [disabled]="!puedeSeleccionarEstado(estado)"
-          (click)="seleccionarEstado(estado)"
-        >
-          {{ estado }}
-        </button>
-      </div>
+  <div class="form-page-header">
+    <div class="form-page-header-text">
+      <nav class="page-breadcrumb">
+        Ventas <span class="separator">/</span>
+        Cotizaciones <span class="separator">/</span>
+        {{ cotizacionId ? 'Editar Cotización' : 'Nueva Cotización' }}
+      </nav>
+      <h1>{{ cotizacionId ? 'Editar Cotización' : 'Nueva Cotización' }}</h1>
+      <p class="form-page-subtitle">Registra la cabecera y el detalle de la cotización en una sola vista</p>
+    </div>
+    <div class="estado-strip">
+      <button *ngFor="let estado of estadosDisponibles" type="button"
+        class="btn-estado" [class.activo]="isEstadoActivo(estado)"
+        [disabled]="!puedeSeleccionarEstado(estado)"
+        (click)="seleccionarEstado(estado)">{{ estado }}</button>
     </div>
   </div>
 
-  <div class="content-card" *ngIf="!loading">
-    <form [formGroup]="cotizacionForm" class="form-body">
-      <div class="form-section section-card header-section">
-        <div class="header-section-title">
-          <h3>Cabecera de Cotización</h3>
-          <p>Completa los campos principales para registrar el presupuesto.</p>
-        </div>
+  <div *ngIf="loading" class="inline-loader">Cargando…</div>
 
-        <div class="campos-grid">
+  <form [formGroup]="cotizacionForm" *ngIf="!loading">
+
+    <div class="form-card">
+      <div class="form-card-header">Cabecera de Cotización</div>
+      <div class="form-card-body">
+        <div class="form-grid-4">
+
           <div class="form-group">
-            <label for="numeroCotizacion">Número <span class="required">*</span></label>
-            <input id="numeroCotizacion" type="text" formControlName="numeroCotizacion" [class.invalid]="isFieldInvalid('numeroCotizacion')">
-            <span class="error-message" *ngIf="isFieldInvalid('numeroCotizacion')">{{ getFieldError('numeroCotizacion') }}</span>
+            <label for="cf-numero">Número</label>
+            <input id="cf-numero" type="text" formControlName="numeroCotizacion" readonly class="text-muted"
+                   placeholder="AUTOGENERADO" />
           </div>
 
           <div class="form-group">
-            <label for="clienteId">Cliente <span class="required">*</span></label>
-            <select id="clienteId" formControlName="clienteId" [class.invalid]="isFieldInvalid('clienteId')">
+            <label for="cf-cliente">Cliente <span class="required">*</span></label>
+            <select id="cf-cliente" formControlName="clienteId" [class.invalid]="isFieldInvalid('clienteId')">
               <option [ngValue]="null" disabled>Seleccione un cliente</option>
-              <option *ngFor="let cliente of clientes" [ngValue]="cliente.id">
-                {{ cliente.razonSocial || cliente.nombreComercial || cliente.nombres }}
+              <option *ngFor="let c of clientes" [ngValue]="c.id">
+                {{ c.razonSocial || c.nombreComercial || c.nombres }}
               </option>
             </select>
-            <span class="error-message" *ngIf="isFieldInvalid('clienteId')">{{ getFieldError('clienteId') }}</span>
+            <span class="error-msg" *ngIf="isFieldInvalid('clienteId')">{{ getFieldError('clienteId') }}</span>
           </div>
 
           <div class="form-group">
-            <label for="fechaCotizacion">Fecha Cotización <span class="required">*</span></label>
-            <input id="fechaCotizacion" type="date" formControlName="fechaCotizacion" [class.invalid]="isFieldInvalid('fechaCotizacion')">
+            <label for="cf-fecha-cot">Fecha Cotización <span class="required">*</span></label>
+            <input id="cf-fecha-cot" type="date" formControlName="fechaCotizacion"
+                   [class.invalid]="isFieldInvalid('fechaCotizacion')" />
           </div>
 
           <div class="form-group">
-            <label for="fechaVencimiento">Fecha Vencimiento <span class="required">*</span></label>
-            <input id="fechaVencimiento" type="date" formControlName="fechaVencimiento" [class.invalid]="isFieldInvalid('fechaVencimiento')">
+            <label for="cf-fecha-venc">Fecha Vencimiento <span class="required">*</span></label>
+            <input id="cf-fecha-venc" type="date" formControlName="fechaVencimiento"
+                   [class.invalid]="isFieldInvalid('fechaVencimiento')" />
           </div>
 
           <div class="form-group">
-            <label for="bodegaId">Bodega <span class="required">*</span></label>
-            <select id="bodegaId" formControlName="bodegaId" [class.invalid]="isFieldInvalid('bodegaId')">
+            <label for="cf-bodega">Bodega <span class="required">*</span></label>
+            <select id="cf-bodega" formControlName="bodegaId" [class.invalid]="isFieldInvalid('bodegaId')">
               <option [ngValue]="null" disabled>Seleccione una bodega</option>
-              <option *ngFor="let bodega of bodegas" [ngValue]="bodega.id">{{ bodega.codigo }} - {{ bodega.nombre }}</option>
+              <option *ngFor="let b of bodegas" [ngValue]="b.id">{{ b.codigo }} - {{ b.nombre }}</option>
             </select>
-            <span class="error-message" *ngIf="isFieldInvalid('bodegaId')">{{ getFieldError('bodegaId') }}</span>
+            <span class="error-msg" *ngIf="isFieldInvalid('bodegaId')">{{ getFieldError('bodegaId') }}</span>
           </div>
 
           <div class="form-group">
-            <label for="listaPreciosId">Lista de Precios <span class="required">*</span></label>
-            <select id="listaPreciosId" formControlName="listaPreciosId" [class.invalid]="isFieldInvalid('listaPreciosId')">
+            <label for="cf-lista-precios">Lista de Precios <span class="required">*</span></label>
+            <select id="cf-lista-precios" formControlName="listaPreciosId" [class.invalid]="isFieldInvalid('listaPreciosId')">
               <option [ngValue]="null" disabled>Seleccione una lista</option>
-              <option *ngFor="let lista of listasPrecios" [ngValue]="lista.id">{{ lista.nombre }}</option>
+              <option *ngFor="let lp of listasPrecios" [ngValue]="lp.id">{{ lp.nombre }}</option>
             </select>
+            <span class="error-msg" *ngIf="isFieldInvalid('listaPreciosId')">{{ getFieldError('listaPreciosId') }}</span>
           </div>
 
           <div class="form-group">
-            <label for="condicionPagoId">Condición de Pago <span class="required">*</span></label>
-            <select id="condicionPagoId" formControlName="condicionPagoId" [class.invalid]="isFieldInvalid('condicionPagoId')">
+            <label for="cf-condicion">Condición de Pago <span class="required">*</span></label>
+            <select id="cf-condicion" formControlName="condicionPagoId" [class.invalid]="isFieldInvalid('condicionPagoId')">
               <option [ngValue]="null" disabled>Seleccione una condición</option>
-              <option *ngFor="let condicion of condicionesPago" [ngValue]="condicion.id">{{ condicion.nombre }}</option>
+              <option *ngFor="let cp of condicionesPago" [ngValue]="cp.id">{{ cp.nombre }}</option>
             </select>
+            <span class="error-msg" *ngIf="isFieldInvalid('condicionPagoId')">{{ getFieldError('condicionPagoId') }}</span>
           </div>
 
           <div class="form-group">
-            <label for="tiempoEntrega">Tiempo de Entrega</label>
-            <input id="tiempoEntrega" type="text" formControlName="tiempoEntrega" placeholder="Ej: 15 días">
+            <label for="cf-entrega">Tiempo de Entrega</label>
+            <input id="cf-entrega" type="text" formControlName="tiempoEntrega" placeholder="Ej: 15 días" />
           </div>
+
         </div>
       </div>
+    </div>
 
-      <div class="form-section section-card detalle-section">
-        <div class="detalle-header">
-          <div>
-            <h3>Detalle de Cotización</h3>
-            <p>Agrega los productos y define cantidades, descuentos e impuesto.</p>
-          </div>
-          <button type="button" class="btn btn-secondary" [disabled]="!puedeEditarCampos()" (click)="agregarLinea()">Añadir línea</button>
-        </div>
+    <div class="form-card">
+      <div class="form-card-header detalle-card-header">
+        <span>Detalle de Cotización</span>
+        <button type="button" class="btn btn-secondary"
+                [disabled]="!puedeEditarCampos()" (click)="agregarLinea()">+ Añadir línea</button>
+      </div>
+      <div class="form-card-body">
 
         <div class="detalle-table-wrapper">
           <table class="detalle-table">
@@ -117,48 +109,56 @@
                 <th>Producto</th>
                 <th>Cantidad</th>
                 <th>Stock</th>
-                <th>Precio Unitario</th>
+                <th>Precio Unit.</th>
                 <th>Desc. %</th>
                 <th>Desc. Monto</th>
                 <th>IVA %</th>
-                <th>Precio c/IVA</th>
-                <th>Total Línea</th>
-                <th>Acciones</th>
+                <th class="text-right">Precio c/IVA</th>
+                <th class="text-right">Total Línea</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let linea of detallesCotizacion; let i = index">
                 <td>
-                  <select [(ngModel)]="linea.productoId" [ngModelOptions]="{standalone: true}" [disabled]="!puedeEditarCampos()" (change)="onProductoSeleccionado(i)">
+                  <select [(ngModel)]="linea.productoId" [ngModelOptions]="{standalone: true}"
+                          [disabled]="!puedeEditarCampos()" (change)="onProductoSeleccionado(i)">
                     <option [ngValue]="null" disabled>Seleccione producto</option>
-                    <option *ngFor="let producto of getProductosOpciones(linea)" [ngValue]="producto.id">{{ producto.productoNombre }}</option>
+                    <option *ngFor="let p of getProductosOpciones(linea)" [ngValue]="p.id">{{ p.productoNombre }}</option>
                   </select>
                 </td>
                 <td>
-                  <input type="number" [(ngModel)]="linea.cantidad" [ngModelOptions]="{standalone: true}" [disabled]="!puedeEditarCampos()" min="0.01" step="0.01" (input)="onCantidadChange(i)">
+                  <input type="number" [(ngModel)]="linea.cantidad" [ngModelOptions]="{standalone: true}"
+                         [disabled]="!puedeEditarCampos()" min="0.01" step="0.01" (input)="onCantidadChange(i)" />
                 </td>
-                <td>
-                  <span class="stock-label">{{ linea.stockDisponible || 0 }}</span>
-                  <small class="stock-message" [class.stock-error]="lineasConStockInsuficiente.has(i)">
+                <td class="stock-cell">
+                  <span class="stock-num">{{ linea.stockDisponible || 0 }}</span>
+                  <small class="stock-msg" [class.stock-error]="lineasConStockInsuficiente.has(i)">
                     {{ mensajesStockPorLinea[i] || 'Disponible: 0' }}
                   </small>
                 </td>
                 <td>
-                  <input type="number" [(ngModel)]="linea.precioUnitario" [ngModelOptions]="{standalone: true}" min="0" step="0.01" readonly>
+                  <input type="number" [(ngModel)]="linea.precioUnitario" [ngModelOptions]="{standalone: true}"
+                         min="0" step="0.01" readonly />
                 </td>
                 <td>
-                  <input type="number" [(ngModel)]="linea.descuentoPorcentaje" [ngModelOptions]="{standalone: true}" [disabled]="!puedeEditarCampos()" min="0" max="100" step="0.01" (input)="onLineaChange(i)">
+                  <input type="number" [(ngModel)]="linea.descuentoPorcentaje" [ngModelOptions]="{standalone: true}"
+                         [disabled]="!puedeEditarCampos()" min="0" max="100" step="0.01" (input)="onLineaChange(i)" />
                 </td>
                 <td>
-                  <input type="number" [(ngModel)]="linea.descuentoMonto" [ngModelOptions]="{standalone: true}" min="0" step="0.01" readonly>
+                  <input type="number" [(ngModel)]="linea.descuentoMonto" [ngModelOptions]="{standalone: true}"
+                         min="0" step="0.01" readonly />
                 </td>
                 <td>
-                  <input type="number" [(ngModel)]="linea.impuestoPorcentaje" [ngModelOptions]="{standalone: true}" readonly min="0" step="0.01">
+                  <input type="number" [(ngModel)]="linea.impuestoPorcentaje" [ngModelOptions]="{standalone: true}"
+                         readonly min="0" step="0.01" />
                 </td>
-                <td class="cell-total">{{ formatCurrency(getPrecioConIva(linea)) }}</td>
-                <td class="cell-total">{{ formatCurrency(getTotalLinea(linea)) }}</td>
+                <td class="td-mono text-right">{{ formatCurrency(getPrecioConIva(linea)) }}</td>
+                <td class="td-mono text-right">{{ formatCurrency(getTotalLinea(linea)) }}</td>
                 <td>
-                  <button type="button" class="btn-delete" (click)="eliminarLinea(i)" [disabled]="detallesCotizacion.length === 1 || !puedeEditarCampos()">Eliminar</button>
+                  <button type="button" class="btn-icon btn-delete"
+                          [disabled]="detallesCotizacion.length === 1 || !puedeEditarCampos()"
+                          (click)="eliminarLinea(i)" title="Eliminar">✕</button>
                 </td>
               </tr>
             </tbody>
@@ -183,9 +183,21 @@
             <strong>{{ formatCurrency(cotizacionForm.get('total')?.value || 0) }}</strong>
           </div>
         </div>
+
       </div>
-    </form>
+    </div>
+
+  </form>
+
+  <div class="form-page-footer">
+    <button class="btn btn-secondary" *ngIf="mostrarBotonesGuardarDescartar()" (click)="descartar()">Descartar</button>
+    <button class="btn btn-secondary" *ngIf="mostrarBotonEnviar()" (click)="enviarDesdeToolbar()">Enviar</button>
+    <button class="btn btn-secondary" *ngIf="mostrarAccionesEnviada()" (click)="cancelarDesdeToolbar()">Cancelar</button>
+    <button class="btn btn-primary" *ngIf="mostrarAccionesEnviada()" (click)="aprobarDesdeToolbar()">Aprobar</button>
+    <button class="btn btn-primary" *ngIf="mostrarBotonConvertir()" (click)="convertirAOrdenDesdeToolbar()">Convertir a Orden</button>
+    <button class="btn btn-primary" *ngIf="mostrarBotonesGuardarDescartar()" (click)="guardarCotizacion()" [disabled]="guardando">
+      {{ guardando ? 'Guardando…' : 'Guardar' }}
+    </button>
   </div>
 
-  <div class="loading-state" *ngIf="loading">Cargando formulario de cotización...</div>
 </div>

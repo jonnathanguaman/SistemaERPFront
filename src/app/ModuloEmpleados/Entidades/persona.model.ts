@@ -35,3 +35,20 @@ export interface PersonaResponse {
   email: string;
   activo: boolean;
 }
+
+/**
+ * DTO para precargar formulario de edición con credenciales y asignaciones
+ */
+export interface PersonaEdicionResponse {
+  id: number;
+  nombre: string;
+  cedula: string;
+  direccion: string;
+  telefono: string;
+  email: string;
+  username?: string;
+  rolId?: number;
+  empresaId?: number;
+  rolEmpresaId?: number;
+  tieneUsuario?: boolean;
+}

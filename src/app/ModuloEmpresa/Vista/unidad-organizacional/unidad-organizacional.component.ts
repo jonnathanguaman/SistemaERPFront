@@ -18,7 +18,7 @@ export class UnidadOrganizacionalComponent implements OnInit {
   unidadesOrganizacionalesFiltradas: UnidadOrganizacionalDetalle[] = [];
   empresas: EmpresaResponse[] = [];
   unidadOrganizacionalForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   unidadOrganizacionalIdEditar: number | null = null;
   busqueda = '';
@@ -78,26 +78,29 @@ export class UnidadOrganizacionalComponent implements OnInit {
     );
   }
 
-  abrirModal(unidadOrganizacional?: UnidadOrganizacional): void {
-    if (unidadOrganizacional) {
-      this.modoEdicion = true;
-      this.unidadOrganizacionalIdEditar = unidadOrganizacional.id || null;
-      this.unidadOrganizacionalForm.patchValue({
-        nombre: unidadOrganizacional.nombre,
-        tipo: unidadOrganizacional.tipo,
-        empresaId: unidadOrganizacional.empresaId,
-        unidadPadreId: unidadOrganizacional.unidadPadreId
-      });
-    } else {
-      this.modoEdicion = false;
-      this.unidadOrganizacionalIdEditar = null;
-      this.unidadOrganizacionalForm.reset();
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.unidadOrganizacionalIdEditar = null;
+    this.unidadOrganizacionalForm.reset();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(unidadOrganizacional: UnidadOrganizacional): void {
+    this.modoEdicion = true;
+    this.unidadOrganizacionalIdEditar = unidadOrganizacional.id || null;
+    this.unidadOrganizacionalForm.patchValue({
+      nombre: unidadOrganizacional.nombre,
+      tipo: unidadOrganizacional.tipo,
+      empresaId: unidadOrganizacional.empresaId,
+      unidadPadreId: unidadOrganizacional.unidadPadreId
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.unidadOrganizacionalForm.reset();
     this.modoEdicion = false;
     this.unidadOrganizacionalIdEditar = null;
@@ -120,7 +123,7 @@ export class UnidadOrganizacionalComponent implements OnInit {
         this.notificationService.showSuccess('Unidad organizacional creada correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       this.notificationService.showError('Error al guardar la unidad organizacional');
     }

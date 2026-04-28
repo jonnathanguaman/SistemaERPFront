@@ -15,7 +15,7 @@ export class DetalleCotizacionComponent implements OnInit {
   detalles: DetalleCotizacionResponse[] = [];
   detallesFiltrados: DetalleCotizacionResponse[] = [];
   detalleForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingDetalleId: number | null = null;
   loading: boolean = false;
@@ -96,7 +96,7 @@ export class DetalleCotizacionComponent implements OnInit {
     );
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingDetalleId = null;
     this.detalleForm.reset({
@@ -106,10 +106,11 @@ export class DetalleCotizacionComponent implements OnInit {
       descuentoMonto: 0,
       impuestoPorcentaje: 0
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(detalle: DetalleCotizacionResponse): void {
+  abrirFormEditar(detalle: DetalleCotizacionResponse): void {
     this.isEditing = true;
     this.editingDetalleId = detalle.id;
     this.detalleForm.patchValue({
@@ -122,11 +123,12 @@ export class DetalleCotizacionComponent implements OnInit {
       impuestoPorcentaje: detalle.impuestoPorcentaje,
       observaciones: detalle.observaciones
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.detalleForm.reset();
     this.isEditing = false;
     this.editingDetalleId = null;
@@ -146,7 +148,7 @@ export class DetalleCotizacionComponent implements OnInit {
         next: () => {
           this.notificationService.success('Detalle actualizado exitosamente');
           this.cargarDetalles();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar detalle:', error);
@@ -158,7 +160,7 @@ export class DetalleCotizacionComponent implements OnInit {
         next: () => {
           this.notificationService.success('Detalle creado exitosamente');
           this.cargarDetalles();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear detalle:', error);

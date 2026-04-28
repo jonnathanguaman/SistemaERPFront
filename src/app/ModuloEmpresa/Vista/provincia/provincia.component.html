@@ -1,0 +1,178 @@
+<div class="provincia-container">
+
+  <!-- LIST VIEW -->
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-breadcrumb">
+          <span>Empresa</span><span class="separator">/</span><span>Catálogos</span><span class="separator">/</span><span>Provincias</span>
+        </div>
+        <h1>Provincias</h1>
+        <p class="page-subtitle">Catálogo maestro de provincias por país</p>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nueva Provincia
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Buscar por nombre, país o código…" [(ngModel)]="searchTerm" (input)="filtrarProvincias()">
+      </div>
+      <span class="result-count">{{ provinciasFiltradas.length }} provincia(s)</span>
+    </div>
+
+    <div class="inline-loader" *ngIf="loading">
+      <div class="spin"></div><span>Cargando…</span>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>País</th>
+            <th>Código</th>
+            <th>Provincia</th>
+            <th>Estado</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let provincia of provinciasFiltradas">
+            <td>{{ provincia.paisNombre }}</td>
+            <td class="td-mono">{{ provincia.codigo || '-' }}</td>
+            <td>{{ provincia.nombre }}</td>
+            <td>
+              <span class="badge" [class.badge-success]="provincia.activo" [class.badge-danger]="!provincia.activo">
+                {{ provincia.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td style="text-align:right">
+              <div style="display:flex;gap:6px;justify-content:flex-end">
+                <button class="btn-icon btn-edit" (click)="abrirFormEditar(provincia)" title="Editar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="eliminarProvincia(provincia)" title="Eliminar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="provinciasFiltradas.length === 0 && !loading">
+            <td colspan="5">
+              <div class="list-empty">
+                <h3>Sin registros</h3>
+                <p>{{ searchTerm ? 'Sin resultados para "' + searchTerm + '"' : 'Agrega la primera provincia.' }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FORM VIEW -->
+  <div class="form-view" *ngIf="showForm">
+    <button class="btn-back" (click)="cerrarForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Volver a Provincias
+    </button>
+
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <div class="page-breadcrumb">
+          <span>Empresa</span><span class="separator">/</span><span>Catálogos</span><span class="separator">/</span>
+          <span>Provincias</span><span class="separator">/</span>
+          <span>{{ isEditMode ? 'Editar' : 'Nueva' }}</span>
+        </div>
+        <h1>{{ isEditMode ? 'Editar Provincia' : 'Nueva Provincia' }}</h1>
+        <p class="form-page-subtitle">{{ isEditMode ? 'Actualiza la información de la provincia' : 'Completa los datos de la nueva provincia' }}</p>
+      </div>
+    </div>
+
+    <form [formGroup]="provinciaForm" (ngSubmit)="guardarProvincia()">
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h7"/>
+          </svg>
+          <h3>Información de la Provincia</h3>
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label for="paisId">País <span class="required">*</span></label>
+              <select
+                id="paisId"
+                formControlName="paisId"
+                [class.invalid]="provinciaForm.get('paisId')?.invalid && provinciaForm.get('paisId')?.touched"
+              >
+                <option [ngValue]="null">Seleccione un país…</option>
+                <option *ngFor="let pais of paises" [ngValue]="pais.id">{{ pais.nombre }}</option>
+              </select>
+              <span class="error-msg" *ngIf="provinciaForm.get('paisId')?.hasError('required') && provinciaForm.get('paisId')?.touched">
+                El país es obligatorio.
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="codigo">Código</label>
+              <input
+                id="codigo"
+                type="text"
+                formControlName="codigo"
+                placeholder="Ej. PIC"
+              >
+            </div>
+
+            <div class="form-group form-grid-full">
+              <label for="nombre">Nombre <span class="required">*</span></label>
+              <input
+                id="nombre"
+                type="text"
+                formControlName="nombre"
+                [class.invalid]="provinciaForm.get('nombre')?.invalid && provinciaForm.get('nombre')?.touched"
+                placeholder="Ej. Pichincha"
+              >
+              <span class="error-msg" *ngIf="provinciaForm.get('nombre')?.hasError('required') && provinciaForm.get('nombre')?.touched">
+                El nombre es obligatorio.
+              </span>
+            </div>
+
+          </div>
+
+          <div class="toggle-group" style="margin-top:16px">
+            <label for="activo">Activo</label>
+            <input type="checkbox" id="activo" formControlName="activo">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-page-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="provinciaForm.invalid">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          {{ isEditMode ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>

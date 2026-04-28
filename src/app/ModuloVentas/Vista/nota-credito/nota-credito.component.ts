@@ -20,7 +20,7 @@ export class NotaCreditoComponent implements OnInit {
   facturas: FacturaResponse[] = [];
   clienteNombreSeleccionado: string = '';
   notaCreditoForm: FormGroup;
-  showModal = false;
+  showForm = false;
   showDetalleModal = false;
   showAutorizacionModal = false;
   isEditMode = false;
@@ -47,7 +47,7 @@ export class NotaCreditoComponent implements OnInit {
     private readonly notificationService: NotificationService
   ) {
     this.notaCreditoForm = this.fb.group({
-      numeroNotaCredito: ['', [Validators.required, Validators.maxLength(20)]],
+      numeroNotaCredito: [{ value: '', disabled: true }, [Validators.required, Validators.maxLength(20)]],
       facturaId: ['', [Validators.required]],
       clienteId: ['', [Validators.required]],
       fechaEmision: ['', [Validators.required]],
@@ -145,7 +145,7 @@ export class NotaCreditoComponent implements OnInit {
     this.notasCreditoFiltradas = filtradas;
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.notaCreditoForm.reset({
       tipoNota: 'DEVOLUCION',
@@ -157,11 +157,12 @@ export class NotaCreditoComponent implements OnInit {
       autorizadoSri: false,
       fechaEmision: new Date().toISOString().split('T')[0]
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
     this.calcularTotal();
   }
 
-  abrirModalEditar(notaCredito: NotaCreditoResponse): void {
+  abrirFormEditar(notaCredito: NotaCreditoResponse): void {
     this.isEditMode = true;
     this.selectedNotaCreditoId = notaCredito.id;
     this.notaCreditoForm.patchValue({
@@ -191,12 +192,13 @@ export class NotaCreditoComponent implements OnInit {
       this.clienteNombreSeleccionado = notaCredito.clienteNombre || '';
     }
     
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
     this.calcularTotal();
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.notaCreditoForm.reset();
     this.isEditMode = false;
     this.selectedNotaCreditoId = undefined;
@@ -216,7 +218,7 @@ export class NotaCreditoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Nota de crédito actualizada', 'La nota de crédito se actualizó correctamente');
           this.cargarNotasCredito();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error: Error) => {
           this.notificationService.error('Error al actualizar nota de crédito', error.message);
@@ -227,7 +229,7 @@ export class NotaCreditoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Nota de crédito creada', 'La nota de crédito se creó correctamente');
           this.cargarNotasCredito();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error: Error) => {
           this.notificationService.error('Error al crear nota de crédito', error.message);

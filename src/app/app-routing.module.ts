@@ -72,6 +72,15 @@ import { DetalleRecepcionComponent } from './ModuloCompras/Vista/detalle-recepci
 import { RecepcionFormComponent } from './ModuloCompras/Vista/recepcion-form/recepcion-form.component';
 import { SolicitudTransferenciaComponent } from './ModuloInventario/Vista/solicitud-transferencia/solicitud-transferencia.component';
 import { DashboardComponent } from './ModuloDashboard/Vista/dashboard/dashboard.component';
+import { DashboardVentasComponent } from './ModuloVentas/Vista/dashboard-ventas/dashboard-ventas.component';
+import { DashboardComprasComponent } from './ModuloCompras/Vista/dashboard-compras/dashboard-compras.component';
+import { DashboardInventarioComponent } from './ModuloInventario/Vista/dashboard-inventario/dashboard-inventario.component';
+import { DashboardEmpleadosComponent } from './ModuloEmpleados/Vista/dashboard-empleados/dashboard-empleados.component';
+import { DashboardEmpresaComponent } from './ModuloEmpresa/Vista/dashboard-empresa/dashboard-empresa.component';
+import { FacturadorComponent } from './ModuloVentas/Vista/facturador/facturador.component';
+import { PaisComponent } from './ModuloEmpresa/Vista/pais/pais.component';
+import { ProvinciaComponent } from './ModuloEmpresa/Vista/provincia/provincia.component';
+import { CiudadComponent } from './ModuloEmpresa/Vista/ciudad/ciudad.component';
 
 const routes: Routes = [
   // Ruta de login (pública)
@@ -82,7 +91,14 @@ const routes: Routes = [
 
   // Dashboard principal
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
-  
+
+  // Dashboards por módulo
+  { path: 'ventas/dashboard', component: DashboardVentasComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
+  { path: 'compras/dashboard', component: DashboardComprasComponent, canActivate: [RoleGuard], data: { module: 'compras' } },
+  { path: 'inventario/dashboard', component: DashboardInventarioComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
+  { path: 'empleados/dashboard', component: DashboardEmpleadosComponent, canActivate: [RoleGuard], data: { module: 'empleados' } },
+  { path: 'empresa/dashboard', component: DashboardEmpresaComponent, canActivate: [RoleGuard], data: { module: 'empresa' } },
+
   // Página de acceso denegado
   { path: 'sin-acceso', component: SinAccesoComponent, canActivate: [AuthGuard] },
   
@@ -108,6 +124,9 @@ const routes: Routes = [
   { path: 'roles-procesos-permisos', component: RolProcesoPermisoComponent, canActivate: [RoleGuard], data: { module: 'empresa' } },
   { path: 'reportes-jerarquicos', component: ReporteJerarquicoComponent, canActivate: [RoleGuard], data: { module: 'empresa' } },
   { path: 'unidades-organizacionales', component: UnidadOrganizacionalComponent, canActivate: [RoleGuard], data: { module: 'empresa' } },
+  { path: 'empresa/paises', component: PaisComponent, canActivate: [RoleGuard], data: { module: 'empresa' } },
+  { path: 'empresa/provincias', component: ProvinciaComponent, canActivate: [RoleGuard], data: { module: 'empresa' } },
+  { path: 'empresa/ciudades', component: CiudadComponent, canActivate: [RoleGuard], data: { module: 'empresa' } },
   // Rutas del módulo de inventario
   { path: 'productos/:id', component: ProductoDetalleComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
   { path: 'productos', component: ProductoComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
@@ -127,6 +146,8 @@ const routes: Routes = [
   { path: 'movimientos-inventario', component: MoviminetoInventarioComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
   { path: 'detalles-movimiento', component: DetalleMoviminetoComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
   { path: 'kardex', component: KardexComponent, canActivate: [RoleGuard], data: { module: 'inventario' } },
+  // Facturador (POS de emisión directa)
+  { path: 'facturador', component: FacturadorComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   // Rutas del módulo de ventas
   { path: 'facturas', component: FacturaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },
   { path: 'zonas-venta', component: ZonaVentaComponent, canActivate: [RoleGuard], data: { module: 'ventas' } },

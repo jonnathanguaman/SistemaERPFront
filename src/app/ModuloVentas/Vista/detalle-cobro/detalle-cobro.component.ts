@@ -22,7 +22,7 @@ export class DetalleCobroComponent implements OnInit {
   cuentasPorCobrar: CuentaPorCobrarResponse[] = [];
   facturas: FacturaResponse[] = [];
   detalleCobroForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingDetalleId: number | null = null;
   loading: boolean = false;
@@ -142,7 +142,7 @@ export class DetalleCobroComponent implements OnInit {
     this.cargarDetallesCobro();
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingDetalleId = null;
     const today = new Date().toISOString().split('T')[0];
@@ -150,10 +150,11 @@ export class DetalleCobroComponent implements OnInit {
       fechaAplicacion: today,
       montoAplicado: 0
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(detalle: DetalleCobroResponse): void {
+  abrirFormEditar(detalle: DetalleCobroResponse): void {
     this.isEditing = true;
     this.editingDetalleId = detalle.id;
     this.detalleCobroForm.patchValue({
@@ -164,11 +165,12 @@ export class DetalleCobroComponent implements OnInit {
       fechaAplicacion: detalle.fechaAplicacion,
       observaciones: detalle.observaciones
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.detalleCobroForm.reset();
     this.isEditing = false;
     this.editingDetalleId = null;
@@ -188,7 +190,7 @@ export class DetalleCobroComponent implements OnInit {
         next: () => {
           this.notificationService.success('Detalle de cobro actualizado exitosamente');
           this.cargarDetallesCobro();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar detalle:', error);
@@ -200,7 +202,7 @@ export class DetalleCobroComponent implements OnInit {
         next: () => {
           this.notificationService.success('Detalle de cobro creado exitosamente');
           this.cargarDetallesCobro();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear detalle:', error);

@@ -19,6 +19,9 @@ export interface Proveedor {
   ciudad?: string;
   provincia?: string;
   pais?: string;
+  paisId?: number;
+  provinciaId?: number;
+  ciudadId?: number;
   condicionPagoId?: number;
   diasCredito?: number;
   descuentoComercial?: number;
@@ -52,6 +55,9 @@ export interface ProveedorRequest {
   ciudad?: string;
   provincia?: string;
   pais?: string;
+  paisId?: number;
+  provinciaId?: number;
+  ciudadId?: number;
   condicionPagoId?: number;
   diasCredito?: number;
   descuentoComercial?: number;
@@ -82,6 +88,9 @@ export interface ProveedorResponse {
   ciudad?: string;
   provincia?: string;
   pais?: string;
+  paisId?: number;
+  provinciaId?: number;
+  ciudadId?: number;
   condicionPagoId?: number;
   diasCredito?: number;
   descuentoComercial?: number;

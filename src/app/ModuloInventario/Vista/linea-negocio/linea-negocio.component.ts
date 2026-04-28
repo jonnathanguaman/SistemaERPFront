@@ -13,7 +13,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class LineaNegocioComponent implements OnInit {
   lineasNegocio: LineaNegocioResponse[] = [];
   lineaNegocioForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingLineaNegocioId: number | null = null;
   loading: boolean = false;
@@ -61,25 +61,27 @@ export class LineaNegocioComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingLineaNegocioId = null;
     this.lineaNegocioForm.reset();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(lineaNegocio: LineaNegocioResponse): void {
+  abrirFormEditar(lineaNegocio: LineaNegocioResponse): void {
     this.isEditing = true;
     this.editingLineaNegocioId = lineaNegocio.id;
     this.lineaNegocioForm.patchValue({
       nombre: lineaNegocio.nombreLinea,
       codigo: lineaNegocio.codigoLinea
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.lineaNegocioForm.reset();
     this.isEditing = false;
     this.editingLineaNegocioId = null;
@@ -102,7 +104,7 @@ export class LineaNegocioComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Línea de negocio actualizada exitosamente');
           this.cargarLineasNegocio();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar línea de negocio:', error);
@@ -114,7 +116,7 @@ export class LineaNegocioComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Línea de negocio creada exitosamente');
           this.cargarLineasNegocio();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear línea de negocio:', error);

@@ -16,7 +16,7 @@ export class ContactoClienteComponent implements OnInit {
   contactos: ContactoClienteResponse[] = [];
   clientes: ClienteResponse[] = [];
   contactoForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingContactoId: number | null = null;
   loading: boolean = false;
@@ -98,7 +98,7 @@ export class ContactoClienteComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingContactoId = null;
     this.contactoForm.reset({
@@ -106,10 +106,11 @@ export class ContactoClienteComponent implements OnInit {
       recibeFacturas: false,
       recibeCotizaciones: false
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(contacto: ContactoClienteResponse): void {
+  abrirFormEditar(contacto: ContactoClienteResponse): void {
     this.isEditing = true;
     this.editingContactoId = contacto.id;
     this.contactoForm.patchValue({
@@ -126,11 +127,12 @@ export class ContactoClienteComponent implements OnInit {
       recibeCotizaciones: contacto.recibeCotizaciones,
       observaciones: contacto.observaciones
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.contactoForm.reset();
     this.isEditing = false;
     this.editingContactoId = null;
@@ -150,7 +152,7 @@ export class ContactoClienteComponent implements OnInit {
         next: () => {
           this.notificationService.success('Contacto actualizado exitosamente');
           this.cargarContactos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error: Error) => {
           console.error('Error al actualizar contacto:', error);
@@ -162,7 +164,7 @@ export class ContactoClienteComponent implements OnInit {
         next: () => {
           this.notificationService.success('Contacto creado exitosamente');
           this.cargarContactos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error: Error) => {
           console.error('Error al crear contacto:', error);

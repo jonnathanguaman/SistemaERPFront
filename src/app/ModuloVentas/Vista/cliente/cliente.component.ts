@@ -7,6 +7,12 @@ import { CondicionPagoResponse } from '../../Entidad/condicion-pago.model';
 import { ListaPreciosService } from '../../Service/lista-precios.service';
 import { ListaPreciosResponse } from '../../Entidad/lista-precios.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
+import { PaisService } from '../../../ModuloEmpresa/Service/pais.service';
+import { ProvinciaService } from '../../../ModuloEmpresa/Service/provincia.service';
+import { CiudadService } from '../../../ModuloEmpresa/Service/ciudad.service';
+import { PaisResponse } from '../../../ModuloEmpresa/Entidad/pais.model';
+import { ProvinciaResponse } from '../../../ModuloEmpresa/Entidad/provincia.model';
+import { CiudadResponse } from '../../../ModuloEmpresa/Entidad/ciudad.model';
 
 @Component({
   selector: 'app-cliente',
@@ -19,8 +25,11 @@ export class ClienteComponent implements OnInit {
   clientesFiltrados: ClienteResponse[] = [];
   condicionesPago: CondicionPagoResponse[] = [];
   listasPrecios: ListaPreciosResponse[] = [];
+  paises: PaisResponse[] = [];
+  provincias: ProvinciaResponse[] = [];
+  ciudades: CiudadResponse[] = [];
   clienteForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingClienteId: number | null = null;
   loading: boolean = false;
@@ -30,6 +39,9 @@ export class ClienteComponent implements OnInit {
     private readonly clienteService: ClienteService,
     private readonly condicionPagoService: CondicionPagoService,
     private readonly listaPreciosService: ListaPreciosService,
+    private readonly paisService: PaisService,
+    private readonly provinciaService: ProvinciaService,
+    private readonly ciudadService: CiudadService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
@@ -55,7 +67,10 @@ export class ClienteComponent implements OnInit {
       direccion: [''],
       ciudad: [''],
       provincia: [''],
-      pais: ['Ecuador'],
+      pais: [''],
+      paisId: [null, Validators.required],
+      provinciaId: [null, Validators.required],
+      ciudadId: [null, Validators.required],
       codigoPostal: [''],
       observaciones: ['']
     });
@@ -65,6 +80,92 @@ export class ClienteComponent implements OnInit {
     this.cargarClientes();
     this.cargarCondicionesPago();
     this.cargarListasPrecios();
+    this.cargarPaises();
+
+    this.clienteForm.get('paisId')?.valueChanges.subscribe((paisId: number | null) => {
+      this.onPaisChange(paisId);
+    });
+
+    this.clienteForm.get('provinciaId')?.valueChanges.subscribe((provinciaId: number | null) => {
+      this.onProvinciaChange(provinciaId);
+    });
+
+    this.clienteForm.get('ciudadId')?.valueChanges.subscribe((ciudadId: number | null) => {
+      this.actualizarCiudadTexto(ciudadId);
+    });
+  }
+
+  cargarPaises(): void {
+    this.paisService.findActivos().subscribe({
+      next: (data) => {
+        this.paises = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar países:', error);
+        this.notificationService.error('Error al cargar países');
+      }
+    });
+  }
+
+  cargarProvinciasPorPais(paisId: number): void {
+    this.provinciaService.findByPais(paisId).subscribe({
+      next: (data) => {
+        this.provincias = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar provincias:', error);
+        this.notificationService.error('Error al cargar provincias');
+      }
+    });
+  }
+
+  cargarCiudadesPorProvincia(provinciaId: number): void {
+    this.ciudadService.findByProvincia(provinciaId).subscribe({
+      next: (data) => {
+        this.ciudades = data;
+      },
+      error: (error) => {
+        console.error('Error al cargar ciudades:', error);
+        this.notificationService.error('Error al cargar ciudades');
+      }
+    });
+  }
+
+  onPaisChange(paisId: number | null): void {
+    this.provincias = [];
+    this.ciudades = [];
+    this.clienteForm.patchValue({ provinciaId: null, ciudadId: null, provincia: '', ciudad: '' }, { emitEvent: false });
+
+    if (paisId) {
+      this.cargarProvinciasPorPais(paisId);
+      const pais = this.paises.find((p) => p.id === paisId);
+      this.clienteForm.patchValue({ pais: pais?.nombre || '' }, { emitEvent: false });
+    } else {
+      this.clienteForm.patchValue({ pais: '' }, { emitEvent: false });
+    }
+  }
+
+  onProvinciaChange(provinciaId: number | null): void {
+    this.ciudades = [];
+    this.clienteForm.patchValue({ ciudadId: null, ciudad: '' }, { emitEvent: false });
+
+    if (provinciaId) {
+      this.cargarCiudadesPorProvincia(provinciaId);
+      const provincia = this.provincias.find((p) => p.id === provinciaId);
+      this.clienteForm.patchValue({ provincia: provincia?.nombre || '' }, { emitEvent: false });
+    } else {
+      this.clienteForm.patchValue({ provincia: '' }, { emitEvent: false });
+    }
+  }
+
+  actualizarCiudadTexto(ciudadId: number | null): void {
+    if (!ciudadId) {
+      this.clienteForm.patchValue({ ciudad: '' }, { emitEvent: false });
+      return;
+    }
+
+    const ciudad = this.ciudades.find((c) => c.id === ciudadId);
+    this.clienteForm.patchValue({ ciudad: ciudad?.nombre || '' }, { emitEvent: false });
   }
 
   cargarCondicionesPago(): void {
@@ -120,21 +221,27 @@ export class ClienteComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingClienteId = null;
     this.clienteForm.reset({
       tipoIdentificacion: 'RUC',
-      pais: 'Ecuador',
+      pais: '',
+      paisId: null,
+      provinciaId: null,
+      ciudadId: null,
       listaPreciosId: null,
       condicionPagoId: null,
       limiteCredito: 0,
       descuentoGeneral: 0
     });
-    this.showModal = true;
+    this.provincias = [];
+    this.ciudades = [];
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(cliente: ClienteResponse): void {
+  abrirFormEditar(cliente: ClienteResponse): void {
     this.isEditing = true;
     this.editingClienteId = cliente.id;
     this.clienteForm.patchValue({
@@ -160,15 +267,34 @@ export class ClienteComponent implements OnInit {
       ciudad: cliente.ciudad,
       provincia: cliente.provincia,
       pais: cliente.pais,
+      paisId: cliente.paisId,
+      provinciaId: cliente.provinciaId,
+      ciudadId: cliente.ciudadId,
       codigoPostal: cliente.codigoPostal,
       observaciones: cliente.observaciones
     });
-    this.showModal = true;
+
+    if (cliente.paisId) {
+      this.cargarProvinciasPorPais(cliente.paisId);
+    } else {
+      this.provincias = [];
+    }
+
+    if (cliente.provinciaId) {
+      this.cargarCiudadesPorProvincia(cliente.provinciaId);
+    } else {
+      this.ciudades = [];
+    }
+
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.clienteForm.reset();
+    this.provincias = [];
+    this.ciudades = [];
     this.isEditing = false;
     this.editingClienteId = null;
   }
@@ -181,8 +307,15 @@ export class ClienteComponent implements OnInit {
     }
 
     const formValue = this.clienteForm.value;
+    const pais = this.paises.find((p) => p.id === formValue.paisId);
+    const provincia = this.provincias.find((p) => p.id === formValue.provinciaId);
+    const ciudad = this.ciudades.find((c) => c.id === formValue.ciudadId);
+
     const clienteData: ClienteRequest = {
       ...formValue,
+      pais: pais?.nombre || formValue.pais || '',
+      provincia: provincia?.nombre || formValue.provincia || '',
+      ciudad: ciudad?.nombre || formValue.ciudad || '',
       limiteCredito: formValue.limiteCredito || 0,
       descuentoGeneral: formValue.descuentoGeneral || 0
     };
@@ -192,7 +325,7 @@ export class ClienteComponent implements OnInit {
         next: () => {
           this.notificationService.success('Cliente actualizado exitosamente');
           this.cargarClientes();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar cliente:', error);
@@ -204,7 +337,7 @@ export class ClienteComponent implements OnInit {
         next: () => {
           this.notificationService.success('Cliente creado exitosamente');
           this.cargarClientes();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear cliente:', error);

@@ -1,163 +1,160 @@
 <div class="iva-producto-container">
-  <div class="page-header">
-    <div class="header-content">
-      <h1>IVA por Producto</h1>
-      <p class="subtitle">Asignación de IVA vigente por producto</p>
-    </div>
-    <button class="btn btn-primary" (click)="abrirModal()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nueva Asignación IVA
-    </button>
-  </div>
 
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input type="text" class="search-input" placeholder="Buscar por producto, lista IVA o código..." [(ngModel)]="busqueda" (input)="filtrarIvasProducto()">
-    </div>
-  </div>
-
-  <div class="table-container">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Lista IVA</th>
-          <th>Producto</th>
-          <th>IVA %</th>
-          <th>Código Impuesto</th>
-          <th>Vigencia</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let iva of ivasProductoFiltrados">
-          <td>
-            <div class="lista-info">
-              <strong>{{ iva.listaIvaCodigo }}</strong>
-              <small>{{ iva.listaIvaNombre }} (ID: {{ iva.listaIvaId }})</small>
-            </div>
-          </td>
-          <td>{{ obtenerNombreProducto(iva.productoId) }}</td>
-          <td class="impuesto-cell">{{ iva.impuestoPorcentaje | number:'1.2-2' }}%</td>
-          <td>{{ iva.impuestoCodigo || '-' }}</td>
-          <td>
-            <div class="date-range">
-              {{ iva.fechaVigenciaDesde | date:'dd/MM/yyyy' }}
-              <span *ngIf="iva.fechaVigenciaHasta"> - {{ iva.fechaVigenciaHasta | date:'dd/MM/yyyy' }}</span>
-            </div>
-          </td>
-          <td>
-            <span class="badge" [class.badge-success]="iva.estaVigente && iva.activo" [class.badge-warning]="!iva.estaVigente && iva.activo" [class.badge-danger]="!iva.activo">
-              {{ iva.estaVigente && iva.activo ? 'Vigente' : (!iva.activo ? 'Inactivo' : 'No vigente') }}
-            </span>
-          </td>
-          <td>
-            <div class="actions-cell">
-              <button class="btn-icon btn-edit" (click)="abrirModal(iva)" title="Editar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
-              <button class="btn-icon btn-delete" (click)="eliminarIvaProducto(iva.id)" title="Eliminar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="ivasProductoFiltrados.length === 0">
-          <td colspan="7" class="no-data">No hay asignaciones IVA registradas</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()" (keydown.escape)="cerrarModal()" tabindex="-1">
-  <div class="modal-content" (click)="$event.stopPropagation()" (keydown.escape)="cerrarModal()" role="dialog" aria-modal="true">
-    <div class="modal-header">
-      <h2>{{ modoEdicion ? 'Editar' : 'Nueva' }} Asignación IVA</h2>
-      <button class="btn-close" (click)="cerrarModal()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-breadcrumb">
+          <span>Ventas</span><span class="separator">/</span><span>IVA por Producto</span>
+        </div>
+        <h1>IVA por Producto</h1>
+        <p class="page-subtitle">Gestiona las asignaciones de IVA a productos</p>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
+        Nueva Asignación
       </button>
     </div>
 
-    <form [formGroup]="ivaProductoForm" (ngSubmit)="guardarIvaProducto()" class="modal-form">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="listaIvaId">Lista IVA <span class="required">*</span></label>
-          <select id="listaIvaId" formControlName="listaIvaId" (change)="onListaIvaChange()">
-            <option value="">Seleccione una lista IVA</option>
-            <option *ngFor="let lista of listasIva" [value]="lista.id">
-              {{ lista.codigo }} - {{ lista.nombre }}
-            </option>
-          </select>
-        </div>
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Buscar por producto, lista IVA o código…" [(ngModel)]="busqueda" (input)="filtrarIvasProducto()">
+      </div>
+      <span class="result-count">{{ ivasProductoFiltrados.length }} asignación(es)</span>
+    </div>
 
-        <div class="form-group">
-          <label for="productoId">Producto <span class="required">*</span></label>
-          <select id="productoId" formControlName="productoId">
-            <option value="">Seleccione un producto</option>
-            <option *ngFor="let producto of productos" [value]="producto.id">
-              {{ producto.sku }} - {{ producto.productoNombre }}
-            </option>
-          </select>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Lista IVA</th>
+            <th>%</th>
+            <th>Código</th>
+            <th>Vigencia Desde</th>
+            <th>Estado</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let iva of ivasProductoFiltrados">
+            <td><strong>{{ obtenerNombreProducto(iva.productoId) }}</strong></td>
+            <td class="text-muted">{{ iva.listaIvaNombre }}</td>
+            <td class="td-mono">{{ iva.impuestoPorcentaje }}%</td>
+            <td class="td-mono text-muted">{{ iva.impuestoCodigo || '—' }}</td>
+            <td class="text-muted">{{ iva.fechaVigenciaDesde }}</td>
+            <td>
+              <span class="badge" [class.badge-success]="iva.activo" [class.badge-danger]="!iva.activo">
+                {{ iva.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td style="text-align:right">
+              <div style="display:flex;gap:6px;justify-content:flex-end">
+                <button class="btn-icon btn-edit" (click)="abrirFormEditar(iva)" title="Editar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="eliminarIvaProducto(iva.id)" title="Eliminar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="ivasProductoFiltrados.length === 0">
+            <td colspan="7">
+              <div class="list-empty">
+                <h3>Sin asignaciones de IVA</h3>
+                <p>{{ busqueda ? 'Sin resultados para "' + busqueda + '"' : 'Agrega la primera asignación de IVA.' }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="form-view" *ngIf="showForm">
+    <button class="btn-back" (click)="cerrarForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver a IVA por Producto
+    </button>
+
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <div class="page-breadcrumb">
+          <span>Ventas</span><span class="separator">/</span><span>IVA por Producto</span><span class="separator">/</span>
+          <span>{{ modoEdicion ? 'Editar' : 'Nueva' }}</span>
+        </div>
+        <h1>{{ modoEdicion ? 'Editar Asignación IVA' : 'Nueva Asignación de IVA' }}</h1>
+        <p class="form-page-subtitle">{{ modoEdicion ? 'Actualiza los datos de la asignación' : 'Asigna un IVA a un producto' }}</p>
+      </div>
+    </div>
+
+    <form [formGroup]="ivaProductoForm" (ngSubmit)="guardarIvaProducto()">
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <h3>Datos de la Asignación</h3>
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="listaIvaId">Lista IVA <span class="required">*</span></label>
+              <select id="listaIvaId" formControlName="listaIvaId" (change)="onListaIvaChange()"
+                      [class.invalid]="ivaProductoForm.get('listaIvaId')?.invalid && ivaProductoForm.get('listaIvaId')?.touched">
+                <option value="">Selecciona una lista IVA</option>
+                <option *ngFor="let lista of listasIva" [value]="lista.id">{{ lista.nombre }} ({{ lista.tipoIva }})</option>
+              </select>
+              <span class="error-msg" *ngIf="ivaProductoForm.get('listaIvaId')?.invalid && ivaProductoForm.get('listaIvaId')?.touched">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="productoId">Producto <span class="required">*</span></label>
+              <select id="productoId" formControlName="productoId"
+                      [class.invalid]="ivaProductoForm.get('productoId')?.invalid && ivaProductoForm.get('productoId')?.touched">
+                <option value="">Selecciona un producto</option>
+                <option *ngFor="let producto of productos" [value]="producto.id">{{ producto.productoNombre }}</option>
+              </select>
+              <span class="error-msg" *ngIf="ivaProductoForm.get('productoId')?.invalid && ivaProductoForm.get('productoId')?.touched">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="impuestoPorcentaje">Porcentaje <span class="required">*</span></label>
+              <input type="number" id="impuestoPorcentaje" formControlName="impuestoPorcentaje" placeholder="15" min="0"
+                     [class.invalid]="ivaProductoForm.get('impuestoPorcentaje')?.invalid && ivaProductoForm.get('impuestoPorcentaje')?.touched">
+              <span class="error-msg" *ngIf="ivaProductoForm.get('impuestoPorcentaje')?.invalid && ivaProductoForm.get('impuestoPorcentaje')?.touched">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="impuestoCodigo">Código Impuesto</label>
+              <input type="text" id="impuestoCodigo" formControlName="impuestoCodigo" placeholder="Código del impuesto">
+            </div>
+            <div class="form-group">
+              <label for="fechaVigenciaDesde">Vigencia Desde <span class="required">*</span></label>
+              <input type="date" id="fechaVigenciaDesde" formControlName="fechaVigenciaDesde"
+                     [class.invalid]="ivaProductoForm.get('fechaVigenciaDesde')?.invalid && ivaProductoForm.get('fechaVigenciaDesde')?.touched">
+              <span class="error-msg" *ngIf="ivaProductoForm.get('fechaVigenciaDesde')?.invalid && ivaProductoForm.get('fechaVigenciaDesde')?.touched">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="fechaVigenciaHasta">Vigencia Hasta</label>
+              <input type="date" id="fechaVigenciaHasta" formControlName="fechaVigenciaHasta">
+            </div>
+          </div>
+          <div class="toggle-group" style="margin-top:16px">
+            <label for="activo">Activo</label>
+            <input type="checkbox" id="activo" formControlName="activo">
+          </div>
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="impuestoPorcentaje">IVA % <span class="required">*</span></label>
-          <input type="number" id="impuestoPorcentaje" formControlName="impuestoPorcentaje" step="0.01" min="0" placeholder="0.00">
-        </div>
-
-        <div class="form-group">
-          <label for="impuestoCodigo">Código Impuesto</label>
-          <input type="text" id="impuestoCodigo" formControlName="impuestoCodigo" placeholder="Ej: IVA15">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="fechaVigenciaDesde">Vigencia Desde <span class="required">*</span></label>
-          <input type="date" id="fechaVigenciaDesde" formControlName="fechaVigenciaDesde">
-        </div>
-
-        <div class="form-group">
-          <label for="fechaVigenciaHasta">Vigencia Hasta</label>
-          <input type="date" id="fechaVigenciaHasta" formControlName="fechaVigenciaHasta">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="checkbox-label">
-          <input type="checkbox" formControlName="activo">
-          <span>Activo</span>
-        </label>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
+      <div class="form-page-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
         <button type="submit" class="btn btn-primary" [disabled]="ivaProductoForm.invalid">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
         </button>
       </div>
     </form>
   </div>
+
 </div>

@@ -47,7 +47,7 @@ export class OrdenCompraFormComponent implements OnInit {
     private readonly router: Router
   ) {
     this.ordenForm = this.formBuilder.group({
-      numeroOrden: ['', [Validators.required, Validators.maxLength(20)]],
+      numeroOrden: [{ value: '', disabled: true }, [Validators.required, Validators.maxLength(20)]],
       proveedorId: ['', [Validators.required]],
       fechaOrden: ['', [Validators.required]],
       fechaEntregaEsperada: [''],

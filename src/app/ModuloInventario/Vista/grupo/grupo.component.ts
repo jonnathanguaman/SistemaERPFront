@@ -13,7 +13,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class GrupoComponent implements OnInit {
   grupos: GrupoResponse[] = [];
   grupoForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingGrupoId: number | null = null;
   loading: boolean = false;
@@ -71,31 +71,33 @@ export class GrupoComponent implements OnInit {
   /**
    * Abre el modal para crear un nuevo grupo
    */
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingGrupoId = null;
     this.grupoForm.reset();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
    * Abre el modal para editar un grupo existente
    */
-  abrirModalEditar(grupo: GrupoResponse): void {
+  abrirFormEditar(grupo: GrupoResponse): void {
     this.isEditing = true;
     this.editingGrupoId = grupo.id;
     this.grupoForm.patchValue({
       nombre: grupo.nombre,
       codigo: grupo.codigo
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
    * Cierra el modal y resetea el formulario
    */
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.grupoForm.reset();
     this.isEditing = false;
     this.editingGrupoId = null;
@@ -122,7 +124,7 @@ export class GrupoComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Grupo actualizado exitosamente');
           this.cargarGrupos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar grupo:', error);
@@ -135,7 +137,7 @@ export class GrupoComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Grupo creado exitosamente');
           this.cargarGrupos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear grupo:', error);

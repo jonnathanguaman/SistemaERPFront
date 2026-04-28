@@ -13,7 +13,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class CategoriaComponent implements OnInit {
   categorias: CategoriaResponse[] = [];
   categoriaForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingCategoriaId: number | null = null;
   loading: boolean = false;
@@ -71,31 +71,33 @@ export class CategoriaComponent implements OnInit {
   /**
    * Abre el modal para crear una nueva categoría
    */
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingCategoriaId = null;
     this.categoriaForm.reset();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
    * Abre el modal para editar una categoría existente
    */
-  abrirModalEditar(categoria: CategoriaResponse): void {
+  abrirFormEditar(categoria: CategoriaResponse): void {
     this.isEditing = true;
     this.editingCategoriaId = categoria.id;
     this.categoriaForm.patchValue({
       nombre: categoria.nombre,
       codigo: categoria.codigo
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
    * Cierra el modal y resetea el formulario
    */
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.categoriaForm.reset();
     this.isEditing = false;
     this.editingCategoriaId = null;
@@ -122,7 +124,7 @@ export class CategoriaComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Categoría actualizada exitosamente');
           this.cargarCategorias();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar categoría:', error);
@@ -135,7 +137,7 @@ export class CategoriaComponent implements OnInit {
         next: (response) => {
           this.notificationService.success('Categoría creada exitosamente');
           this.cargarCategorias();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear categoría:', error);

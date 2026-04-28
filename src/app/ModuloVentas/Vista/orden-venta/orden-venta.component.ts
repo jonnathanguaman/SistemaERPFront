@@ -21,7 +21,7 @@ export class OrdenVentaComponent implements OnInit {
   clientes: ClienteResponse[] = [];
   condicionesPago: CondicionPagoResponse[] = [];
   ordenVentaForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   showDetallesModal: boolean = false;
   isEditing: boolean = false;
   editingOrdenVentaId: number | null = null;
@@ -132,11 +132,11 @@ export class OrdenVentaComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.router.navigate(['/ordenes-venta/nueva']);
   }
 
-  abrirModalEditar(orden: OrdenVentaResponse): void {
+  abrirFormEditar(orden: OrdenVentaResponse): void {
     if (!orden.puedeEditarse) {
       this.notificationService.warning('Esta orden de venta no puede ser editada');
       return;
@@ -145,8 +145,8 @@ export class OrdenVentaComponent implements OnInit {
     this.router.navigate(['/ordenes-venta', orden.id]);
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.ordenVentaForm.reset();
     this.isEditing = false;
     this.editingOrdenVentaId = null;
@@ -166,7 +166,7 @@ export class OrdenVentaComponent implements OnInit {
         next: () => {
           this.notificationService.success('Orden de venta actualizada exitosamente');
           this.cargarOrdenesVenta();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar orden de venta:', error);
@@ -178,7 +178,7 @@ export class OrdenVentaComponent implements OnInit {
         next: () => {
           this.notificationService.success('Orden de venta creada exitosamente');
           this.cargarOrdenesVenta();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear orden de venta:', error);
@@ -308,7 +308,7 @@ export class OrdenVentaComponent implements OnInit {
     this.router.navigate(['/ordenes-venta', orden.id]);
   }
 
-  cerrarModalDetalles(): void {
+  cerrarFormDetalles(): void {
     this.showDetallesModal = false;
     this.ordenSeleccionada = null;
   }

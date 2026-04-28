@@ -4,12 +4,7 @@
   <div class="sidebar-header">
     <div class="logo">
       <div class="logo-icon-wrap">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
-        </svg>
+        <img src="favicon.svg" alt="GT Finance" />
       </div>
       <span class="logo-text" *ngIf="!isCollapsed">GT Finance</span>
     </div>
@@ -44,7 +39,7 @@
 
       <!-- ── Módulo Ventas ── -->
       <li class="menu-item" *ngIf="hasAccess('ventas')" [class.active]="activeModule === 'ventas'" [attr.data-tooltip]="isCollapsed ? 'Ventas' : null">
-        <button class="menu-link" (click)="setActiveModule('ventas')" [routerLink]="['/facturas']">
+        <button class="menu-link" (click)="setActiveModule('ventas')" [routerLink]="['/ventas/dashboard']">
           <span class="menu-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
@@ -60,6 +55,8 @@
           </span>
         </button>
         <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'ventas'">
+          <li><a routerLink="/ventas/dashboard" routerLinkActive="active-link" (click)="$event.stopPropagation()">Dashboard Ventas</a></li>
+          <div class="submenu-divider"></div>
           <li><a routerLink="/clientes" routerLinkActive="active-link" (click)="$event.stopPropagation()">Clientes</a></li>
           <li><a routerLink="/contactos-cliente" routerLinkActive="active-link" (click)="$event.stopPropagation()">Contactos Cliente</a></li>
           <li><a routerLink="/direcciones-cliente" routerLinkActive="active-link" (click)="$event.stopPropagation()">Direcciones Cliente</a></li>
@@ -70,6 +67,8 @@
           <li><a routerLink="/precios-producto" routerLinkActive="active-link" (click)="$event.stopPropagation()">Precios Producto</a></li>
           <li><a routerLink="/ivas-producto" routerLinkActive="active-link" (click)="$event.stopPropagation()">IVA por Producto</a></li>
           <li><a routerLink="/listas-iva" routerLinkActive="active-link" (click)="$event.stopPropagation()">Listas de IVA</a></li>
+          <div class="submenu-divider"></div>
+          <li><a routerLink="/facturador" routerLinkActive="active-link" (click)="$event.stopPropagation()">Facturador</a></li>
           <div class="submenu-divider"></div>
           <li><a routerLink="/cotizaciones" routerLinkActive="active-link" (click)="$event.stopPropagation()">Cotizaciones</a></li>
           <li><a routerLink="/ordenes-venta" routerLinkActive="active-link" (click)="$event.stopPropagation()">Órdenes de Venta</a></li>
@@ -85,7 +84,7 @@
 
       <!-- ── Módulo Compras ── -->
       <li class="menu-item" *ngIf="hasAccess('compras')" [class.active]="activeModule === 'compras'" [attr.data-tooltip]="isCollapsed ? 'Compras' : null">
-        <button class="menu-link" (click)="setActiveModule('compras')" [routerLink]="['/compras/ordenes']">
+        <button class="menu-link" (click)="setActiveModule('compras')" [routerLink]="['/compras/dashboard']">
           <span class="menu-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
@@ -101,6 +100,8 @@
           </span>
         </button>
         <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'compras'">
+          <li><a routerLink="/compras/dashboard" routerLinkActive="active-link" (click)="$event.stopPropagation()">Dashboard Compras</a></li>
+          <div class="submenu-divider"></div>
           <li><a routerLink="/compras/ordenes" routerLinkActive="active-link" (click)="$event.stopPropagation()">Órdenes de Compra</a></li>
           <li><a routerLink="/compras/proveedores" routerLinkActive="active-link" (click)="$event.stopPropagation()">Proveedores</a></li>
           <li><a routerLink="/compras/recepciones" routerLinkActive="active-link" (click)="$event.stopPropagation()">Recepciones</a></li>
@@ -110,7 +111,7 @@
 
       <!-- ── Módulo Inventario ── -->
       <li class="menu-item" *ngIf="hasAccess('inventario')" [class.active]="activeModule === 'inventario'" [attr.data-tooltip]="isCollapsed ? 'Inventario' : null">
-        <button class="menu-link" (click)="setActiveModule('inventario')" [routerLink]="['/productos']">
+        <button class="menu-link" (click)="setActiveModule('inventario')" [routerLink]="['/inventario/dashboard']">
           <span class="menu-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
@@ -126,6 +127,8 @@
           </span>
         </button>
         <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'inventario'">
+          <li><a routerLink="/inventario/dashboard" routerLinkActive="active-link" (click)="$event.stopPropagation()">Dashboard Inventario</a></li>
+          <div class="submenu-divider"></div>
           <li><a routerLink="/productos" routerLinkActive="active-link" (click)="$event.stopPropagation()">Productos</a></li>
           <li><a routerLink="/producto-tipos" routerLinkActive="active-link" (click)="$event.stopPropagation()">Tipos de Producto</a></li>
           <li><a routerLink="/producto-lotes" routerLinkActive="active-link" (click)="$event.stopPropagation()">Lotes de Producto</a></li>
@@ -149,7 +152,7 @@
 
       <!-- ── Módulo Empleados ── -->
       <li class="menu-item" *ngIf="hasAccess('empleados')" [class.active]="activeModule === 'empleados'" [attr.data-tooltip]="isCollapsed ? 'Empleados' : null">
-        <button class="menu-link" (click)="setActiveModule('empleados')" [routerLink]="['/empleados']">
+        <button class="menu-link" (click)="setActiveModule('empleados')" [routerLink]="['/empleados/dashboard']">
           <span class="menu-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -166,6 +169,8 @@
           </span>
         </button>
         <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'empleados'">
+          <li><a routerLink="/empleados/dashboard" routerLinkActive="active-link" (click)="$event.stopPropagation()">Dashboard Empleados</a></li>
+          <div class="submenu-divider"></div>
           <li><a routerLink="/empleados" routerLinkActive="active-link" (click)="$event.stopPropagation()">Lista de Empleados</a></li>
           <li><a routerLink="/roles" routerLinkActive="active-link" (click)="$event.stopPropagation()">Roles</a></li>
           <li><a routerLink="/asignar-roles" routerLinkActive="active-link" (click)="$event.stopPropagation()">Asignar Roles</a></li>
@@ -175,7 +180,7 @@
 
       <!-- ── Módulo Empresa ── -->
       <li class="menu-item" *ngIf="hasAccess('empresa')" [class.active]="activeModule === 'empresa'" [attr.data-tooltip]="isCollapsed ? 'Empresa' : null">
-        <button class="menu-link" (click)="setActiveModule('empresa')" [routerLink]="['/empresas']">
+        <button class="menu-link" (click)="setActiveModule('empresa')" [routerLink]="['/empresa/dashboard']">
           <span class="menu-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -190,6 +195,8 @@
           </span>
         </button>
         <ul class="submenu" *ngIf="!isCollapsed && activeModule === 'empresa'">
+          <li><a routerLink="/empresa/dashboard" routerLinkActive="active-link" (click)="$event.stopPropagation()">Dashboard Empresa</a></li>
+          <div class="submenu-divider"></div>
           <li><a routerLink="/empresas" routerLinkActive="active-link" (click)="$event.stopPropagation()">Empresas</a></li>
           <li><a routerLink="/bodegas" routerLinkActive="active-link" (click)="$event.stopPropagation()">Bodegas</a></li>
           <li><a routerLink="/bodegas-responsables" routerLinkActive="active-link" (click)="$event.stopPropagation()">Responsables</a></li>
@@ -203,6 +210,10 @@
           <li><a routerLink="/roles-procesos-permisos" routerLinkActive="active-link" (click)="$event.stopPropagation()">Permisos de Rol</a></li>
           <li><a routerLink="/reportes-jerarquicos" routerLinkActive="active-link" (click)="$event.stopPropagation()">Reportes Jerárquicos</a></li>
           <li><a routerLink="/unidades-organizacionales" routerLinkActive="active-link" (click)="$event.stopPropagation()">Unidades Org.</a></li>
+          <div class="submenu-divider"></div>
+          <li><a routerLink="/empresa/paises" routerLinkActive="active-link" (click)="$event.stopPropagation()">Paises</a></li>
+          <li><a routerLink="/empresa/provincias" routerLinkActive="active-link" (click)="$event.stopPropagation()">Provincias</a></li>
+          <li><a routerLink="/empresa/ciudades" routerLinkActive="active-link" (click)="$event.stopPropagation()">Ciudades</a></li>
         </ul>
       </li>
 

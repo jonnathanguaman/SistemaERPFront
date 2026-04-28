@@ -3,7 +3,7 @@
    ========================================= */
 .login-page {
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--color-bg);
 }
 
@@ -11,38 +11,47 @@
    PANEL IZQUIERDO — BRANDING
    ========================================= */
 .login-brand {
-  flex: 0 0 420px;
-  background: linear-gradient(150deg, #0F172A 0%, #1E3A5F 60%, #1E40AF 100%);
+  flex: 0 0 440px;
+  background: linear-gradient(155deg, #0A1628 0%, #0F172A 35%, #1E3A5F 75%, #1E40AF 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 48px 44px;
+  padding: 52px 48px;
   position: relative;
   overflow: hidden;
 }
 
-/* Efecto de fondo decorativo */
+/* Círculos decorativos de fondo */
 .login-brand::before {
   content: '';
   position: absolute;
-  top: -80px;
-  right: -80px;
-  width: 300px;
-  height: 300px;
+  top: -100px;
+  right: -100px;
+  width: 340px;
+  height: 340px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .login-brand::after {
   content: '';
   position: absolute;
-  bottom: -60px;
-  left: -60px;
-  width: 240px;
-  height: 240px;
+  bottom: -80px;
+  left: -80px;
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.03);
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.10) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Malla de puntos sutil */
+.login-brand .brand-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
   pointer-events: none;
 }
 
@@ -52,37 +61,45 @@
 }
 
 .brand-logo {
-  width: 60px;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.65) 0%, rgba(79, 70, 229, 0.65) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.20);
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 32px;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.30);
 }
 
 .brand-logo svg {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   color: #FFFFFF;
 }
 
+.brand-logo img {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
 .brand-title {
-  font-size: 26px;
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 30px;
+  font-weight: 400;
   color: #FFFFFF;
   margin-bottom: 14px;
-  letter-spacing: -0.4px;
-  line-height: 1.3;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
 }
 
 .brand-subtitle {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.65);
-  line-height: 1.7;
-  margin-bottom: 40px;
+  color: rgba(255, 255, 255, 0.60);
+  line-height: 1.75;
+  margin-bottom: 44px;
   max-width: 300px;
 }
 
@@ -95,15 +112,27 @@
 .brand-feature {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.80);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.brand-feature-icon {
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .brand-feature svg {
-  width: 18px;
-  height: 18px;
-  color: #60A5FA;
+  width: 15px;
+  height: 15px;
+  color: #93C5FD;
   flex-shrink: 0;
 }
 
@@ -111,7 +140,10 @@
   position: relative;
   z-index: 1;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.30);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* =========================================
@@ -123,12 +155,13 @@
   align-items: center;
   justify-content: center;
   padding: 40px 24px;
+  background: var(--color-bg);
 }
 
 .login-form-wrapper {
   width: 100%;
   max-width: 400px;
-  animation: fadeIn 0.4s ease-out;
+  animation: fadeIn 0.35s ease-out;
 }
 
 .login-form-header {
@@ -136,17 +169,19 @@
 }
 
 .login-form-header h2 {
-  font-size: 24px;
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 400;
   color: var(--color-text);
   margin-bottom: 6px;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
 }
 
 .login-form-header p {
   font-size: 14px;
   color: var(--color-text-muted);
   margin: 0;
+  line-height: 1.6;
 }
 
 /* =========================================
@@ -159,12 +194,12 @@
 }
 
 .login-form .form-group {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .login-form label {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-secondary);
   margin-bottom: 7px;
   display: block;
@@ -190,20 +225,22 @@
 .input-wrapper input {
   width: 100%;
   min-width: unset;
-  height: 44px;
-  padding: 10px 14px 10px 38px;
+  height: 46px;
+  padding: 10px 14px 10px 40px;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: 14px;
   background: var(--color-surface);
   color: var(--color-text);
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+  appearance: none;
 }
 
 .input-wrapper input:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  background: #fff;
 }
 
 .input-wrapper input.invalid {
@@ -223,8 +260,9 @@
   border-radius: var(--radius-sm);
   padding: 10px 14px;
   font-size: 13px;
-  color: #991B1B;
+  color: #7F1D1D;
   margin-bottom: 4px;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .login-error svg {
@@ -237,14 +275,14 @@
    ========================================= */
 .btn-login {
   width: 100%;
-  height: 46px;
+  height: 48px;
   background: linear-gradient(135deg, var(--color-primary) 0%, #1D4ED8 100%);
   color: #FFFFFF;
   border: none;
   border-radius: var(--radius-sm);
+  font-family: var(--font-body);
   font-size: 15px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -252,28 +290,35 @@
   gap: 8px;
   margin-top: 8px;
   transition: all var(--transition);
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
   letter-spacing: 0.01em;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-login:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.38);
 }
 
 .btn-login:active:not(:disabled) {
   transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.btn-login:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .btn-login:disabled {
-  opacity: 0.65;
+  opacity: 0.60;
   cursor: not-allowed;
 }
 
 /* Spinner dentro del botón */
 .spinner {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   border: 2px solid rgba(255, 255, 255, 0.35);
   border-top-color: #FFFFFF;
   border-radius: 50%;
@@ -284,6 +329,11 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* =========================================
    FOOTER DEL FORMULARIO
    ========================================= */
@@ -292,10 +342,11 @@
   text-align: center;
   font-size: 12px;
   color: var(--color-text-muted);
+  line-height: 1.6;
 }
 
 /* =========================================
-   RESPONSIVE — MOBILE
+   RESPONSIVE — TABLET / MOBILE
    ========================================= */
 @media (max-width: 768px) {
   .login-page {
@@ -304,7 +355,7 @@
 
   .login-brand {
     flex: 0 0 auto;
-    padding: 36px 28px;
+    padding: 36px 28px 32px;
   }
 
   .brand-features {
@@ -327,10 +378,10 @@
 
 @media (max-width: 480px) {
   .login-brand {
-    padding: 28px 20px;
+    padding: 28px 20px 24px;
   }
 
   .brand-title {
-    font-size: 21px;
+    font-size: 24px;
   }
 }

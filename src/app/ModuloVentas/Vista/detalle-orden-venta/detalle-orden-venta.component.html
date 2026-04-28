@@ -1,52 +1,62 @@
 <div class="detalle-orden-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Detalles de Orden de Venta</h1>
-      <p class="subtitle">Visualiza los detalles de las órdenes de venta</p>
+
+  <div class="list-view">
+    <div class="page-header">
+      <div class="page-header-left">
+        <nav class="page-breadcrumb">
+          Ventas <span class="separator">›</span> Órdenes de Venta <span class="separator">›</span> Detalles
+        </nav>
+        <h1>Detalles de Orden de Venta</h1>
+        <p class="text-muted" *ngIf="ordenVentaId">Orden #{{ ordenVentaId }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="inline-loader">Cargando…</div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>Orden</th>
+            <th>Producto ID</th>
+            <th>Lote ID</th>
+            <th class="text-right">Cantidad</th>
+            <th class="text-right">Precio Unit.</th>
+            <th class="text-right">Desc. %</th>
+            <th class="text-right">IVA %</th>
+            <th class="text-right">Subtotal</th>
+            <th class="text-right">Total</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let detalle of detalles">
+            <td class="td-mono">{{ detalle.ordenVentaNumero }}</td>
+            <td class="td-mono">{{ detalle.productoId }}</td>
+            <td class="td-mono">{{ detalle.loteId || '—' }}</td>
+            <td class="text-right td-mono">{{ detalle.cantidad }}</td>
+            <td class="text-right td-mono">{{ formatCurrency(detalle.precioUnitario) }}</td>
+            <td class="text-right td-mono">{{ detalle.descuentoPorcentaje }}%</td>
+            <td class="text-right td-mono">{{ detalle.impuestoPorcentaje }}%</td>
+            <td class="text-right td-mono">{{ formatCurrency(detalle.subtotal) }}</td>
+            <td class="text-right td-mono">{{ formatCurrency(detalle.total) }}</td>
+            <td class="text-muted">{{ detalle.observaciones || '—' }}</td>
+          </tr>
+        </tbody>
+        <tfoot *ngIf="detalles.length > 0">
+          <tr>
+            <td colspan="8" style="text-align:right;font-weight:600;">Total General:</td>
+            <td class="text-right td-mono" style="font-weight:600;">
+              {{ formatCurrency(calcularTotalGeneral()) }}
+            </td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="list-empty" *ngIf="detalles.length === 0">
+        No se encontraron detalles para esta orden de venta.
+      </div>
     </div>
   </div>
 
-  <!-- Loading -->
-  <div class="loading-container" *ngIf="loading">
-    <div class="spinner"></div>
-    <p>Cargando detalles...</p>
-  </div>
-
-  <!-- Tabla -->
-  <div class="table-container" *ngIf="!loading">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Orden</th>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Precio Unit.</th>
-          <th>Descuento</th>
-          <th>Subtotal</th>
-          <th>Impuesto</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let detalle of detalles">
-          <td class="codigo-cell">{{ detalle.ordenVentaNumero }}</td>
-          <td>Producto #{{ detalle.productoId }}</td>
-          <td class="numero-cell">{{ detalle.cantidad }}</td>
-          <td class="numero-cell">{{ formatCurrency(detalle.precioUnitario) }}</td>
-          <td class="numero-cell">{{ formatCurrency(detalle.descuentoMonto) }}</td>
-          <td class="numero-cell">{{ formatCurrency(detalle.subtotal) }}</td>
-          <td class="numero-cell">{{ formatCurrency(detalle.impuestoMonto) }}</td>
-          <td class="numero-cell total-cell">{{ formatCurrency(detalle.total) }}</td>
-        </tr>
-        <tr *ngIf="detalles.length === 0">
-          <td colspan="8" class="no-data">No se encontraron detalles</td>
-        </tr>
-        <tr *ngIf="detalles.length > 0" class="total-row">
-          <td colspan="7" class="text-right"><strong>TOTAL GENERAL:</strong></td>
-          <td class="numero-cell total-cell"><strong>{{ formatCurrency(calcularTotalGeneral()) }}</strong></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 </div>

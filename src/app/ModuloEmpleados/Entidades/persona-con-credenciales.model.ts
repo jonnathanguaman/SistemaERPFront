@@ -15,4 +15,10 @@ export interface PersonaConCredencialesRequest {
   
   // Roles (opcionales)
   rolesIds?: number[];
+
+  // Empresa para crear relación directa persona-empresa
+  empresaId?: number;
+
+  // Rol dentro de la empresa (opcional)
+  rolEmpresaId?: number;
 }

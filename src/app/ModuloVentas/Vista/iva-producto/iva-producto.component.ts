@@ -22,7 +22,7 @@ export class IvaProductoComponent implements OnInit {
   listasIva: ListaIvaResponse[] = [];
 
   ivaProductoForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   ivaProductoIdEditar: number | null = null;
   busqueda = '';
@@ -90,35 +90,37 @@ export class IvaProductoComponent implements OnInit {
     });
   }
 
-  abrirModal(ivaProducto?: IvaProductoResponse): void {
-    if (ivaProducto) {
-      this.modoEdicion = true;
-      this.ivaProductoIdEditar = ivaProducto.id;
-      this.ivaProductoForm.patchValue({
-        listaIvaId: ivaProducto.listaIvaId,
-        productoId: ivaProducto.productoId,
-        impuestoPorcentaje: ivaProducto.impuestoPorcentaje,
-        impuestoCodigo: ivaProducto.impuestoCodigo || '',
-        fechaVigenciaDesde: this.normalizarFecha(ivaProducto.fechaVigenciaDesde),
-        fechaVigenciaHasta: this.normalizarFecha(ivaProducto.fechaVigenciaHasta),
-        activo: ivaProducto.activo
-      });
-    } else {
-      this.modoEdicion = false;
-      this.ivaProductoIdEditar = null;
-      this.ivaProductoForm.reset({
-        listaIvaId: this.listasIva.length > 0 ? this.listasIva[0].id : '',
-        activo: true,
-        impuestoPorcentaje: 0,
-        fechaVigenciaDesde: new Date().toISOString().slice(0, 10)
-      });
-    }
-
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.ivaProductoIdEditar = null;
+    this.ivaProductoForm.reset({
+      listaIvaId: this.listasIva.length > 0 ? this.listasIva[0].id : '',
+      activo: true,
+      impuestoPorcentaje: 0,
+      fechaVigenciaDesde: new Date().toISOString().slice(0, 10)
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(ivaProducto: IvaProductoResponse): void {
+    this.modoEdicion = true;
+    this.ivaProductoIdEditar = ivaProducto.id;
+    this.ivaProductoForm.patchValue({
+      listaIvaId: ivaProducto.listaIvaId,
+      productoId: ivaProducto.productoId,
+      impuestoPorcentaje: ivaProducto.impuestoPorcentaje,
+      impuestoCodigo: ivaProducto.impuestoCodigo || '',
+      fechaVigenciaDesde: this.normalizarFecha(ivaProducto.fechaVigenciaDesde),
+      fechaVigenciaHasta: this.normalizarFecha(ivaProducto.fechaVigenciaHasta),
+      activo: ivaProducto.activo
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.ivaProductoForm.reset({ activo: true });
     this.modoEdicion = false;
     this.ivaProductoIdEditar = null;
@@ -174,7 +176,7 @@ export class IvaProductoComponent implements OnInit {
       }
 
       // Cerrar modal inmediatamente después de guardar
-      this.cerrarModal();
+      this.cerrarForm();
       
       // Recargar datos en background sin esperar
       this.cargarDatos();

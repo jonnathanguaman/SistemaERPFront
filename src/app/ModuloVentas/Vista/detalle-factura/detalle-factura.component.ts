@@ -16,7 +16,7 @@ export class DetalleFacturaComponent implements OnInit {
   detalles: DetalleFacturaResponse[] = [];
   detallesFiltrados: DetalleFacturaResponse[] = [];
   detalleForm: FormGroup;
-  showModal = false;
+  showForm = false;
   isEditMode = false;
   selectedDetalleId?: number;
   loading = false;
@@ -134,7 +134,7 @@ export class DetalleFacturaComponent implements OnInit {
     }
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.detalleForm.reset({
       cantidad: 1,
@@ -151,10 +151,11 @@ export class DetalleFacturaComponent implements OnInit {
       this.detalleForm.patchValue({ facturaId: this.filtroFacturaId });
     }
     
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(detalle: DetalleFacturaResponse): void {
+  abrirFormEditar(detalle: DetalleFacturaResponse): void {
     this.isEditMode = true;
     this.selectedDetalleId = detalle.id;
     this.detalleForm.patchValue({
@@ -171,11 +172,12 @@ export class DetalleFacturaComponent implements OnInit {
       total: detalle.total,
       observaciones: detalle.observaciones
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.detalleForm.reset();
     this.isEditMode = false;
     this.selectedDetalleId = undefined;
@@ -194,7 +196,7 @@ export class DetalleFacturaComponent implements OnInit {
         next: () => {
           this.notificationService.success('Detalle actualizado', 'El detalle se actualizó correctamente');
           this.cargarDetalles();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error: any) => {
           this.notificationService.error('Error al actualizar detalle', error.message);
@@ -205,7 +207,7 @@ export class DetalleFacturaComponent implements OnInit {
         next: () => {
           this.notificationService.success('Detalle creado', 'El detalle se creó correctamente');
           this.cargarDetalles();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error: any) => {
           this.notificationService.error('Error al crear detalle', error.message);

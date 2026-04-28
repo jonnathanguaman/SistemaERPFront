@@ -1,110 +1,149 @@
 <div class="cliente-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Gestión de Clientes</h1>
-      <p class="subtitle">Administra los clientes del sistema de ventas</p>
-    </div>
-    <button class="btn btn-primary" (click)="abrirModalCrear()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nuevo Cliente
-    </button>
-  </div>
 
-  <!-- Barra de búsqueda -->
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input 
-        type="text" 
-        class="search-input" 
-        placeholder="Buscar por identificación, razón social, email..."
-        [(ngModel)]="busqueda"
-        (input)="filtrarClientes()"
-      >
-    </div>
-  </div>
+  <!-- ══════════════════════════════════════
+       VISTA LISTA
+       ══════════════════════════════════════ -->
+  <div class="list-view" *ngIf="!showForm">
 
-  <!-- Loading -->
-  <div class="loading-container" *ngIf="loading">
-    <div class="spinner"></div>
-    <p>Cargando clientes...</p>
-  </div>
-
-  <!-- Tabla de clientes -->
-  <div class="table-container" *ngIf="!loading">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Identificación</th>
-          <th>Cliente</th>
-          <th>Email</th>
-          <th>Teléfono</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let cliente of clientesFiltrados">
-          <td class="codigo-cell">{{ cliente.numeroIdentificacion }}</td>
-          <td class="nombre-cell">{{ getNombreCliente(cliente) }}</td>
-          <td>{{ cliente.email || '-' }}</td>
-          <td>{{ cliente.telefono || cliente.celular || '-' }}</td>
-          <td>
-            <span class="badge" [ngClass]="cliente.activo ? 'badge-success' : 'badge-danger'">
-              {{ cliente.activo ? 'Activo' : 'Inactivo' }}
-            </span>
-          </td>
-          <td>
-            <div class="actions-cell">
-              <button class="btn-icon btn-edit" (click)="abrirModalEditar(cliente)" title="Editar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
-              <button class="btn-icon btn-delete" (click)="eliminarCliente(cliente)" title="Eliminar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="clientesFiltrados.length === 0">
-          <td colspan="6" class="no-data">No se encontraron clientes</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Modal -->
-  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <!-- Header del modal -->
-      <div class="modal-header">
-        <h2>{{ isEditing ? 'Editar Cliente' : 'Nuevo Cliente' }}</h2>
-        <button class="btn-close" (click)="cerrarModal()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+    <!-- Header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-breadcrumb">
+          <span>Ventas</span>
+          <span class="separator">/</span>
+          <span>Clientes</span>
+        </div>
+        <h1>Clientes</h1>
+        <p class="page-subtitle">Administra los clientes del sistema de ventas</p>
       </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Cliente
+      </button>
+    </div>
 
-      <!-- Formulario -->
-      <form [formGroup]="clienteForm" (ngSubmit)="guardarCliente()" class="modal-form">
-        <div class="form-section">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Buscar por identificación, razón social, email…"
+               [(ngModel)]="busqueda" (input)="filtrarClientes()">
+      </div>
+      <span class="result-count">{{ clientesFiltrados.length }} registros</span>
+    </div>
+
+    <!-- Loader -->
+    <div class="inline-loader" *ngIf="loading">
+      <div class="spin"></div>
+      <span>Cargando clientes…</span>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-wrapper" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>Identificación</th>
+            <th>Cliente</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cliente of clientesFiltrados">
+            <td class="td-mono">{{ cliente.numeroIdentificacion }}</td>
+            <td><strong>{{ getNombreCliente(cliente) }}</strong></td>
+            <td>{{ cliente.email || '—' }}</td>
+            <td>{{ cliente.telefono || cliente.celular || '—' }}</td>
+            <td>
+              <span class="badge" [class.badge-success]="cliente.activo" [class.badge-danger]="!cliente.activo">
+                {{ cliente.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <button class="btn-icon btn-edit" (click)="abrirFormEditar(cliente)" title="Editar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="eliminarCliente(cliente)" title="Eliminar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="clientesFiltrados.length === 0">
+            <td colspan="6">
+              <div class="list-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <h3>Sin clientes registrados</h3>
+                <p>{{ busqueda ? 'No hay resultados para "' + busqueda + '"' : 'Crea el primer cliente con el botón Nuevo Cliente.' }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       VISTA FORMULARIO
+       ══════════════════════════════════════ -->
+  <div class="form-view" *ngIf="showForm">
+
+    <!-- Navegación hacia atrás -->
+    <button class="btn-back" (click)="cerrarForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Volver a Clientes
+    </button>
+
+    <!-- Header de la página -->
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <div class="page-breadcrumb">
+          <span>Ventas</span><span class="separator">/</span>
+          <span>Clientes</span><span class="separator">/</span>
+          <span>{{ isEditing ? 'Editar' : 'Nuevo' }}</span>
+        </div>
+        <h1>{{ isEditing ? 'Editar Cliente' : 'Nuevo Cliente' }}</h1>
+        <p class="form-page-subtitle">
+          {{ isEditing ? 'Actualiza la información del cliente' : 'Completa los datos para registrar un nuevo cliente' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Formulario -->
+    <form [formGroup]="clienteForm" (ngSubmit)="guardarCliente()">
+
+      <!-- Sección: Identificación -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <path d="M7 15h3m4 0h1M7 11h1m3 0h5"/>
+          </svg>
           <h3>Identificación</h3>
-          <div class="form-row">
-            <div class="form-group">
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group" style="grid-column: span 2">
               <label for="tipoIdentificacion">Tipo <span class="required">*</span></label>
               <select id="tipoIdentificacion" formControlName="tipoIdentificacion">
                 <option value="RUC">RUC</option>
@@ -113,222 +152,196 @@
                 <option value="PASAPORTE">Pasaporte</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" style="grid-column: span 2">
               <label for="numeroIdentificacion">Número <span class="required">*</span></label>
-              <input 
-                type="text" 
-                id="numeroIdentificacion"
-                formControlName="numeroIdentificacion"
-                [class.invalid]="isFieldInvalid('numeroIdentificacion')"
-                placeholder="Ej: 1234567890"
-              >
-              <span class="error-message" *ngIf="isFieldInvalid('numeroIdentificacion')">
+              <input type="text" id="numeroIdentificacion" formControlName="numeroIdentificacion"
+                     [class.invalid]="isFieldInvalid('numeroIdentificacion')"
+                     placeholder="Ej: 1234567890001">
+              <span class="error-msg" *ngIf="isFieldInvalid('numeroIdentificacion')">
                 {{ getFieldError('numeroIdentificacion') }}
               </span>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="form-section">
+      <!-- Sección: Datos Básicos -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
           <h3>Datos Básicos</h3>
-          <div class="form-row">
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
             <div class="form-group">
               <label for="razonSocial">Razón Social</label>
-              <input 
-                type="text" 
-                id="razonSocial"
-                formControlName="razonSocial"
-                placeholder="Ej: Empresa SAC"
-              >
+              <input type="text" id="razonSocial" formControlName="razonSocial" placeholder="Empresa S.A.">
             </div>
             <div class="form-group">
               <label for="nombreComercial">Nombre Comercial</label>
-              <input 
-                type="text" 
-                id="nombreComercial"
-                formControlName="nombreComercial"
-                placeholder="Ej: Mi Negocio"
-              >
+              <input type="text" id="nombreComercial" formControlName="nombreComercial" placeholder="Mi Negocio">
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-group">
               <label for="nombres">Nombres</label>
-              <input 
-                type="text" 
-                id="nombres"
-                formControlName="nombres"
-                placeholder="Nombres"
-              >
+              <input type="text" id="nombres" formControlName="nombres" placeholder="Nombres">
             </div>
             <div class="form-group">
               <label for="apellidos">Apellidos</label>
-              <input 
-                type="text" 
-                id="apellidos"
-                formControlName="apellidos"
-                placeholder="Apellidos"
-              >
+              <input type="text" id="apellidos" formControlName="apellidos" placeholder="Apellidos">
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="form-section">
+      <!-- Sección: Información Comercial -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
           <h3>Información Comercial</h3>
-          <div class="form-row">
-            <div class="form-group">
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group" style="grid-column: span 2">
               <label for="listaPreciosId">Lista de Precios <span class="required">*</span></label>
-              <select 
-                id="listaPreciosId" 
-                formControlName="listaPreciosId"
-                [class.invalid]="isFieldInvalid('listaPreciosId')"
-              >
-                <option [ngValue]="null" disabled>Seleccione una lista de precios</option>
+              <select id="listaPreciosId" formControlName="listaPreciosId"
+                      [class.invalid]="isFieldInvalid('listaPreciosId')">
+                <option [ngValue]="null" disabled>Seleccione una lista</option>
                 <option *ngFor="let lista of listasPrecios" [ngValue]="lista.id">
                   {{ lista.nombre }} ({{ lista.tipoLista }})
                 </option>
               </select>
-              <span class="error-message" *ngIf="isFieldInvalid('listaPreciosId')">
-                {{ getFieldError('listaPreciosId') }}
-              </span>
+              <span class="error-msg" *ngIf="isFieldInvalid('listaPreciosId')">{{ getFieldError('listaPreciosId') }}</span>
             </div>
-            <div class="form-group">
+            <div class="form-group" style="grid-column: span 2">
               <label for="condicionPagoId">Condición de Pago <span class="required">*</span></label>
-              <select 
-                id="condicionPagoId" 
-                formControlName="condicionPagoId"
-                [class.invalid]="isFieldInvalid('condicionPagoId')"
-              >
-                <option [ngValue]="null" disabled>Seleccione una condición</option>
-                <option *ngFor="let condicion of condicionesPago" [ngValue]="condicion.id">
-                  {{ condicion.nombre }} ({{ condicion.diasCredito }} días)
+              <select id="condicionPagoId" formControlName="condicionPagoId"
+                      [class.invalid]="isFieldInvalid('condicionPagoId')">
+                <option [ngValue]="null" disabled>Seleccione condición</option>
+                <option *ngFor="let c of condicionesPago" [ngValue]="c.id">
+                  {{ c.nombre }} ({{ c.diasCredito }} días)
                 </option>
               </select>
-              <span class="error-message" *ngIf="isFieldInvalid('condicionPagoId')">
-                {{ getFieldError('condicionPagoId') }}
-              </span>
+              <span class="error-msg" *ngIf="isFieldInvalid('condicionPagoId')">{{ getFieldError('condicionPagoId') }}</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="form-section">
+      <!-- Sección: Contacto -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.28h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/>
+          </svg>
           <h3>Contacto</h3>
-          <div class="form-row">
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
             <div class="form-group">
               <label for="email">Email</label>
-              <input 
-                type="email" 
-                id="email"
-                formControlName="email"
-                [class.invalid]="isFieldInvalid('email')"
-                placeholder="correo@ejemplo.com"
-              >
-              <span class="error-message" *ngIf="isFieldInvalid('email')">
-                {{ getFieldError('email') }}
-              </span>
+              <input type="email" id="email" formControlName="email"
+                     [class.invalid]="isFieldInvalid('email')" placeholder="correo@ejemplo.com">
+              <span class="error-msg" *ngIf="isFieldInvalid('email')">{{ getFieldError('email') }}</span>
             </div>
             <div class="form-group">
               <label for="telefono">Teléfono</label>
-              <input 
-                type="text" 
-                id="telefono"
-                formControlName="telefono"
-                placeholder="(04) 123-4567"
-              >
+              <input type="text" id="telefono" formControlName="telefono" placeholder="(04) 123-4567">
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-group">
               <label for="celular">Celular</label>
-              <input 
-                type="text" 
-                id="celular"
-                formControlName="celular"
-                placeholder="0987654321"
-              >
+              <input type="text" id="celular" formControlName="celular" placeholder="0987654321">
             </div>
             <div class="form-group">
-              <label for="pais">País</label>
-              <input 
-                type="text" 
-                id="pais"
-                formControlName="pais"
-                placeholder="Ecuador"
-              >
+              <label for="paisId">País <span class="required">*</span></label>
+              <select id="paisId" formControlName="paisId" [class.invalid]="isFieldInvalid('paisId')">
+                <option [ngValue]="null" disabled>Seleccione un país</option>
+                <option *ngFor="let pais of paises" [ngValue]="pais.id">{{ pais.nombre }}</option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('paisId')">{{ getFieldError('paisId') }}</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="form-section">
+      <!-- Sección: Ubicación -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
           <h3>Ubicación</h3>
-          <div class="form-row">
-            <div class="form-group">
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group form-grid-full">
               <label for="direccion">Dirección</label>
-              <input 
-                type="text" 
-                id="direccion"
-                formControlName="direccion"
-                placeholder="Calle, número, sector"
-              >
+              <input type="text" id="direccion" formControlName="direccion" placeholder="Calle, número, sector">
             </div>
             <div class="form-group">
-              <label for="ciudad">Ciudad</label>
-              <input 
-                type="text" 
-                id="ciudad"
-                formControlName="ciudad"
-                placeholder="Guayaquil, Quito, etc."
-              >
+              <label for="provinciaId">Provincia <span class="required">*</span></label>
+              <select id="provinciaId" formControlName="provinciaId"
+                      [class.invalid]="isFieldInvalid('provinciaId')">
+                <option [ngValue]="null" disabled>Seleccione provincia</option>
+                <option *ngFor="let p of provincias" [ngValue]="p.id">{{ p.nombre }}</option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('provinciaId')">{{ getFieldError('provinciaId') }}</span>
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-group">
-              <label for="provincia">Provincia</label>
-              <input 
-                type="text" 
-                id="provincia"
-                formControlName="provincia"
-                placeholder="Guayas, Pichincha, etc."
-              >
+              <label for="ciudadId">Ciudad <span class="required">*</span></label>
+              <select id="ciudadId" formControlName="ciudadId"
+                      [class.invalid]="isFieldInvalid('ciudadId')">
+                <option [ngValue]="null" disabled>Seleccione ciudad</option>
+                <option *ngFor="let c of ciudades" [ngValue]="c.id">{{ c.nombre }}</option>
+              </select>
+              <span class="error-msg" *ngIf="isFieldInvalid('ciudadId')">{{ getFieldError('ciudadId') }}</span>
             </div>
             <div class="form-group">
               <label for="codigoPostal">Código Postal</label>
-              <input 
-                type="text" 
-                id="codigoPostal"
-                formControlName="codigoPostal"
-                placeholder="090101"
-              >
+              <input type="text" id="codigoPostal" formControlName="codigoPostal" placeholder="090101">
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="form-section">
+      <!-- Sección: Observaciones -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
+          </svg>
           <h3>Observaciones</h3>
+        </div>
+        <div class="form-card-body">
           <div class="form-group">
-            <label for="observaciones">Observaciones</label>
-            <textarea 
-              id="observaciones"
-              formControlName="observaciones"
-              rows="3"
-              placeholder="Información adicional..."
-            ></textarea>
+            <label for="observaciones">Notas adicionales</label>
+            <textarea id="observaciones" formControlName="observaciones" rows="3"
+                      placeholder="Información adicional sobre el cliente…"></textarea>
           </div>
         </div>
+      </div>
 
-        <!-- Footer del modal -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
-            Cancelar
-          </button>
-          <button type="submit" class="btn btn-primary" [disabled]="clienteForm.invalid">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            {{ isEditing ? 'Actualizar' : 'Guardar' }}
-          </button>
-        </div>
-      </form>
-    </div>
+      <!-- Footer fijo -->
+      <div class="form-page-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="clienteForm.invalid">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          {{ isEditing ? 'Actualizar Cliente' : 'Guardar Cliente' }}
+        </button>
+      </div>
+
+    </form>
   </div>
+
 </div>

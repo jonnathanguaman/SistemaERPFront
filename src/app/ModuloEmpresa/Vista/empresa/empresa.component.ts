@@ -14,7 +14,7 @@ export class EmpresaComponent implements OnInit {
   empresas: EmpresaResponse[] = [];
   empresasFiltradas: EmpresaResponse[] = [];
   empresaForm: FormGroup;
-  showModal = false;
+  showForm = false;
   isEditMode = false;
   selectedEmpresaId?: number;
   loading = false;
@@ -30,7 +30,8 @@ export class EmpresaComponent implements OnInit {
       nombre: ['', [Validators.required, Validators.maxLength(100)]],
       direccion: ['', [Validators.required, Validators.maxLength(200)]],
       telefono: ['', [Validators.required, Validators.maxLength(20)]],
-      email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]]
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+      necesitaDespacho: [false]
     });
   }
 
@@ -62,13 +63,15 @@ export class EmpresaComponent implements OnInit {
     );
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.empresaForm.reset();
-    this.showModal = true;
+    this.empresaForm.patchValue({ necesitaDespacho: false });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(empresa: EmpresaResponse): void {
+  abrirFormEditar(empresa: EmpresaResponse): void {
     this.isEditMode = true;
     this.selectedEmpresaId = empresa.id;
     this.empresaForm.patchValue({
@@ -76,14 +79,17 @@ export class EmpresaComponent implements OnInit {
       nombre: empresa.nombre,
       direccion: empresa.direccion,
       telefono: empresa.telefono,
-      email: empresa.email
+      email: empresa.email,
+      necesitaDespacho: !!empresa.necesitaDespacho
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.empresaForm.reset();
+    this.empresaForm.patchValue({ necesitaDespacho: false });
     this.isEditMode = false;
     this.selectedEmpresaId = undefined;
   }
@@ -101,7 +107,7 @@ export class EmpresaComponent implements OnInit {
         next: () => {
           this.notificationService.success('Empresa actualizada', 'La empresa se actualizó correctamente');
           this.cargarEmpresas();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.error('Error al actualizar empresa', error.message);
@@ -112,7 +118,7 @@ export class EmpresaComponent implements OnInit {
         next: () => {
           this.notificationService.success('Empresa creada', 'La empresa se creó correctamente');
           this.cargarEmpresas();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.error('Error al crear empresa', error.message);

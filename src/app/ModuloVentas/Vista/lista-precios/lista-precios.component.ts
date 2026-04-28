@@ -15,7 +15,7 @@ export class ListaPreciosComponent implements OnInit {
   listasPrecios: ListaPreciosResponse[] = [];
   listasPreciosFiltradas: ListaPreciosResponse[] = [];
   listaPreciosForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   listaPreciosIdEditar: number | null = null;
   busqueda = '';
@@ -64,30 +64,33 @@ export class ListaPreciosComponent implements OnInit {
     );
   }
 
-  abrirModal(listaPrecios?: ListaPreciosResponse): void {
-    if (listaPrecios) {
-      this.modoEdicion = true;
-      this.listaPreciosIdEditar = listaPrecios.id;
-      this.listaPreciosForm.patchValue({
-        codigo: listaPrecios.codigo,
-        nombre: listaPrecios.nombre,
-        descripcion: listaPrecios.descripcion,
-        tipoLista: listaPrecios.tipoLista,
-        monedaId: listaPrecios.monedaId,
-        fechaVigenciaDesde: listaPrecios.fechaVigenciaDesde,
-        fechaVigenciaHasta: listaPrecios.fechaVigenciaHasta,
-        activo: listaPrecios.activo
-      });
-    } else {
-      this.modoEdicion = false;
-      this.listaPreciosIdEditar = null;
-      this.listaPreciosForm.reset({ activo: true, tipoLista: 'PUBLICO', monedaId: 1 });
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.listaPreciosIdEditar = null;
+    this.listaPreciosForm.reset({ activo: true, tipoLista: 'PUBLICO', monedaId: 1 });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(listaPrecios: ListaPreciosResponse): void {
+    this.modoEdicion = true;
+    this.listaPreciosIdEditar = listaPrecios.id;
+    this.listaPreciosForm.patchValue({
+      codigo: listaPrecios.codigo,
+      nombre: listaPrecios.nombre,
+      descripcion: listaPrecios.descripcion,
+      tipoLista: listaPrecios.tipoLista,
+      monedaId: listaPrecios.monedaId,
+      fechaVigenciaDesde: listaPrecios.fechaVigenciaDesde,
+      fechaVigenciaHasta: listaPrecios.fechaVigenciaHasta,
+      activo: listaPrecios.activo
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.listaPreciosForm.reset({ activo: true, tipoLista: 'PUBLICO', monedaId: 1 });
     this.modoEdicion = false;
     this.listaPreciosIdEditar = null;
@@ -110,7 +113,7 @@ export class ListaPreciosComponent implements OnInit {
         this.notificationService.showSuccess('Lista de precios creada correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       console.error('Error al guardar la lista de precios:', error);
       this.notificationService.showError('Error al guardar la lista de precios');

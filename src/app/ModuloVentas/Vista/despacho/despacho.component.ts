@@ -20,7 +20,7 @@ export class DespachoComponent implements OnInit {
   despachos: DespachoResponse[] = [];
   despachosFiltrados: DespachoResponse[] = [];
   despachoForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   showDetalleModal: boolean = false;
   showDocumentosModal: boolean = false;
   isEditing: boolean = false;
@@ -46,7 +46,7 @@ export class DespachoComponent implements OnInit {
     private readonly notificationService: NotificationService
   ) {
     this.despachoForm = this.formBuilder.group({
-      numeroDespacho: ['', Validators.required],
+      numeroDespacho: [{ value: '', disabled: true }, Validators.required],
       numeroGuiaRemision: [''],
       ordenVentaId: [null, Validators.required],
       bodegaId: [null, Validators.required],
@@ -140,18 +140,19 @@ export class DespachoComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingDespachoId = null;
     this.despachoForm.reset({
-      numeroDespacho: `DESP-${Date.now()}`,
+      numeroDespacho: 'AUTOGENERADO',
       fechaDespacho: this.getFechaHoy(),
       usuarioCreacionId: 1
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(despacho: DespachoResponse): void {
+  abrirFormEditar(despacho: DespachoResponse): void {
     if (!despacho.puedeEditarse) {
       this.notificationService.warning('Este despacho no puede ser editado');
       return;
@@ -178,11 +179,12 @@ export class DespachoComponent implements OnInit {
       nombreQuienRecibe: despacho.nombreQuienRecibe,
       cedulaQuienRecibe: despacho.cedulaQuienRecibe
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.despachoForm.reset();
     this.isEditing = false;
     this.editingDespachoId = null;
@@ -202,7 +204,7 @@ export class DespachoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Despacho actualizado exitosamente');
           this.cargarDespachos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar despacho:', error);
@@ -214,7 +216,7 @@ export class DespachoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Despacho creado exitosamente');
           this.cargarDespachos();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear despacho:', error);
@@ -313,7 +315,7 @@ export class DespachoComponent implements OnInit {
     this.showDocumentosModal = true;
   }
 
-  cerrarModalDocumentos(): void {
+  cerrarFormDocumentos(): void {
     this.showDocumentosModal = false;
     this.despachoDocumentos = null;
   }

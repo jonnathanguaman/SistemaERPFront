@@ -1,254 +1,219 @@
 <div class="solicitud-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Solicitudes de Transferencia</h1>
-      <p class="subtitle">Gestiona las solicitudes de stock desde almacenes de venta hacia la bodega contable</p>
+
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-breadcrumb">
+          <span>Inventario</span><span class="separator">/</span><span>Solicitudes de Transferencia</span>
+        </div>
+        <h1>Solicitudes de Transferencia</h1>
+        <p class="page-subtitle">Gestiona solicitudes de transferencia entre bodegas de venta y contable</p>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nueva Solicitud
+      </button>
     </div>
-    <button class="btn btn-primary" (click)="abrirModalCrear()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nueva Solicitud
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Buscar por número o bodega…" [(ngModel)]="searchTerm" (input)="filtrar()">
+      </div>
+      <select class="result-count" style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;background:#fff"
+              [(ngModel)]="filtroEstado" (change)="filtrar()">
+        <option value="">Todos los estados</option>
+        <option *ngFor="let e of estadosDisponibles" [value]="e">{{ e }}</option>
+      </select>
+      <span class="result-count">{{ solicitudesFiltradas.length }} solicitud(es)</span>
+    </div>
+
+    <div class="inline-loader" *ngIf="loading"><div class="spin"></div><span>Cargando solicitudes…</span></div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>N° Solicitud</th>
+            <th>Bodega Origen</th>
+            <th>Bodega Destino</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sol of solicitudesFiltradas">
+            <td><strong class="td-mono">{{ sol.numeroSolicitud }}</strong></td>
+            <td class="text-muted">{{ sol.bodegaOrigenNombre }}</td>
+            <td class="text-muted">{{ sol.bodegaDestinoNombre }}</td>
+            <td class="text-muted">{{ sol.fechaSolicitud }}</td>
+            <td>
+              <span class="badge" [ngClass]="getEstadoBadgeClass(sol.estado)">{{ sol.estado }}</span>
+            </td>
+            <td style="text-align:right">
+              <div style="display:flex;gap:4px;justify-content:flex-end">
+                <button class="btn-icon" style="color:#6b7280" (click)="abrirFormVer(sol)" title="Ver">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn-icon" style="color:#0ea5e9" (click)="enviar(sol)" title="Enviar" *ngIf="puedeEnviar(sol)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+                <button class="btn-icon" style="color:#10b981" (click)="aprobar(sol)" title="Aprobar" *ngIf="puedeAprobar(sol)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="abrirRechazar(sol)" title="Rechazar" *ngIf="puedeRechazar(sol)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <button class="btn-icon" style="color:#6366f1" (click)="completar(sol)" title="Completar" *ngIf="puedeCompletar(sol)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="anular(sol)" title="Anular" *ngIf="puedeAnular(sol)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="solicitudesFiltradas.length === 0">
+            <td colspan="6">
+              <div class="list-empty">
+                <h3>Sin solicitudes registradas</h3>
+                <p>{{ searchTerm ? 'Sin resultados para "' + searchTerm + '"' : 'Crea la primera solicitud.' }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal rechazo inline -->
+    <div *ngIf="showRechazarModal" style="position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000">
+      <div style="background:#fff;border-radius:12px;padding:24px;width:440px;max-width:90%">
+        <h3 style="margin:0 0 16px;font-size:16px;font-weight:600">Motivo de Rechazo</h3>
+        <textarea [(ngModel)]="motivoRechazo" rows="3" style="width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;resize:vertical" placeholder="Ingresa el motivo de rechazo…"></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+          <button class="btn btn-secondary" (click)="showRechazarModal=false">Cancelar</button>
+          <button class="btn btn-primary" style="background:#ef4444" (click)="confirmarRechazar()">Rechazar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-view" *ngIf="showForm">
+    <button class="btn-back" (click)="cerrarForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver a Solicitudes
     </button>
-  </div>
 
-  <!-- Filtros -->
-  <div class="filters-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input type="text" class="search-input" placeholder="Buscar por número o bodega..."
-        [(ngModel)]="searchTerm" (input)="filtrar()">
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <div class="page-breadcrumb">
+          <span>Inventario</span><span class="separator">/</span><span>Solicitudes</span><span class="separator">/</span>
+          <span>{{ isViewMode ? 'Ver' : 'Nueva' }}</span>
+        </div>
+        <h1>{{ isViewMode ? 'Detalle de Solicitud' : 'Nueva Solicitud de Transferencia' }}</h1>
+        <p class="form-page-subtitle">{{ isViewMode ? 'Información de la solicitud' : 'Crea una solicitud de transferencia entre bodegas' }}</p>
+      </div>
     </div>
-    <select class="filter-select" [(ngModel)]="filtroEstado" (change)="filtrar()">
-      <option value="">Todos los estados</option>
-      <option *ngFor="let e of estadosDisponibles" [value]="e">{{ e }}</option>
-    </select>
-  </div>
 
-  <!-- Loading -->
-  <div class="loading-container" *ngIf="loading">
-    <div class="spinner"></div>
-    <p>Cargando solicitudes...</p>
-  </div>
-
-  <!-- Tabla -->
-  <div class="table-container" *ngIf="!loading">
-    <table class="solicitudes-table">
-      <thead>
-        <tr>
-          <th>Número</th>
-          <th>Almacén Origen (VENTA)</th>
-          <th>Bodega Destino (CONTABLE)</th>
-          <th>Fecha Solicitud</th>
-          <th>Fecha Requerida</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let s of solicitudesFiltradas">
-          <td><strong>{{ s.numeroSolicitud }}</strong></td>
-          <td>{{ s.bodegaOrigenNombre }}</td>
-          <td>{{ s.bodegaDestinoNombre }}</td>
-          <td>{{ s.fechaSolicitud }}</td>
-          <td>{{ s.fechaRequerida || '-' }}</td>
-          <td>
-            <span class="badge" [ngClass]="getEstadoBadgeClass(s.estado)">{{ s.estado }}</span>
-          </td>
-          <td>
-            <div class="actions-cell">
-              <button class="btn-icon btn-view" (click)="abrirModalVer(s)" title="Ver detalle">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              </button>
-              <button *ngIf="puedeEnviar(s)" class="btn-icon btn-send" (click)="enviar(s)" title="Enviar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-              </button>
-              <button *ngIf="puedeAprobar(s)" class="btn-icon btn-approve" (click)="aprobar(s)" title="Aprobar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </button>
-              <button *ngIf="puedeRechazar(s)" class="btn-icon btn-reject" (click)="abrirRechazar(s)" title="Rechazar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
-              <button *ngIf="puedeCompletar(s)" class="btn-icon btn-complete" (click)="completar(s)" title="Completar transferencia">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-              </button>
-              <button *ngIf="puedeAnular(s)" class="btn-icon btn-delete" (click)="anular(s)" title="Anular">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-                </svg>
-              </button>
+    <form [formGroup]="solicitudForm" (ngSubmit)="guardar()">
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <h3>Datos de la Solicitud</h3>
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="numeroSolicitud">N° Solicitud</label>
+              <input type="text" id="numeroSolicitud" formControlName="numeroSolicitud" placeholder="Autogenerado">
             </div>
-          </td>
-        </tr>
-        <tr *ngIf="solicitudesFiltradas.length === 0">
-          <td colspan="7" class="no-data">
-            <p class="no-data-title">No hay solicitudes registradas</p>
-            <p class="no-data-subtitle">Crea una nueva solicitud para transferir stock desde un almacén</p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Modal Crear / Ver -->
-  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()">
-    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>{{ isViewMode ? 'Detalle Solicitud' : 'Nueva Solicitud de Transferencia' }}</h2>
-        <button class="btn-close" (click)="cerrarModal()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+            <div class="form-group">
+              <label for="fechaSolicitud">Fecha Solicitud <span class="required">*</span></label>
+              <input type="date" id="fechaSolicitud" formControlName="fechaSolicitud">
+            </div>
+            <div class="form-group">
+              <label for="bodegaOrigenId">Bodega Origen <span class="required">*</span></label>
+              <select id="bodegaOrigenId" formControlName="bodegaOrigenId">
+                <option [ngValue]="null">Selecciona bodega origen</option>
+                <option *ngFor="let b of bodegasVenta" [value]="b.id">{{ b.nombre }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bodegaDestinoId">Bodega Destino <span class="required">*</span></label>
+              <select id="bodegaDestinoId" formControlName="bodegaDestinoId">
+                <option [ngValue]="null">Selecciona bodega destino</option>
+                <option *ngFor="let b of bodegasContable" [value]="b.id">{{ b.nombre }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="fechaRequerida">Fecha Requerida</label>
+              <input type="date" id="fechaRequerida" formControlName="fechaRequerida">
+            </div>
+            <div class="form-group form-grid-full">
+              <label for="observaciones">Observaciones</label>
+              <textarea id="observaciones" formControlName="observaciones" rows="2" placeholder="Observaciones…"></textarea>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <form [formGroup]="solicitudForm" (ngSubmit)="guardar()" class="modal-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Número de Solicitud <span class="required">*</span></label>
-            <input type="text" formControlName="numeroSolicitud" placeholder="ST-001">
-          </div>
-          <div class="form-group">
-            <label>Fecha Solicitud <span class="required">*</span></label>
-            <input type="date" formControlName="fechaSolicitud">
-          </div>
-          <div class="form-group">
-            <label>Fecha Requerida</label>
-            <input type="date" formControlName="fechaRequerida">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Almacén Origen (VENTA) <span class="required">*</span></label>
-            <select formControlName="bodegaOrigenId">
-              <option [value]="null">Seleccione almacén...</option>
-              <option *ngFor="let b of bodegasVenta" [value]="b.id">{{ b.nombre }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Bodega Destino (CONTABLE) <span class="required">*</span></label>
-            <select formControlName="bodegaDestinoId">
-              <option [value]="null">Seleccione bodega contable...</option>
-              <option *ngFor="let b of bodegasContable" [value]="b.id">{{ b.nombre }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Observaciones</label>
-          <textarea formControlName="observaciones" rows="2" placeholder="Notas adicionales..."></textarea>
-        </div>
-
-        <!-- Detalles -->
-        <div class="detalles-section">
-          <div class="detalles-header">
-            <h3>Productos Solicitados</h3>
-            <button type="button" class="btn btn-secondary btn-sm" (click)="agregarLinea()" *ngIf="!isViewMode">
-              + Agregar Producto
-            </button>
-          </div>
-          <table class="detalles-table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Cantidad Solicitada</th>
-                <th *ngIf="isViewMode">Cantidad Aprobada</th>
-                <th>Observaciones</th>
-                <th *ngIf="!isViewMode"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let linea of detalles; let i = index">
-                <td>
-                  <select [(ngModel)]="linea.productoId" [ngModelOptions]="{standalone: true}" *ngIf="!isViewMode">
-                    <option [value]="null">Seleccione...</option>
-                    <option *ngFor="let p of productos" [value]="p.id">{{ p.productoNombre }}</option>
-                  </select>
-                  <span *ngIf="isViewMode">{{ getNombreProducto(linea.productoId) }}</span>
-                </td>
-                <td>
-                  <input type="number" [(ngModel)]="linea.cantidadSolicitada" [ngModelOptions]="{standalone: true}"
-                    min="0.01" step="0.01" *ngIf="!isViewMode">
-                  <span *ngIf="isViewMode">{{ linea.cantidadSolicitada }}</span>
-                </td>
-                <td *ngIf="isViewMode">{{ linea.cantidadAprobada ?? '-' }}</td>
-                <td>
-                  <input type="text" [(ngModel)]="linea.observaciones" [ngModelOptions]="{standalone: true}" *ngIf="!isViewMode">
-                  <span *ngIf="isViewMode">{{ linea.observaciones || '-' }}</span>
-                </td>
-                <td *ngIf="!isViewMode">
-                  <button type="button" class="btn-icon btn-delete" (click)="eliminarLinea(i)" *ngIf="detalles.length > 1">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="modal-footer" *ngIf="!isViewMode">
-          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" [disabled]="solicitudForm.invalid">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            Guardar Solicitud
+      <!-- Detalle de productos -->
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          <h3>Productos Solicitados</h3>
+          <button *ngIf="!isViewMode" type="button" class="btn btn-secondary"
+                  style="margin-left:auto;padding:6px 14px;font-size:13px" (click)="agregarLinea()">
+            + Agregar línea
           </button>
         </div>
-        <div class="modal-footer" *ngIf="isViewMode">
-          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cerrar</button>
+        <div class="form-card-body">
+          <div *ngFor="let det of detalles; let i = index"
+               style="display:grid;grid-template-columns:3fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f1f5f9">
+            <div class="form-group" style="margin:0">
+              <label *ngIf="i === 0" style="font-size:12px;color:#64748b">Producto *</label>
+              <select [(ngModel)]="det.productoId" [ngModelOptions]="{standalone:true}" [disabled]="isViewMode">
+                <option [ngValue]="null">Selecciona producto</option>
+                <option *ngFor="let p of productos" [value]="p.id">{{ p.productoNombre }}</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label *ngIf="i === 0" style="font-size:12px;color:#64748b">Cant. Solicitada</label>
+              <input type="number" [(ngModel)]="det.cantidadSolicitada" [ngModelOptions]="{standalone:true}"
+                     min="1" [disabled]="isViewMode">
+            </div>
+            <div class="form-group" style="margin:0">
+              <label *ngIf="i === 0" style="font-size:12px;color:#64748b">Cant. Aprobada</label>
+              <input type="number" [(ngModel)]="det.cantidadAprobada" [ngModelOptions]="{standalone:true}"
+                     min="0" [disabled]="true">
+            </div>
+            <button *ngIf="!isViewMode" type="button" class="btn-icon btn-delete" (click)="eliminarLinea(i)"
+                    style="margin-bottom:2px" title="Eliminar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div *ngIf="detalles.length === 0" class="list-empty" style="padding:16px">
+            <p>Agrega al menos un producto.</p>
+          </div>
         </div>
-      </form>
-    </div>
-  </div>
+      </div>
 
-  <!-- Modal Rechazar -->
-  <div class="modal-overlay" *ngIf="showRechazarModal" (click)="showRechazarModal = false">
-    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Rechazar Solicitud</h2>
-        <button class="btn-close" (click)="showRechazarModal = false">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
+      <div class="form-page-footer" *ngIf="!isViewMode">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" [disabled]="solicitudForm.invalid || detalles.length === 0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Guardar Solicitud
         </button>
       </div>
-      <div class="modal-form">
-        <div class="form-group">
-          <label>Motivo de Rechazo <span class="required">*</span></label>
-          <textarea [(ngModel)]="motivoRechazo" rows="4" placeholder="Describa el motivo del rechazo..."></textarea>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="showRechazarModal = false">Cancelar</button>
-          <button type="button" class="btn btn-danger" (click)="confirmarRechazar()">Rechazar</button>
-        </div>
+      <div class="form-page-footer" *ngIf="isViewMode">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()">Cerrar</button>
       </div>
-    </div>
+    </form>
   </div>
+
 </div>

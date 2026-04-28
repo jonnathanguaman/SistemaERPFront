@@ -27,7 +27,7 @@ export class ProductoConfiguracionContableComponent implements OnInit {
   configuracionForm: FormGroup;
   isEditing = false;
   editingId: number | null = null;
-  showModal = false;
+  showForm = false;
   searchTerm: string = '';
 
   constructor(
@@ -129,19 +129,20 @@ export class ProductoConfiguracionContableComponent implements OnInit {
     });
   }
 
-  openModal(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingId = null;
     this.configuracionForm.reset({ activo: true });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  closeModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.configuracionForm.reset();
   }
 
-  edit(configuracion: ProductoConfiguracionContableResponse): void {
+  abrirFormEditar(configuracion: ProductoConfiguracionContableResponse): void {
     this.isEditing = true;
     this.editingId = configuracion.id;
     this.configuracionForm.patchValue({
@@ -151,7 +152,8 @@ export class ProductoConfiguracionContableComponent implements OnInit {
       metodoValuacionId: configuracion.metodoValuacionId,
       activo: configuracion.activo
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   save(): void {
@@ -167,7 +169,7 @@ export class ProductoConfiguracionContableComponent implements OnInit {
         next: () => {
           this.notificationService.showSuccess('Configuración actualizada exitosamente');
           this.loadConfiguraciones();
-          this.closeModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.showError('Error al actualizar: ' + error.message);
@@ -178,7 +180,7 @@ export class ProductoConfiguracionContableComponent implements OnInit {
         next: () => {
           this.notificationService.showSuccess('Configuración creada exitosamente');
           this.loadConfiguraciones();
-          this.closeModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.notificationService.showError('Error al crear: ' + error.message);

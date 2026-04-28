@@ -21,7 +21,7 @@ export class PersonaEmpresaComponent implements OnInit {
   empresas: EmpresaResponse[] = [];
   personas: PersonaResponse[] = [];
   asignacionForm: FormGroup;
-  showModal = false;
+  showForm = false;
   loading = false;
   searchTerm = '';
 
@@ -91,13 +91,14 @@ export class PersonaEmpresaComponent implements OnInit {
     );
   }
 
-  abrirModalAsignar(): void {
+  abrirFormCrear(): void {
     this.asignacionForm.reset({ activo: true });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.asignacionForm.reset();
   }
 
@@ -113,7 +114,7 @@ export class PersonaEmpresaComponent implements OnInit {
       next: () => {
         this.notificationService.success('Persona asignada', 'La persona se asignó correctamente a la empresa');
         this.cargarDatos();
-        this.cerrarModal();
+        this.cerrarForm();
       },
       error: (error) => {
         this.notificationService.error('Error al asignar persona', error.message);

@@ -21,6 +21,9 @@ export interface ClienteRequest {
   ciudad?: string;
   provincia?: string;
   pais?: string;
+  paisId?: number;
+  provinciaId?: number;
+  ciudadId?: number;
   codigoPostal?: string;
   observaciones?: string;
 }
@@ -56,6 +59,9 @@ export interface ClienteResponse {
   ciudad?: string;
   provincia?: string;
   pais?: string;
+  paisId?: number;
+  provinciaId?: number;
+  ciudadId?: number;
   codigoPostal?: string;
   estado?: string;
   observaciones?: string;

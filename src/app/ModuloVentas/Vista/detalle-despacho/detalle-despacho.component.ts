@@ -14,7 +14,7 @@ export class DetalleDespachoComponent implements OnInit {
   detalles: DetalleDespachoResponse[] = [];
   detallesFiltrados: DetalleDespachoResponse[] = [];
   detalleForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingDetalleId: number | null = null;
   loading: boolean = false;
@@ -65,17 +65,18 @@ export class DetalleDespachoComponent implements OnInit {
     );
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingDetalleId = null;
     this.detalleForm.reset({
       cantidadOrdenada: 0,
       cantidadDespachada: 0
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(detalle: DetalleDespachoResponse): void {
+  abrirFormEditar(detalle: DetalleDespachoResponse): void {
     this.isEditing = true;
     this.editingDetalleId = detalle.id;
     this.detalleForm.patchValue({
@@ -87,11 +88,12 @@ export class DetalleDespachoComponent implements OnInit {
       cantidadDespachada: detalle.cantidadDespachada,
       observaciones: detalle.observaciones
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.detalleForm.reset();
     this.isEditing = false;
     this.editingDetalleId = null;
@@ -110,7 +112,7 @@ export class DetalleDespachoComponent implements OnInit {
       this.detalleService.update(this.editingDetalleId, detalleData).subscribe({
         next: () => {
           this.notificationService.success('Detalle actualizado exitosamente');
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar detalle:', error);
@@ -121,7 +123,7 @@ export class DetalleDespachoComponent implements OnInit {
       this.detalleService.save(detalleData).subscribe({
         next: () => {
           this.notificationService.success('Detalle creado exitosamente');
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear detalle:', error);

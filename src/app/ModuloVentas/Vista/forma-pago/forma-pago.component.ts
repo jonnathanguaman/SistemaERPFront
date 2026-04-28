@@ -13,7 +13,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class FormaPagoComponent implements OnInit {
   formasPago: FormaPagoResponse[] = [];
   formaPagoForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingFormaPagoId: number | null = null;
   loading: boolean = false;
@@ -65,17 +65,18 @@ export class FormaPagoComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingFormaPagoId = null;
     this.formaPagoForm.reset({
       requiereReferencia: false,
       activo: true
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(formaPago: FormaPagoResponse): void {
+  abrirFormEditar(formaPago: FormaPagoResponse): void {
     this.isEditing = true;
     this.editingFormaPagoId = formaPago.id;
     this.formaPagoForm.patchValue({
@@ -85,11 +86,12 @@ export class FormaPagoComponent implements OnInit {
       requiereReferencia: formaPago.requiereReferencia,
       activo: formaPago.activo
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.formaPagoForm.reset();
     this.isEditing = false;
     this.editingFormaPagoId = null;
@@ -109,7 +111,7 @@ export class FormaPagoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Forma de pago actualizada exitosamente');
           this.cargarFormasPago();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar forma de pago:', error);
@@ -121,7 +123,7 @@ export class FormaPagoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Forma de pago creada exitosamente');
           this.cargarFormasPago();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear forma de pago:', error);

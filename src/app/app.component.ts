@@ -10,43 +10,46 @@ import { AuthService } from './Compartido/services/auth.service';
 export class AppComponent {
   title = 'ERP Sistema de Gestión';
   isAuthenticated: boolean = false;
+  isSidebarCollapsed: boolean = false;
 
   constructor(private readonly authService: AuthService) {
     // Suscribirse al estado de autenticación
     this.authService.userLoginOn.subscribe(
       (isLoggedIn) => {
         this.isAuthenticated = isLoggedIn;
+        if (isLoggedIn) {
+          this.syncSidebarStateFromStorage();
+        }
       }
     );
+
+    this.syncSidebarStateFromStorage();
   }
 
   /**
-   * Actualiza el margen del contenido principal según el estado del sidebar
+   * Sincroniza el estado del sidebar desde almacenamiento local.
    */
-  private updateMainContentMargin(): void {
-    // Solo actualizar si está autenticado
-    if (!this.isAuthenticated) {
-      return;
-    }
-    
-    const isCollapsed = JSON.parse(localStorage.getItem('sidebarCollapsed') || 'false');
-    const mainContent = document.querySelector('.main-content') as HTMLElement;
-    
-    if (mainContent) {
-      if (window.innerWidth <= 768) {
-        mainContent.style.marginLeft = isCollapsed ? '0' : '70px';
-      } else {
-        mainContent.style.marginLeft = isCollapsed ? '70px' : '280px';
-      }
-    }
+  private syncSidebarStateFromStorage(): void {
+    this.isSidebarCollapsed = JSON.parse(localStorage.getItem('sidebarCollapsed') || 'false');
   }
 
   /**
-   * Escucha cambios en el tamaño de la ventana
+   * Escucha cambios de estado del sidebar emitidos por el menú.
    */
-  @HostListener('window:resize', ['$event'])
-  onResize(event: any): void {
-    this.updateMainContentMargin();
+  @HostListener('window:sidebar-state-changed', ['$event'])
+  onSidebarStateChanged(event: Event): void {
+    const customEvent = event as CustomEvent<{ collapsed?: boolean }>;
+    this.isSidebarCollapsed = !!customEvent.detail?.collapsed;
+  }
+
+  /**
+   * Mantiene sincronización entre pestañas del navegador.
+   */
+  @HostListener('window:storage', ['$event'])
+  onStorageChange(event: StorageEvent): void {
+    if (event.key === 'sidebarCollapsed') {
+      this.syncSidebarStateFromStorage();
+    }
   }
 }
 

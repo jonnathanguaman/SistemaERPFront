@@ -38,7 +38,7 @@ export class CotizacionComponent implements OnInit {
   condicionesPago: CondicionPagoResponse[] = [];
   listasPrecios: ListaPreciosResponse[] = [];
   cotizacionForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   showDetalleModal: boolean = false;
   isEditing: boolean = false;
   editingCotizacionId: number | null = null;
@@ -166,11 +166,11 @@ export class CotizacionComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.router.navigate(['/cotizaciones/nueva']);
   }
 
-  abrirModalEditar(cotizacion: CotizacionResponse): void {
+  abrirFormEditar(cotizacion: CotizacionResponse): void {
     if (cotizacion.estado !== 'BORRADOR') {
       this.notificationService.warning('Solo se pueden editar cotizaciones en estado BORRADOR');
       return;
@@ -198,11 +198,12 @@ export class CotizacionComponent implements OnInit {
       terminosCondiciones: cotizacion.terminosCondiciones,
       tiempoEntrega: cotizacion.tiempoEntrega
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.cotizacionForm.reset();
     this.isEditing = false;
     this.editingCotizacionId = null;
@@ -223,7 +224,7 @@ export class CotizacionComponent implements OnInit {
         next: () => {
           this.notificationService.success('Cotización actualizada exitosamente');
           this.cargarCotizaciones();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar cotización:', error);
@@ -235,7 +236,7 @@ export class CotizacionComponent implements OnInit {
         next: () => {
           this.notificationService.success('Cotización creada exitosamente');
           this.cargarCotizaciones();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear cotización:', error);

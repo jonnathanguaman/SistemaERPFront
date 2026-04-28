@@ -18,7 +18,7 @@ export class DetalleNotaCreditoComponent implements OnInit {
   detallesFiltrados: DetalleNotaCreditoResponse[] = [];
   notasCredito: NotaCreditoResponse[] = [];
   detalleForm: FormGroup;
-  showModal = false;
+  showForm = false;
   isEditMode = false;
   selectedDetalleId?: number;
   loading = false;
@@ -154,7 +154,7 @@ export class DetalleNotaCreditoComponent implements OnInit {
     }
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.detalleForm.reset({
       cantidad: 1,
@@ -169,10 +169,11 @@ export class DetalleNotaCreditoComponent implements OnInit {
       this.detalleForm.patchValue({ notaCreditoId: this.filtroNotaCreditoId });
     }
     
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(detalle: DetalleNotaCreditoResponse): void {
+  abrirFormEditar(detalle: DetalleNotaCreditoResponse): void {
     this.isEditMode = true;
     this.selectedDetalleId = detalle.id;
     this.detalleForm.patchValue({
@@ -189,11 +190,12 @@ export class DetalleNotaCreditoComponent implements OnInit {
       total: detalle.total,
       observaciones: detalle.observaciones
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.detalleForm.reset();
     this.isEditMode = false;
     this.selectedDetalleId = undefined;
@@ -219,7 +221,7 @@ export class DetalleNotaCreditoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Detalle actualizado', 'El detalle se actualizó correctamente');
           this.cargarDetalles();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error: any) => {
           this.notificationService.error('Error al actualizar detalle', error.message);
@@ -230,7 +232,7 @@ export class DetalleNotaCreditoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Detalle creado', 'El detalle se creó correctamente');
           this.cargarDetalles();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error: any) => {
           this.notificationService.error('Error al crear detalle', error.message);

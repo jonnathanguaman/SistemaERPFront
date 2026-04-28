@@ -2,9 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PersonaService } from '../../Service/persona.service';
 import { RolAccesoService } from '../../Service/rol.service';
+import { EmpresaService } from '../../../ModuloEmpresa/Service/empresa.service';
+import { RolEmpresaService } from '../../../ModuloEmpresa/Service/rol-empresa.service';
 import { PersonaRequest, PersonaResponse } from '../../Entidades/persona.model';
 import { PersonaConCredencialesRequest } from '../../Entidades/persona-con-credenciales.model';
 import { RolAccesoResponse } from '../../Entidades/rol.model';
+import { EmpresaResponse } from '../../../ModuloEmpresa/Entidad/empresa.model';
+import { RolEmpresa } from '../../../ModuloEmpresa/Entidad/rol-empresa.model';
 import { NotificationService } from '../../../Compartido/services/notification.service';
 
 @Component({
@@ -20,10 +24,12 @@ export class EmpleadosComponent implements OnInit {
   empleadoForm: FormGroup;
   
   roles: RolAccesoResponse[] = [];
+  empresas: EmpresaResponse[] = [];
+  rolesEmpresaDisponibles: RolEmpresa[] = [];
   crearUsuario: boolean = false;
   
   isLoading: boolean = false;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditMode: boolean = false;
   
   searchTerm: string = '';
@@ -31,6 +37,8 @@ export class EmpleadosComponent implements OnInit {
   constructor(
     private readonly personaService: PersonaService,
     private readonly rolService: RolAccesoService,
+    private readonly empresaService: EmpresaService,
+    private readonly rolEmpresaService: RolEmpresaService,
     private readonly formBuilder: FormBuilder,
     private readonly notificationService: NotificationService
   ) {
@@ -42,13 +50,28 @@ export class EmpleadosComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       username: [''],
       password: [''],
-      rolId: [null]
+      rolId: [null],
+      empresaId: [null],
+      rolEmpresaId: [null]
     });
   }
 
   ngOnInit(): void {
     this.cargarEmpleados();
     this.cargarRoles();
+    this.cargarEmpresas();
+  }
+
+  cargarEmpresas(): void {
+    this.empresaService.findAll().subscribe({
+      next: (data) => {
+        this.empresas = data.filter(empresa => empresa.activo);
+      },
+      error: (error) => {
+        console.error('Error al cargar empresas:', error);
+        this.notificationService.error('Error al cargar la lista de empresas');
+      }
+    });
   }
   
   cargarRoles(): void {
@@ -79,55 +102,123 @@ export class EmpleadosComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.empleadoSeleccionado = null;
     this.crearUsuario = false;
     this.empleadoForm.reset();
-    this.showModal = true;
+    this.rolesEmpresaDisponibles = [];
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(empleado: PersonaResponse): void {
+  abrirFormEditar(empleado: PersonaResponse): void {
     this.isEditMode = true;
     this.empleadoSeleccionado = empleado;
-    this.crearUsuario = false;
+    this.crearUsuario = true;
+    this.rolesEmpresaDisponibles = [];
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     
     this.empleadoForm.patchValue({
       nombre: empleado.nombre,
       cedula: empleado.cedula,
       direccion: empleado.direccion,
       telefono: empleado.telefono,
-      email: empleado.email
+      email: empleado.email,
+      username: '',
+      password: '',
+      rolId: null,
+      empresaId: null,
+      rolEmpresaId: null
     });
-    
-    this.showModal = true;
+
+    this.personaService.getConfiguracionEdicion(empleado.id).subscribe({
+      next: (configuracion) => {
+        this.empleadoForm.patchValue({
+          username: configuracion.username ?? '',
+          rolId: configuracion.rolId ?? null,
+          empresaId: configuracion.empresaId ?? null,
+          rolEmpresaId: null,
+          password: ''
+        });
+
+        if (configuracion.empresaId) {
+          this.onEmpresaChange(configuracion.rolEmpresaId ?? null);
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar configuración de edición:', error);
+        this.notificationService.warning('No se pudo cargar configuración de usuario. Puedes editar datos personales.');
+      }
+    });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.empleadoForm.reset();
     this.empleadoSeleccionado = null;
     this.crearUsuario = false;
+    this.rolesEmpresaDisponibles = [];
   }
   
   onCrearUsuarioChange(): void {
     const usernameControl = this.empleadoForm.get('username');
     const passwordControl = this.empleadoForm.get('password');
     const rolControl = this.empleadoForm.get('rolId');
+    const empresaControl = this.empleadoForm.get('empresaId');
+    const rolEmpresaControl = this.empleadoForm.get('rolEmpresaId');
     
     if (this.crearUsuario) {
       usernameControl?.setValidators([Validators.required, Validators.minLength(4)]);
       passwordControl?.setValidators([Validators.required, Validators.minLength(6)]);
       rolControl?.setValidators([Validators.required]);
+      empresaControl?.setValidators([Validators.required]);
     } else {
       usernameControl?.clearValidators();
       passwordControl?.clearValidators();
       rolControl?.clearValidators();
+      empresaControl?.clearValidators();
+      rolEmpresaControl?.clearValidators();
+      empresaControl?.setValue(null);
+      rolEmpresaControl?.setValue(null);
+      this.rolesEmpresaDisponibles = [];
     }
     
     usernameControl?.updateValueAndValidity();
     passwordControl?.updateValueAndValidity();
     rolControl?.updateValueAndValidity();
+    empresaControl?.updateValueAndValidity();
+    rolEmpresaControl?.updateValueAndValidity();
+  }
+
+  onEmpresaChange(rolEmpresaIdAConservar?: number | null): void {
+    const empresaId = this.empleadoForm.get('empresaId')?.value;
+    const rolEmpresaControl = this.empleadoForm.get('rolEmpresaId');
+
+    rolEmpresaControl?.setValue(null);
+
+    if (!empresaId) {
+      this.rolesEmpresaDisponibles = [];
+      return;
+    }
+
+    this.rolEmpresaService.findByEmpresaId(Number(empresaId)).subscribe({
+      next: (roles) => {
+        this.rolesEmpresaDisponibles = roles;
+        if (rolEmpresaIdAConservar) {
+          const existe = roles.some((rol) => rol.id === rolEmpresaIdAConservar);
+          if (existe) {
+            rolEmpresaControl?.setValue(rolEmpresaIdAConservar);
+          }
+        }
+      },
+      error: (error) => {
+        this.rolesEmpresaDisponibles = [];
+        console.error('Error al cargar roles de empresa:', error);
+        this.notificationService.error('Error al cargar roles de empresa');
+      }
+    });
   }
 
   guardarEmpleado(): void {
@@ -140,30 +231,32 @@ export class EmpleadosComponent implements OnInit {
     this.isLoading = true;
 
     if (this.isEditMode && this.empleadoSeleccionado) {
-      // Modo edición - solo actualiza datos de persona
-      const personaData: PersonaRequest = {
+      const personaConCredenciales: PersonaConCredencialesRequest = {
         nombre: this.empleadoForm.value.nombre,
         cedula: this.empleadoForm.value.cedula,
         direccion: this.empleadoForm.value.direccion,
         telefono: this.empleadoForm.value.telefono,
-        email: this.empleadoForm.value.email
+        email: this.empleadoForm.value.email,
+        username: this.empleadoForm.value.username ? String(this.empleadoForm.value.username).trim() : undefined,
+        password: this.empleadoForm.value.password ? String(this.empleadoForm.value.password).trim() : undefined,
+        rolesIds: this.empleadoForm.value.rolId ? [Number(this.empleadoForm.value.rolId)] : undefined,
+        empresaId: this.empleadoForm.value.empresaId ? Number(this.empleadoForm.value.empresaId) : undefined,
+        rolEmpresaId: this.empleadoForm.value.rolEmpresaId ? Number(this.empleadoForm.value.rolEmpresaId) : undefined
       };
       
-      this.personaService.update(this.empleadoSeleccionado.id, personaData).subscribe({
-        next: (response) => {
+      this.personaService.updateConCredenciales(this.empleadoSeleccionado.id, personaConCredenciales).subscribe({
+        next: () => {
           this.isLoading = false;
           this.notificationService.success('Empleado actualizado exitosamente');
           this.cargarEmpleados();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           this.isLoading = false;
           this.notificationService.error(error.message, 'Error al actualizar');
         }
       });
-    } else {
-      // Modo creación
-      if (this.crearUsuario) {
+    } else if (this.crearUsuario) {
         // Crear persona con credenciales y roles
         const personaConCredenciales: PersonaConCredencialesRequest = {
           nombre: this.empleadoForm.value.nombre,
@@ -173,7 +266,9 @@ export class EmpleadosComponent implements OnInit {
           email: this.empleadoForm.value.email,
           username: this.empleadoForm.value.username,
           password: this.empleadoForm.value.password,
-          rolesIds: this.empleadoForm.value.rolId ? [this.empleadoForm.value.rolId] : []
+          rolesIds: this.empleadoForm.value.rolId ? [this.empleadoForm.value.rolId] : [],
+          empresaId: this.empleadoForm.value.empresaId ? Number(this.empleadoForm.value.empresaId) : undefined,
+          rolEmpresaId: this.empleadoForm.value.rolEmpresaId ? Number(this.empleadoForm.value.rolEmpresaId) : undefined
         };
         
         this.personaService.saveConCredenciales(personaConCredenciales).subscribe({
@@ -181,14 +276,14 @@ export class EmpleadosComponent implements OnInit {
             this.isLoading = false;
             this.notificationService.success('Empleado y usuario creados exitosamente');
             this.cargarEmpleados();
-            this.cerrarModal();
+            this.cerrarForm();
           },
           error: (error) => {
             this.isLoading = false;
             this.notificationService.error(error.message, 'Error al crear');
           }
         });
-      } else {
+    } else {
         // Crear solo persona sin credenciales
         const personaData: PersonaRequest = {
           nombre: this.empleadoForm.value.nombre,
@@ -203,14 +298,13 @@ export class EmpleadosComponent implements OnInit {
             this.isLoading = false;
             this.notificationService.success('Empleado creado exitosamente');
             this.cargarEmpleados();
-            this.cerrarModal();
+            this.cerrarForm();
           },
           error: (error) => {
             this.isLoading = false;
             this.notificationService.error(error.message, 'Error al crear');
           }
         });
-      }
     }
   }
 

@@ -1,112 +1,118 @@
 <div class="proceso-container">
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Procesos</h1>
-      <p class="subtitle">Gestiona los procesos del sistema</p>
-    </div>
-    <button class="btn btn-primary" (click)="abrirModal()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nuevo Proceso
-    </button>
-  </div>
 
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input type="text" class="search-input" placeholder="Buscar por código o nombre..." [(ngModel)]="busqueda" (input)="filtrarProcesos()">
-    </div>
-  </div>
-
-  <div class="table-container">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Nombre</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let proceso of procesosFiltrados">
-          <td>{{ proceso.codigo }}</td>
-          <td>{{ proceso.nombre }}</td>
-          <td>
-            <div class="actions-cell">
-              <button class="btn-icon btn-edit" (click)="abrirModal(proceso)" title="Editar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
-              <button class="btn-icon btn-delete" (click)="eliminarProceso(proceso.id!)" title="Eliminar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-              </button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="procesosFiltrados.length === 0">
-          <td colspan="3" class="no-data">No hay procesos registrados</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Modal -->
-<div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>{{ modoEdicion ? 'Editar Proceso' : 'Nuevo Proceso' }}</h2>
-      <button class="btn-close" (click)="cerrarModal()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="page-breadcrumb">
+          <span>Empresa</span><span class="separator">/</span><span>Procesos</span>
+        </div>
+        <h1>Procesos</h1>
+        <p class="page-subtitle">Gestiona los procesos del sistema</p>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
+        Nuevo Proceso
       </button>
     </div>
-    <form [formGroup]="procesoForm" (ngSubmit)="guardarProceso()" class="modal-form">
-      <div class="form-group">
-        <label for="codigo">
-          Código <span class="required">*</span>
-        </label>
-        <input 
-          type="text"
-          id="codigo"
-          formControlName="codigo"
-          placeholder="Ej: PROC-VENTAS"
-        >
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Buscar por código o nombre…" [(ngModel)]="busqueda" (input)="filtrarProcesos()">
       </div>
-      <div class="form-group">
-        <label for="nombre">
-          Nombre <span class="required">*</span>
-        </label>
-        <input 
-          type="text"
-          id="nombre"
-          formControlName="nombre"
-          placeholder="Ej: Proceso de Ventas"
-        >
+      <span class="result-count">{{ procesosFiltrados.length }} proceso(s)</span>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let proceso of procesosFiltrados">
+            <td class="td-mono text-muted">{{ proceso.codigo }}</td>
+            <td><strong>{{ proceso.nombre }}</strong></td>
+            <td style="text-align:right">
+              <div style="display:flex;gap:6px;justify-content:flex-end">
+                <button class="btn-icon btn-edit" (click)="abrirFormEditar(proceso)" title="Editar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-icon btn-delete" (click)="eliminarProceso(proceso.id!)" title="Eliminar">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="procesosFiltrados.length === 0">
+            <td colspan="3">
+              <div class="list-empty">
+                <h3>Sin procesos registrados</h3>
+                <p>{{ busqueda ? 'Sin resultados para "' + busqueda + '"' : 'Agrega el primer proceso.' }}</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="form-view" *ngIf="showForm">
+    <button class="btn-back" (click)="cerrarForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver a Procesos
+    </button>
+
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <div class="page-breadcrumb">
+          <span>Empresa</span><span class="separator">/</span><span>Procesos</span><span class="separator">/</span>
+          <span>{{ modoEdicion ? 'Editar' : 'Nuevo' }}</span>
+        </div>
+        <h1>{{ modoEdicion ? 'Editar Proceso' : 'Nuevo Proceso' }}</h1>
+        <p class="form-page-subtitle">{{ modoEdicion ? 'Actualiza los datos del proceso' : 'Registra un nuevo proceso' }}</p>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
-          Cancelar
-        </button>
+    </div>
+
+    <form [formGroup]="procesoForm" (ngSubmit)="guardarProceso()">
+      <div class="form-card">
+        <div class="form-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          <h3>Información del Proceso</h3>
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="codigo">Código <span class="required">*</span></label>
+              <input type="text" id="codigo" formControlName="codigo" placeholder="PROC-001"
+                     [class.invalid]="procesoForm.get('codigo')?.invalid && procesoForm.get('codigo')?.touched">
+              <span class="error-msg" *ngIf="procesoForm.get('codigo')?.invalid && procesoForm.get('codigo')?.touched">Este campo es requerido</span>
+            </div>
+            <div class="form-group">
+              <label for="nombre">Nombre <span class="required">*</span></label>
+              <input type="text" id="nombre" formControlName="nombre" placeholder="Nombre del proceso"
+                     [class.invalid]="procesoForm.get('nombre')?.invalid && procesoForm.get('nombre')?.touched">
+              <span class="error-msg" *ngIf="procesoForm.get('nombre')?.invalid && procesoForm.get('nombre')?.touched">Este campo es requerido</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-page-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
         <button type="submit" class="btn btn-primary" [disabled]="procesoForm.invalid">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
         </button>
       </div>
     </form>
   </div>
+
 </div>

@@ -16,7 +16,7 @@ export class FacturaComponent implements OnInit {
   facturas: FacturaResponse[] = [];
   facturasFiltradas: FacturaResponse[] = [];
   facturaForm: FormGroup;
-  showModal = false;
+  showForm = false;
   showDetalleModal = false;
   showPagoModal = false;
   showAutorizacionModal = false;
@@ -44,7 +44,7 @@ export class FacturaComponent implements OnInit {
     private readonly notificationService: NotificationService
   ) {
     this.facturaForm = this.fb.group({
-      numeroFactura: ['', [Validators.required, Validators.maxLength(20)]],
+      numeroFactura: [{ value: '', disabled: true }, [Validators.required, Validators.maxLength(20)]],
       ordenVentaId: ['', [Validators.required]],
       despachoId: [''],
       clienteId: ['', [Validators.required]],
@@ -115,7 +115,7 @@ export class FacturaComponent implements OnInit {
     this.facturasFiltradas = filtradas;
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditMode = false;
     this.facturaForm.reset({
       subtotal: 0,
@@ -126,10 +126,11 @@ export class FacturaComponent implements OnInit {
       autorizadoSri: false,
       fechaEmision: new Date().toISOString().split('T')[0]
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(factura: FacturaResponse): void {
+  abrirFormEditar(factura: FacturaResponse): void {
     this.isEditMode = true;
     this.selectedFacturaId = factura.id;
     this.facturaForm.patchValue({
@@ -153,11 +154,12 @@ export class FacturaComponent implements OnInit {
       claveAcceso: factura.claveAcceso,
       emailDestinatario: factura.emailDestinatario
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.facturaForm.reset();
     this.isEditMode = false;
     this.selectedFacturaId = undefined;
@@ -176,7 +178,7 @@ export class FacturaComponent implements OnInit {
         next: () => {
           this.notificationService.success('Factura actualizada', 'La factura se actualizó correctamente');
           this.cargarFacturas();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error: Error) => {
           this.notificationService.error('Error al actualizar factura', error.message);
@@ -187,7 +189,7 @@ export class FacturaComponent implements OnInit {
         next: () => {
           this.notificationService.success('Factura creada', 'La factura se creó correctamente');
           this.cargarFacturas();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error: Error) => {
           this.notificationService.error('Error al crear factura', error.message);

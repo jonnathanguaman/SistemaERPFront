@@ -13,7 +13,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class TipoMovimientoComponent implements OnInit {
   tiposMovimiento: TipoMovimientoResponse[] = [];
   tipoMovimientoForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingTipoMovimientoId: number | null = null;
   loading: boolean = false;
@@ -73,7 +73,7 @@ export class TipoMovimientoComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingTipoMovimientoId = null;
     this.tipoMovimientoForm.reset({
@@ -81,10 +81,11 @@ export class TipoMovimientoComponent implements OnInit {
       requiereAprobacion: false,
       generaAsiento: false
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(tipoMovimiento: TipoMovimientoResponse): void {
+  abrirFormEditar(tipoMovimiento: TipoMovimientoResponse): void {
     this.isEditing = true;
     this.editingTipoMovimientoId = tipoMovimiento.id;
     this.tipoMovimientoForm.patchValue({
@@ -95,11 +96,12 @@ export class TipoMovimientoComponent implements OnInit {
       requiereAprobacion: tipoMovimiento.requiereAprobacion,
       generaAsiento: tipoMovimiento.generaAsiento
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.tipoMovimientoForm.reset();
     this.isEditing = false;
     this.editingTipoMovimientoId = null;
@@ -126,7 +128,7 @@ export class TipoMovimientoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Tipo de movimiento actualizado exitosamente');
           this.cargarTiposMovimiento();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar tipo de movimiento:', error);
@@ -138,7 +140,7 @@ export class TipoMovimientoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Tipo de movimiento creado exitosamente');
           this.cargarTiposMovimiento();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear tipo de movimiento:', error);

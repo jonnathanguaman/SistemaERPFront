@@ -19,6 +19,7 @@ export interface OrdenVentaRequest {
   total?: number;
   requiereFactura?: boolean;
   requiereGuiaRemision?: boolean;
+  desdeFacturador?: boolean;
   observaciones?: string;
   usuarioCreacionId?: number;
 }

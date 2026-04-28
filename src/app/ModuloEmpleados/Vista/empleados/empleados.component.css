@@ -101,6 +101,12 @@
   min-height: 76px;
 }
 
+.field-help {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
 /* Campo requerido */
 .required {
   color: var(--color-danger);

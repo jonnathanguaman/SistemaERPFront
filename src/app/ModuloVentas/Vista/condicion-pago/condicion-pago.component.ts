@@ -13,7 +13,7 @@ import { NotificationService } from '../../../Compartido/services/notification.s
 export class CondicionPagoComponent implements OnInit {
   condicionesPago: CondicionPagoResponse[] = [];
   condicionPagoForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditing: boolean = false;
   editingCondicionId: number | null = null;
   loading: boolean = false;
@@ -69,7 +69,7 @@ export class CondicionPagoComponent implements OnInit {
     });
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     this.isEditing = false;
     this.editingCondicionId = null;
     this.condicionPagoForm.reset({
@@ -80,10 +80,11 @@ export class CondicionPagoComponent implements OnInit {
       numeroCuotasMaximo: 1,
       esPredeterminado: false
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  abrirModalEditar(condicion: CondicionPagoResponse): void {
+  abrirFormEditar(condicion: CondicionPagoResponse): void {
     this.isEditing = true;
     this.editingCondicionId = condicion.id;
     this.condicionPagoForm.patchValue({
@@ -97,11 +98,12 @@ export class CondicionPagoComponent implements OnInit {
       numeroCuotasMaximo: condicion.numeroCuotasMaximo,
       esPredeterminado: condicion.esPredeterminado
     });
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.condicionPagoForm.reset();
     this.isEditing = false;
     this.editingCondicionId = null;
@@ -121,7 +123,7 @@ export class CondicionPagoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Condición de pago actualizada exitosamente');
           this.cargarCondicionesPago();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al actualizar condición de pago:', error);
@@ -133,7 +135,7 @@ export class CondicionPagoComponent implements OnInit {
         next: () => {
           this.notificationService.success('Condición de pago creada exitosamente');
           this.cargarCondicionesPago();
-          this.cerrarModal();
+          this.cerrarForm();
         },
         error: (error) => {
           console.error('Error al crear condición de pago:', error);

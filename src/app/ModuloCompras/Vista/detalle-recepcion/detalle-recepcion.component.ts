@@ -17,7 +17,7 @@ export class DetalleRecepcionComponent implements OnInit {
   detalleForm: FormGroup;
   
   isLoading: boolean = false;
-  showModal: boolean = false;
+  showForm: boolean = false;
   isEditMode: boolean = false;
   
   searchTerm: string = '';
@@ -90,7 +90,7 @@ export class DetalleRecepcionComponent implements OnInit {
     );
   }
 
-  abrirModalCrear(): void {
+  abrirFormCrear(): void {
     if (!this.recepcionIdFilter) {
       this.notificationService.warning(
         'Debes seleccionar una recepción primero',
@@ -98,20 +98,21 @@ export class DetalleRecepcionComponent implements OnInit {
       );
       return;
     }
-    
+
     this.isEditMode = false;
     this.detalleSeleccionado = null;
     this.detalleForm.reset({
       recepcionId: this.recepcionIdFilter,
       cantidadRechazada: 0
     });
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  abrirModalEditar(detalle: DetalleRecepcionResponse): void {
+  abrirFormEditar(detalle: DetalleRecepcionResponse): void {
     this.isEditMode = true;
     this.detalleSeleccionado = detalle;
-    
+
     this.detalleForm.patchValue({
       recepcionId: detalle.recepcionId,
       detalleOrdenCompraId: detalle.detalleOrdenCompraId,
@@ -128,12 +129,12 @@ export class DetalleRecepcionComponent implements OnInit {
       motivoRechazo: detalle.motivoRechazo,
       observaciones: detalle.observaciones
     });
-    
-    this.showModal = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.showForm = true;
   }
 
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.detalleForm.reset();
     this.detalleSeleccionado = null;
   }
@@ -173,7 +174,7 @@ export class DetalleRecepcionComponent implements OnInit {
           'Detalle de recepción creado exitosamente',
           'Operación exitosa'
         );
-        this.cerrarModal();
+        this.cerrarForm();
         this.cargarDetalles();
       },
       error: (error) => {
@@ -190,7 +191,7 @@ export class DetalleRecepcionComponent implements OnInit {
           'Detalle de recepción actualizado exitosamente',
           'Operación exitosa'
         );
-        this.cerrarModal();
+        this.cerrarForm();
         this.cargarDetalles();
       },
       error: (error) => {

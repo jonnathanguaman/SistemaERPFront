@@ -18,7 +18,7 @@ export class ReporteJerarquicoComponent implements OnInit {
   reportesJerarquicosFiltrados: ReporteJerarquicoDetalle[] = [];
   personasEmpresa: PersonaEmpresa[] = [];
   reporteJerarquicoForm: FormGroup;
-  mostrarModal = false;
+  showForm = false;
   modoEdicion = false;
   reporteJerarquicoIdEditar: number | null = null;
   busqueda = '';
@@ -67,27 +67,30 @@ export class ReporteJerarquicoComponent implements OnInit {
     );
   }
 
-  abrirModal(reporteJerarquico?: ReporteJerarquico): void {
-    if (reporteJerarquico) {
-      this.modoEdicion = true;
-      this.reporteJerarquicoIdEditar = reporteJerarquico.id || null;
-      this.reporteJerarquicoForm.patchValue({
-        subordinadoId: reporteJerarquico.subordinadoId,
-        jefeId: reporteJerarquico.jefeId,
-        fechaInicio: reporteJerarquico.fechaInicio,
-        fechaFin: reporteJerarquico.fechaFin,
-        activo: reporteJerarquico.activo
-      });
-    } else {
-      this.modoEdicion = false;
-      this.reporteJerarquicoIdEditar = null;
-      this.reporteJerarquicoForm.reset({ activo: true });
-    }
-    this.mostrarModal = true;
+  abrirFormCrear(): void {
+    this.modoEdicion = false;
+    this.reporteJerarquicoIdEditar = null;
+    this.reporteJerarquicoForm.reset({ activo: true });
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  cerrarModal(): void {
-    this.mostrarModal = false;
+  abrirFormEditar(reporteJerarquico: ReporteJerarquico): void {
+    this.modoEdicion = true;
+    this.reporteJerarquicoIdEditar = reporteJerarquico.id || null;
+    this.reporteJerarquicoForm.patchValue({
+      subordinadoId: reporteJerarquico.subordinadoId,
+      jefeId: reporteJerarquico.jefeId,
+      fechaInicio: reporteJerarquico.fechaInicio,
+      fechaFin: reporteJerarquico.fechaFin,
+      activo: reporteJerarquico.activo
+    });
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cerrarForm(): void {
+    this.showForm = false;
     this.reporteJerarquicoForm.reset({ activo: true });
     this.modoEdicion = false;
     this.reporteJerarquicoIdEditar = null;
@@ -110,13 +113,18 @@ export class ReporteJerarquicoComponent implements OnInit {
         this.notificationService.showSuccess('Reporte jerárquico creado correctamente');
       }
       this.cargarDatos();
-      this.cerrarModal();
+      this.cerrarForm();
     } catch (error) {
       this.notificationService.showError('Error al guardar el reporte jerárquico');
     }
   }
 
-  async eliminarReporteJerarquico(id: number): Promise<void> {
+  async eliminarReporteJerarquico(id?: number): Promise<void> {
+    if (id == null) {
+      this.notificationService.showError('ID de reporte inválido');
+      return;
+    }
+
     const confirmado = await this.notificationService.showConfirm(
       '¿Está seguro de eliminar este reporte jerárquico?',
       'Esta acción no se puede deshacer'

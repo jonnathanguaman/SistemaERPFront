@@ -1,204 +1,163 @@
 <div class="detalle-cotizacion-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Detalles de Cotización</h1>
-      <p class="subtitle">Administra los items de las cotizaciones</p>
-    </div>
-    <!-- <button class="btn btn-primary" (click)="abrirModalCrear()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nuevo Detalle
-    </button> -->
-  </div>
 
-  <!-- Barra de búsqueda -->
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input 
-        type="text" 
-        class="search-input" 
-        placeholder="Buscar por cotización..."
-        [(ngModel)]="busqueda"
-        (input)="filtrarDetalles()"
-      >
-    </div>
-  </div>
-
-  <!-- Loading -->
-  <div class="loading-container" *ngIf="loading">
-    <div class="spinner"></div>
-    <p>Cargando detalles...</p>
-  </div>
-
-  <!-- Tabla -->
-  <div class="table-container" *ngIf="!loading">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Cotización</th>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Precio Unit.</th>
-          <th>Subtotal</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let detalle of detallesFiltrados">
-          <td>{{ detalle.cotizacionNumero || detalle.cotizacionId }}</td>
-          <td>{{ detalle.productoId }}</td>
-          <td>{{ detalle.cantidad }}</td>
-          <td class="currency-cell">{{ formatCurrency(detalle.precioUnitario) }}</td>
-          <td class="currency-cell">{{ formatCurrency(detalle.subtotal) }}</td>
-          <td class="currency-cell">{{ formatCurrency(detalle.total) }}</td>
-        </tr>
-        <tr *ngIf="detallesFiltrados.length === 0">
-          <td colspan="8" class="no-data">No se encontraron detalles</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Modal Crear/Editar -->
-  <div class="modal-overlay" *ngIf="showModal" (click)="cerrarModal()" role="dialog" aria-modal="true">
-    <div class="modal-content" (click)="$event.stopPropagation()" role="document">
-      <div class="modal-header">
-        <h2>{{ isEditing ? 'Editar Detalle' : 'Nuevo Detalle' }}</h2>
-        <button class="btn-close" (click)="cerrarModal()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
+  <!-- ═══ LIST VIEW ═══ -->
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <nav class="page-breadcrumb">Ventas <span class="separator">›</span> Detalles de Cotización</nav>
+        <h1>Detalles de Cotización</h1>
       </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">+ Nuevo Detalle</button>
+    </div>
 
-      <form [formGroup]="detalleForm" (ngSubmit)="guardarDetalle()" class="modal-form">
-        <div class="form-section">
-          <h3>Información del Detalle</h3>
-          <div class="form-row">
+    <div class="toolbar">
+      <div class="search-box">
+        <input type="text" placeholder="Buscar por cotización o ID…"
+               [(ngModel)]="busqueda" (input)="filtrarDetalles()" class="form-control" />
+      </div>
+      <span class="result-count">{{ detallesFiltrados.length }} resultado(s)</span>
+    </div>
+
+    <div *ngIf="loading" class="inline-loader">Cargando…</div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cotización</th>
+            <th>Producto ID</th>
+            <th class="text-right">Cantidad</th>
+            <th class="text-right">Precio Unit.</th>
+            <th class="text-right">Desc. %</th>
+            <th class="text-right">IVA %</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let detalle of detallesFiltrados">
+            <td class="td-mono">{{ detalle.id }}</td>
+            <td class="td-mono">{{ detalle.cotizacionNumero }}</td>
+            <td class="td-mono">{{ detalle.productoId }}</td>
+            <td class="text-right td-mono">{{ detalle.cantidad }}</td>
+            <td class="text-right td-mono">${{ detalle.precioUnitario | number:'1.2-2' }}</td>
+            <td class="text-right td-mono">{{ detalle.descuentoPorcentaje }}%</td>
+            <td class="text-right td-mono">{{ detalle.impuestoPorcentaje }}%</td>
+            <td>
+              <button class="btn-icon btn-edit" (click)="abrirFormEditar(detalle)" title="Editar">✎</button>
+              <button class="btn-icon btn-delete" (click)="eliminarDetalle(detalle)" title="Eliminar">✕</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="list-empty" *ngIf="detallesFiltrados.length === 0">
+        No se encontraron detalles de cotización.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FORM VIEW ═══ -->
+  <div class="form-view" *ngIf="showForm">
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <nav class="page-breadcrumb">
+          Ventas <span class="separator">›</span>
+          <button class="btn-back" (click)="cerrarForm()">Detalles de Cotización</button>
+          <span class="separator">›</span>
+          {{ isEditing ? 'Editar Detalle' : 'Nuevo Detalle' }}
+        </nav>
+        <h1>{{ isEditing ? 'Editar Detalle de Cotización' : 'Nuevo Detalle de Cotización' }}</h1>
+        <p class="form-page-subtitle">Ingrese el producto y cantidades para la cotización</p>
+      </div>
+    </div>
+
+    <form [formGroup]="detalleForm">
+
+      <div class="form-card">
+        <div class="form-card-header">Datos del Producto</div>
+        <div class="form-card-body">
+          <div class="form-grid">
+
             <div class="form-group">
-              <label for="cotizacionId">ID Cotización <span class="required">*</span></label>
-              <input 
-                type="number" 
-                id="cotizacionId"
-                formControlName="cotizacionId"
-                [class.invalid]="isFieldInvalid('cotizacionId')"
-              >
-              <span class="error-message" *ngIf="isFieldInvalid('cotizacionId')">
+              <label>ID Cotización <span class="required">*</span></label>
+              <input type="number" formControlName="cotizacionId" min="1"
+                     [class.invalid]="isFieldInvalid('cotizacionId')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('cotizacionId')">
                 {{ getFieldError('cotizacionId') }}
               </span>
             </div>
+
             <div class="form-group">
-              <label for="productoId">ID Producto <span class="required">*</span></label>
-              <input 
-                type="number" 
-                id="productoId"
-                formControlName="productoId"
-                [class.invalid]="isFieldInvalid('productoId')"
-              >
-              <span class="error-message" *ngIf="isFieldInvalid('productoId')">
+              <label>ID Producto <span class="required">*</span></label>
+              <input type="number" formControlName="productoId" min="1"
+                     [class.invalid]="isFieldInvalid('productoId')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('productoId')">
                 {{ getFieldError('productoId') }}
               </span>
             </div>
-          </div>
 
-          <div class="form-row">
             <div class="form-group">
-              <label for="cantidad">Cantidad <span class="required">*</span></label>
-              <input 
-                type="number" 
-                id="cantidad"
-                formControlName="cantidad"
-                step="0.01"
-                [class.invalid]="isFieldInvalid('cantidad')"
-              >
-              <span class="error-message" *ngIf="isFieldInvalid('cantidad')">
+              <label>Cantidad <span class="required">*</span></label>
+              <input type="number" formControlName="cantidad" min="0.01" step="0.01"
+                     [class.invalid]="isFieldInvalid('cantidad')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('cantidad')">
                 {{ getFieldError('cantidad') }}
               </span>
             </div>
+
             <div class="form-group">
-              <label for="precioUnitario">Precio Unitario <span class="required">*</span></label>
-              <input 
-                type="number" 
-                id="precioUnitario"
-                formControlName="precioUnitario"
-                step="0.01"
-                [class.invalid]="isFieldInvalid('precioUnitario')"
-              >
-              <span class="error-message" *ngIf="isFieldInvalid('precioUnitario')">
+              <label>Precio Unitario <span class="required">*</span></label>
+              <input type="number" formControlName="precioUnitario" min="0" step="0.01"
+                     [class.invalid]="isFieldInvalid('precioUnitario')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('precioUnitario')">
                 {{ getFieldError('precioUnitario') }}
               </span>
             </div>
-          </div>
 
-          <div class="form-row">
             <div class="form-group">
-              <label for="descuentoPorcentaje">Descuento %</label>
-              <input 
-                type="number" 
-                id="descuentoPorcentaje"
-                formControlName="descuentoPorcentaje"
-                step="0.01"
-              >
+              <label>Descuento %</label>
+              <input type="number" formControlName="descuentoPorcentaje" min="0" max="100" step="0.01"
+                     [class.invalid]="isFieldInvalid('descuentoPorcentaje')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('descuentoPorcentaje')">
+                {{ getFieldError('descuentoPorcentaje') }}
+              </span>
             </div>
-            <div class="form-group">
-              <label for="descuentoMonto">Descuento Monto</label>
-              <input 
-                type="number" 
-                id="descuentoMonto"
-                formControlName="descuentoMonto"
-                step="0.01"
-              >
-            </div>
-          </div>
 
-          <div class="form-row">
             <div class="form-group">
-              <label for="impuestoPorcentaje">Impuesto % <span class="required">*</span></label>
-              <input 
-                type="number" 
-                id="impuestoPorcentaje"
-                formControlName="impuestoPorcentaje"
-                step="0.01"
-                readonly
-                [class.invalid]="isFieldInvalid('impuestoPorcentaje')"
-              >
-              <span class="error-message" *ngIf="isFieldInvalid('impuestoPorcentaje')">
+              <label>Descuento Monto</label>
+              <input type="number" formControlName="descuentoMonto" min="0" step="0.01"
+                     [class.invalid]="isFieldInvalid('descuentoMonto')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('descuentoMonto')">
+                {{ getFieldError('descuentoMonto') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label>IVA % <span class="required">*</span></label>
+              <input type="number" formControlName="impuestoPorcentaje" min="0" step="0.01"
+                     [class.invalid]="isFieldInvalid('impuestoPorcentaje')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('impuestoPorcentaje')">
                 {{ getFieldError('impuestoPorcentaje') }}
               </span>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label for="observaciones">Observaciones</label>
-            <textarea 
-              id="observaciones"
-              formControlName="observaciones"
-              rows="3"
-              placeholder="Información adicional..."
-            ></textarea>
+            <div class="form-group form-grid-full">
+              <label>Observaciones</label>
+              <textarea formControlName="observaciones" rows="3"></textarea>
+            </div>
+
           </div>
         </div>
+      </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
-            Cancelar
-          </button>
-          <button type="submit" class="btn btn-primary" [disabled]="detalleForm.invalid">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            {{ isEditing ? 'Actualizar' : 'Guardar' }}
-          </button>
-        </div>
-      </form>
+    </form>
+
+    <div class="form-page-footer">
+      <button class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
+      <button class="btn btn-primary" (click)="guardarDetalle()">
+        {{ isEditing ? 'Actualizar' : 'Guardar' }}
+      </button>
     </div>
   </div>
+
 </div>

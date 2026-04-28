@@ -1,0 +1,248 @@
+<!-- DASHBOARD EMPRESA -->
+<div class="dash-loader" *ngIf="loading">
+  <div class="loader-spinner"></div>
+  <span>Cargando datos de empresa...</span>
+</div>
+
+<div class="dashboard" *ngIf="!loading">
+
+  <!-- Cabecera -->
+  <div class="dash-header">
+    <div class="dash-header__left">
+      <h1 class="dash-title">Dashboard <span>Empresa</span></h1>
+      <p class="dash-subtitle">{{ fechaHoy }}</p>
+    </div>
+    <button class="btn-refresh" (click)="cargarDatos()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/>
+      </svg>
+      Actualizar
+    </button>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="kpi-grid">
+
+    <!-- Bodegas -->
+    <div class="kpi-card kpi-card--blue" (click)="irA('/bodegas')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 20h20M4 20V10l8-6 8 6v10"/>
+          <path d="M10 20v-5h4v5"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Bodegas</span>
+        <span class="kpi-card__value">{{ bodegas.length }}</span>
+        <div class="kpi-card__sub">
+          <span class="badge badge--ok">{{ bodegasActivas }} activas</span>
+          <span *ngIf="bodegasInactivas > 0" class="badge badge--warn">{{ bodegasInactivas }} inactivas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unidades Organizacionales -->
+    <div class="kpi-card kpi-card--indigo" (click)="irA('/unidades-organizacionales')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="8" y="2" width="8" height="4" rx="1"/>
+          <rect x="2" y="14" width="8" height="4" rx="1"/>
+          <rect x="14" y="14" width="8" height="4" rx="1"/>
+          <path d="M12 6v4M8 16H6a2 2 0 0 1-2-2v-2h16v2a2 2 0 0 1-2 2h-2"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Unidades Organizacionales</span>
+        <span class="kpi-card__value">{{ totalUnidades }}</span>
+        <div class="kpi-card__sub">
+          <span class="badge badge--neutral">departamentos/áreas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Procesos -->
+    <div class="kpi-card kpi-card--purple" (click)="irA('/procesos')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a10 10 0 1 0 10 10H12V2z"/>
+          <path d="M12 2a10 10 0 0 1 10 10"/>
+          <path d="M12 12 2.1 9.1"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Procesos de Negocio</span>
+        <span class="kpi-card__value">{{ totalProcesos }}</span>
+        <div class="kpi-card__sub">
+          <span class="badge badge--neutral">procesos configurados</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal Empresa -->
+    <div class="kpi-card kpi-card--green" (click)="irA('/personas-empresa')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Personal Empresa</span>
+        <span class="kpi-card__value">{{ personasActivas }}</span>
+        <div class="kpi-card__sub">
+          <span class="badge badge--ok">{{ personasActivas }} activos</span>
+          <span *ngIf="personasInactivas > 0" class="badge badge--warn">{{ personasInactivas }} inactivos</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Resumen + Roles -->
+  <div class="two-col">
+    <div class="section-card">
+      <div class="section-card__header">
+        <h2 class="section-card__title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 20h20M4 20V10l8-6 8 6v10"/>
+          </svg>
+          Resumen de Estructura
+        </h2>
+      </div>
+      <div class="status-list">
+        <div class="status-row">
+          <span class="status-dot status-dot--blue"></span>
+          <span class="status-label">Bodegas activas</span>
+          <span class="status-count">{{ bodegasActivas }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot" style="background:#0EA5E9"></span>
+          <span class="status-label">Bodegas tipo Contable</span>
+          <span class="status-count">{{ bodegasContables }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot" style="background:#6366F1"></span>
+          <span class="status-label">Bodegas tipo Venta</span>
+          <span class="status-count">{{ bodegasVenta }}</span>
+        </div>
+        <div class="status-divider"></div>
+        <div class="status-row">
+          <span class="status-dot status-dot--indigo"></span>
+          <span class="status-label">Unidades organizacionales</span>
+          <span class="status-count">{{ totalUnidades }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot status-dot--purple"></span>
+          <span class="status-label">Procesos configurados</span>
+          <span class="status-count">{{ totalProcesos }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot status-dot--green"></span>
+          <span class="status-label">Roles empresa</span>
+          <span class="status-count">{{ totalRolesEmpresa }}</span>
+        </div>
+        <div class="status-divider"></div>
+        <div class="status-row status-row--total">
+          <span class="status-label">Personal empresa activo</span>
+          <span class="status-count">{{ personasActivas }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-card__header">
+        <h2 class="section-card__title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Procesos de Negocio
+        </h2>
+        <button class="link-btn" (click)="irA('/procesos')">Ver todos</button>
+      </div>
+      <div *ngIf="procesos.length === 0" class="empty-state empty-state--sm"><p>No hay procesos configurados</p></div>
+      <div class="procesos-list" *ngIf="procesos.length > 0">
+        <div class="proceso-item" *ngFor="let proc of procesos">
+          <div class="proceso-item__codigo">{{ proc.codigo }}</div>
+          <div class="proceso-item__nombre">{{ proc.nombre }}</div>
+          <button class="link-btn" (click)="irA('/acciones-proceso')">Acciones</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bodegas -->
+  <div class="section-card">
+    <div class="section-card__header">
+      <h2 class="section-card__title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 20h20M4 20V10l8-6 8 6v10"/>
+        </svg>
+        Bodegas
+      </h2>
+      <button class="link-btn" (click)="irA('/bodegas')">Ver todas</button>
+    </div>
+    <div *ngIf="ultimasBodegas.length === 0" class="empty-state empty-state--sm"><p>No hay bodegas registradas</p></div>
+    <table class="mini-table" *ngIf="ultimasBodegas.length > 0">
+      <thead><tr><th>Código</th><th>Nombre</th><th>Empresa</th><th>Tipo</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let bodega of ultimasBodegas" class="mini-table__row" (click)="irA('/bodegas')">
+          <td class="mini-table__mono">{{ bodega.codigo }}</td>
+          <td class="mini-table__truncate">{{ bodega.nombre }}</td>
+          <td class="mini-table__truncate">{{ bodega.empresaNombre }}</td>
+          <td><span class="tipo-chip" [class.tipo-chip--contable]="bodega.bodegaTipo === 'CONTABLE'" [class.tipo-chip--venta]="bodega.bodegaTipo === 'VENTA'">{{ bodega.bodegaTipo || '—' }}</span></td>
+          <td><span class="estado-chip" [class.estado-chip--activo]="bodega.activo" [class.estado-chip--inactivo]="!bodega.activo">{{ bodega.activo ? 'Activa' : 'Inactiva' }}</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Accesos rápidos -->
+  <div class="section-card">
+    <div class="section-card__header">
+      <h2 class="section-card__title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        Accesos Rápidos
+      </h2>
+    </div>
+    <div class="quick-grid">
+      <button class="quick-btn" (click)="irA('/empresas')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Empresas
+      </button>
+      <button class="quick-btn" (click)="irA('/bodegas')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M4 20V10l8-6 8 6v10"/></svg>
+        Bodegas
+      </button>
+      <button class="quick-btn" (click)="irA('/unidades-organizacionales')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><rect x="2" y="14" width="8" height="4" rx="1"/><rect x="14" y="14" width="8" height="4" rx="1"/></svg>
+        Unidades Org.
+      </button>
+      <button class="quick-btn" (click)="irA('/procesos')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        Procesos
+      </button>
+      <button class="quick-btn" (click)="irA('/roles-empresa')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Roles Empresa
+      </button>
+      <button class="quick-btn" (click)="irA('/personas-empresa')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Personal Empresa
+      </button>
+      <button class="quick-btn" (click)="irA('/roles-procesos-permisos')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Permisos de Rol
+      </button>
+      <button class="quick-btn" (click)="irA('/reportes-jerarquicos')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+        Reportes Jerárquicos
+      </button>
+    </div>
+  </div>
+
+</div>

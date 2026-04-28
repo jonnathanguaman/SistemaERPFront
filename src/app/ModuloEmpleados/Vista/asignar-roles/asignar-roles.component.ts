@@ -22,7 +22,7 @@ export class AsignarRolesComponent implements OnInit {
   roles: RolAccesoResponse[] = [];
   
   asignacionForm: FormGroup;
-  showModal: boolean = false;
+  showForm: boolean = false;
   loading: boolean = false;
   searchTerm: string = '';
 
@@ -106,16 +106,17 @@ export class AsignarRolesComponent implements OnInit {
   /**
    * Abre el modal para asignar un rol
    */
-  abrirModalAsignar(): void {
+  abrirFormCrear(): void {
     this.asignacionForm.reset();
-    this.showModal = true;
+    this.showForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   /**
    * Cierra el modal
    */
-  cerrarModal(): void {
-    this.showModal = false;
+  cerrarForm(): void {
+    this.showForm = false;
     this.asignacionForm.reset();
   }
 
@@ -140,7 +141,7 @@ export class AsignarRolesComponent implements OnInit {
       next: () => {
         this.notificationService.success('Rol asignado exitosamente');
         this.cargarDatos();
-        this.cerrarModal();
+        this.cerrarForm();
       },
       error: (error) => {
         this.loading = false;

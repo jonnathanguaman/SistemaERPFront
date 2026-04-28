@@ -76,11 +76,29 @@ import { IvaProductoComponent } from './ModuloVentas/Vista/iva-producto/iva-prod
 import { ListaIvaComponent } from './ModuloVentas/Vista/lista-iva/lista-iva.component';
 import { SolicitudTransferenciaComponent } from './ModuloInventario/Vista/solicitud-transferencia/solicitud-transferencia.component';
 import { DashboardComponent } from './ModuloDashboard/Vista/dashboard/dashboard.component';
+import { DashboardVentasComponent } from './ModuloVentas/Vista/dashboard-ventas/dashboard-ventas.component';
+import { DashboardComprasComponent } from './ModuloCompras/Vista/dashboard-compras/dashboard-compras.component';
+import { DashboardInventarioComponent } from './ModuloInventario/Vista/dashboard-inventario/dashboard-inventario.component';
+import { DashboardEmpleadosComponent } from './ModuloEmpleados/Vista/dashboard-empleados/dashboard-empleados.component';
+import { DashboardEmpresaComponent } from './ModuloEmpresa/Vista/dashboard-empresa/dashboard-empresa.component';
+import { FacturadorComponent } from './ModuloVentas/Vista/facturador/facturador.component';
+import { PaisComponent } from './ModuloEmpresa/Vista/pais/pais.component';
+import { ProvinciaComponent } from './ModuloEmpresa/Vista/provincia/provincia.component';
+import { CiudadComponent } from './ModuloEmpresa/Vista/ciudad/ciudad.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     DashboardComponent,
+    DashboardVentasComponent,
+    DashboardComprasComponent,
+    DashboardInventarioComponent,
+    DashboardEmpleadosComponent,
+    DashboardEmpresaComponent,
+    FacturadorComponent,
+    PaisComponent,
+    ProvinciaComponent,
+    CiudadComponent,
     LoginComponent,
     EmpleadosComponent,
     RolesComponent,

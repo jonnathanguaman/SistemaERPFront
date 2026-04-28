@@ -1,0 +1,278 @@
+<!-- DASHBOARD INVENTARIO -->
+<div class="dash-loader" *ngIf="loading">
+  <div class="loader-spinner"></div>
+  <span>Cargando datos de inventario...</span>
+</div>
+
+<div class="dashboard" *ngIf="!loading">
+
+  <!-- Cabecera -->
+  <div class="dash-header">
+    <div class="dash-header__left">
+      <h1 class="dash-title">Dashboard <span>Inventario</span></h1>
+      <p class="dash-subtitle">{{ fechaHoy }}</p>
+    </div>
+    <button class="btn-refresh" (click)="cargarDatos()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/>
+      </svg>
+      Actualizar
+    </button>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="kpi-grid">
+
+    <!-- Productos -->
+    <div class="kpi-card kpi-card--blue" (click)="irA('/productos')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          <path d="m3.3 7 8.7 5 8.7-5"/><line x1="12" y1="22" x2="12" y2="12"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Productos</span>
+        <span class="kpi-card__value">{{ totalProductos }}</span>
+        <div class="kpi-card__sub">
+          <span class="badge badge--ok">{{ productosActivos }} activos</span>
+          <span *ngIf="totalProductos - productosActivos > 0" class="badge badge--warn">{{ totalProductos - productosActivos }} inactivos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Valor Inventario -->
+    <div class="kpi-card kpi-card--green" (click)="irA('/producto-existencias')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Valor Total Inventario</span>
+        <span class="kpi-card__value" style="font-size:1.3rem">{{ formatMoneda(valorTotalInventario) }}</span>
+        <div class="kpi-card__sub">
+          <span class="badge badge--neutral">{{ totalExistencias }} registros</span>
+          <span *ngIf="existenciasSinStock > 0" class="badge badge--danger">{{ existenciasSinStock }} sin stock</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Movimientos pendientes -->
+    <div class="kpi-card" [class.kpi-card--danger]="movBorrador > 0" [class.kpi-card--indigo]="movBorrador === 0"
+         (click)="irA('/movimientos-inventario')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Movimientos Borrador</span>
+        <span class="kpi-card__value">{{ movBorrador }}</span>
+        <div class="kpi-card__sub">
+          <span class="badge badge--ok">{{ movConfirmado + movContabilizado }} confirmados</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Solicitudes transferencia -->
+    <div class="kpi-card" [class.kpi-card--purple]="solicitudesPendientes > 0" [class.kpi-card--green]="solicitudesPendientes === 0"
+         (click)="irA('/solicitudes-transferencia')">
+      <div class="kpi-card__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 9l-3 3 3 3"/><path d="M19 9l3 3-3 3"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+        </svg>
+      </div>
+      <div class="kpi-card__body">
+        <span class="kpi-card__label">Transferencias Pendientes</span>
+        <span class="kpi-card__value">{{ solicitudesPendientes }}</span>
+        <div class="kpi-card__sub">
+          <span class="badge badge--ok">{{ solicCompletada }} completadas</span>
+          <span *ngIf="solicRechazada > 0" class="badge badge--danger">{{ solicRechazada }} rechazadas</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Pipeline Movimientos -->
+  <div class="section-card">
+    <div class="section-card__header">
+      <h2 class="section-card__title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Estado de Movimientos de Inventario
+      </h2>
+      <button class="link-btn" (click)="irA('/movimientos-inventario')">Ver todos</button>
+    </div>
+    <div class="pipeline">
+      <div class="pipeline-stage" (click)="irA('/movimientos-inventario')">
+        <div class="pipeline-stage__count">{{ movBorrador }}</div>
+        <div class="pipeline-stage__bar pipeline-stage__bar--gray"></div>
+        <div class="pipeline-stage__label">Borrador</div>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-stage" (click)="irA('/movimientos-inventario')">
+        <div class="pipeline-stage__count pipeline-stage__count--blue">{{ movConfirmado }}</div>
+        <div class="pipeline-stage__bar pipeline-stage__bar--blue"></div>
+        <div class="pipeline-stage__label">Confirmado</div>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-stage" (click)="irA('/movimientos-inventario')">
+        <div class="pipeline-stage__count pipeline-stage__count--green">{{ movContabilizado }}</div>
+        <div class="pipeline-stage__bar pipeline-stage__bar--green"></div>
+        <div class="pipeline-stage__label">Contabilizado</div>
+      </div>
+      <div class="pipeline-arrow">›</div>
+      <div class="pipeline-stage">
+        <div class="pipeline-stage__count" style="color:#DC2626">{{ movAnulado }}</div>
+        <div class="pipeline-stage__bar" style="background:#DC2626"></div>
+        <div class="pipeline-stage__label">Anulado</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Existencias + Transferencias -->
+  <div class="two-col">
+    <div class="section-card">
+      <div class="section-card__header">
+        <h2 class="section-card__title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+          </svg>
+          Resumen de Existencias
+        </h2>
+        <button class="link-btn" (click)="irA('/producto-existencias')">Ver todas</button>
+      </div>
+      <div class="status-list">
+        <div class="status-row">
+          <span class="status-dot status-dot--blue"></span>
+          <span class="status-label">Total registros de existencia</span>
+          <span class="status-count">{{ totalExistencias }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot status-dot--green"></span>
+          <span class="status-label">Con stock disponible</span>
+          <span class="status-count">{{ totalExistencias - existenciasSinStock }}</span>
+        </div>
+        <div class="status-row" [class.status-row--alert]="existenciasSinStock > 0">
+          <span class="status-dot status-dot--red"></span>
+          <span class="status-label">Sin stock</span>
+          <span class="status-count">{{ existenciasSinStock }}</span>
+        </div>
+        <div class="status-divider"></div>
+        <div class="status-row status-row--total">
+          <span class="status-label">Valor total inventario</span>
+          <span class="status-count">{{ formatMoneda(valorTotalInventario) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-card__header">
+        <h2 class="section-card__title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 9l-3 3 3 3"/><path d="M19 9l3 3-3 3"/><line x1="2" y1="12" x2="22" y2="12"/>
+          </svg>
+          Solicitudes de Transferencia
+        </h2>
+        <button class="link-btn" (click)="irA('/solicitudes-transferencia')">Ver todas</button>
+      </div>
+      <div class="status-list">
+        <div class="status-row">
+          <span class="status-dot status-dot--gray"></span>
+          <span class="status-label">Borrador</span>
+          <span class="status-count">{{ solicBorrador }}</span>
+        </div>
+        <div class="status-row" [class.status-row--alert]="solicEnviada > 0">
+          <span class="status-dot status-dot--yellow"></span>
+          <span class="status-label">Enviada (pendiente aprobación)</span>
+          <span class="status-count">{{ solicEnviada }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot status-dot--blue"></span>
+          <span class="status-label">Aprobada (en proceso)</span>
+          <span class="status-count">{{ solicAprobada }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot status-dot--green"></span>
+          <span class="status-label">Completada</span>
+          <span class="status-count">{{ solicCompletada }}</span>
+        </div>
+        <div class="status-row" [class.status-row--alert]="solicRechazada > 0">
+          <span class="status-dot status-dot--red"></span>
+          <span class="status-label">Rechazada</span>
+          <span class="status-count">{{ solicRechazada }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Últimos Movimientos -->
+  <div class="section-card">
+    <div class="section-card__header">
+      <h2 class="section-card__title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Últimos Movimientos de Inventario
+      </h2>
+      <button class="link-btn" (click)="irA('/movimientos-inventario')">Ver todos</button>
+    </div>
+    <div *ngIf="ultimosMovimientos.length === 0" class="empty-state empty-state--sm"><p>Sin movimientos registrados</p></div>
+    <table class="mini-table" *ngIf="ultimosMovimientos.length > 0">
+      <thead><tr><th>N° Movimiento</th><th>Tipo</th><th>Fecha</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let mov of ultimosMovimientos" class="mini-table__row">
+          <td class="mini-table__mono">{{ mov.numeroMovimiento }}</td>
+          <td class="mini-table__truncate">{{ mov.tipoMovimientoNombre }}</td>
+          <td>{{ mov.fechaMovimiento | date:'dd/MM/yyyy' }}</td>
+          <td><span class="estado-chip" [ngClass]="'estado-chip--mov-' + mov.estado.toLowerCase()">{{ mov.estado }}</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Accesos rápidos -->
+  <div class="section-card">
+    <div class="section-card__header">
+      <h2 class="section-card__title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        Accesos Rápidos
+      </h2>
+    </div>
+    <div class="quick-grid">
+      <button class="quick-btn" (click)="irA('/productos')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+        Productos
+      </button>
+      <button class="quick-btn" (click)="irA('/producto-existencias')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Existencias
+      </button>
+      <button class="quick-btn" (click)="irA('/movimientos-inventario')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Movimientos
+      </button>
+      <button class="quick-btn" (click)="irA('/kardex')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+        Kardex
+      </button>
+      <button class="quick-btn" (click)="irA('/solicitudes-transferencia')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3"/><path d="M19 9l3 3-3 3"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+        Transferencias
+      </button>
+      <button class="quick-btn" (click)="irA('/producto-lotes')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4z"/><path d="M4 12h16v4H4z"/></svg>
+        Lotes
+      </button>
+    </div>
+  </div>
+
+</div>

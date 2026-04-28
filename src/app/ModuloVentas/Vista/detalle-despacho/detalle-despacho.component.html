@@ -1,67 +1,150 @@
 <div class="detalle-despacho-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Detalles de Despacho</h1>
-      <p class="subtitle">Gestión de items de despachos</p>
+
+  <!-- ═══ LIST VIEW ═══ -->
+  <div class="list-view" *ngIf="!showForm">
+    <div class="page-header">
+      <div class="page-header-left">
+        <nav class="page-breadcrumb">Ventas <span class="separator">›</span> Detalles de Despacho</nav>
+        <h1>Detalles de Despacho</h1>
+      </div>
+      <button class="btn btn-primary" (click)="abrirFormCrear()">+ Nuevo Detalle</button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <input type="text" placeholder="Buscar por despacho o producto…"
+               [(ngModel)]="busqueda" (input)="filtrarDetalles()" class="form-control" />
+      </div>
+      <span class="result-count">{{ detallesFiltrados.length }} resultado(s)</span>
+    </div>
+
+    <div *ngIf="loading" class="inline-loader">Cargando…</div>
+
+    <div class="table-wrapper" *ngIf="!loading">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Despacho</th>
+            <th>Producto ID</th>
+            <th>Lote ID</th>
+            <th class="text-right">Cant. Ordenada</th>
+            <th class="text-right">Cant. Despachada</th>
+            <th>Observaciones</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let detalle of detallesFiltrados">
+            <td class="td-mono">{{ detalle.id }}</td>
+            <td class="td-mono">{{ detalle.despachoNumero }}</td>
+            <td class="td-mono">{{ detalle.productoId }}</td>
+            <td class="td-mono">{{ detalle.loteId || '—' }}</td>
+            <td class="text-right td-mono">{{ detalle.cantidadOrdenada }}</td>
+            <td class="text-right td-mono">{{ detalle.cantidadDespachada }}</td>
+            <td class="text-muted">{{ detalle.observaciones || '—' }}</td>
+            <td>
+              <button class="btn-icon btn-edit" (click)="abrirFormEditar(detalle)" title="Editar">✎</button>
+              <button class="btn-icon btn-delete" (click)="eliminarDetalle(detalle)" title="Eliminar">✕</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="list-empty" *ngIf="detallesFiltrados.length === 0">
+        No se encontraron detalles de despacho.
+      </div>
     </div>
   </div>
 
-  <!-- Barra de búsqueda -->
-  <div class="search-bar">
-    <div class="search-input-wrapper">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
-      <input 
-        type="text" 
-        class="search-input" 
-        placeholder="Buscar por despacho, producto..."
-        [(ngModel)]="busqueda"
-        (input)="filtrarDetalles()"
-      >
+  <!-- ═══ FORM VIEW ═══ -->
+  <div class="form-view" *ngIf="showForm">
+    <div class="form-page-header">
+      <div class="form-page-header-text">
+        <nav class="page-breadcrumb">
+          Ventas <span class="separator">›</span>
+          <button class="btn-back" (click)="cerrarForm()">Detalles de Despacho</button>
+          <span class="separator">›</span>
+          {{ isEditing ? 'Editar Detalle' : 'Nuevo Detalle' }}
+        </nav>
+        <h1>{{ isEditing ? 'Editar Detalle de Despacho' : 'Nuevo Detalle de Despacho' }}</h1>
+        <p class="form-page-subtitle">Registre las cantidades ordenadas y despachadas</p>
+      </div>
+    </div>
+
+    <form [formGroup]="detalleForm">
+
+      <div class="form-card">
+        <div class="form-card-header">Datos del Despacho</div>
+        <div class="form-card-body">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>ID Despacho <span class="required">*</span></label>
+              <input type="number" formControlName="despachoId" min="1"
+                     [class.invalid]="isFieldInvalid('despachoId')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('despachoId')">
+                {{ getFieldError('despachoId') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label>ID Detalle Orden Venta <span class="required">*</span></label>
+              <input type="number" formControlName="detalleOrdenVentaId" min="1"
+                     [class.invalid]="isFieldInvalid('detalleOrdenVentaId')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('detalleOrdenVentaId')">
+                {{ getFieldError('detalleOrdenVentaId') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label>ID Producto <span class="required">*</span></label>
+              <input type="number" formControlName="productoId" min="1"
+                     [class.invalid]="isFieldInvalid('productoId')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('productoId')">
+                {{ getFieldError('productoId') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label>ID Lote</label>
+              <input type="number" formControlName="loteId" min="1" />
+            </div>
+
+            <div class="form-group">
+              <label>Cantidad Ordenada <span class="required">*</span></label>
+              <input type="number" formControlName="cantidadOrdenada" min="0.01" step="0.01"
+                     [class.invalid]="isFieldInvalid('cantidadOrdenada')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('cantidadOrdenada')">
+                {{ getFieldError('cantidadOrdenada') }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label>Cantidad Despachada <span class="required">*</span></label>
+              <input type="number" formControlName="cantidadDespachada" min="0" step="0.01"
+                     [class.invalid]="isFieldInvalid('cantidadDespachada')" />
+              <span class="error-msg" *ngIf="isFieldInvalid('cantidadDespachada')">
+                {{ getFieldError('cantidadDespachada') }}
+              </span>
+            </div>
+
+            <div class="form-group form-grid-full">
+              <label>Observaciones</label>
+              <textarea formControlName="observaciones" rows="3"></textarea>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+    <div class="form-page-footer">
+      <button class="btn btn-secondary" (click)="cerrarForm()">Cancelar</button>
+      <button class="btn btn-primary" (click)="guardarDetalle()">
+        {{ isEditing ? 'Actualizar' : 'Guardar' }}
+      </button>
     </div>
   </div>
 
-  <!-- Loading -->
-  <div class="loading-container" *ngIf="loading">
-    <div class="spinner"></div>
-    <p>Cargando detalles...</p>
-  </div>
-
-  <!-- Tabla -->
-  <div class="table-container" *ngIf="!loading">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Despacho</th>
-          <th>Producto</th>
-          <th>Cant. Ordenada</th>
-          <th>Cant. Despachada</th>
-          <th>Cant. Pendiente</th>
-          <th>Estado</th>
-          <th>Observaciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let detalle of detallesFiltrados">
-          <td>{{ detalle.despachoNumero || detalle.despachoId }}</td>
-          <td>{{ detalle.productoId }}</td>
-          <td class="text-center">{{ detalle.cantidadOrdenada }}</td>
-          <td class="text-center">{{ detalle.cantidadDespachada }}</td>
-          <td class="text-center">{{ detalle.cantidadPendiente }}</td>
-          <td>
-            <span class="badge" [ngClass]="detalle.estaCompleto ? 'badge-success' : 'badge-warning'">
-              {{ detalle.estaCompleto ? 'Completo' : 'Pendiente' }}
-            </span>
-          </td>
-          <td>{{ detalle.observaciones || '-' }}</td>
-        </tr>
-        <tr *ngIf="detallesFiltrados.length === 0">
-          <td colspan="7" class="no-data">No se encontraron detalles</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 </div>
